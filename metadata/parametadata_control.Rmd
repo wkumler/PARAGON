@@ -9,7 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(ggmap)
-
 ```
 
 ## Read in water column .gof file
@@ -130,15 +129,14 @@ seaflowdata %>%
 ## Create file data from MS samples
 
 ```{r}
-samp_filedata <- "../mzMLs" %>%
-  list.files(pattern = "Smp.*mzML", recursive = TRUE) %>% 
+samp_filedata <- "mzMLs" %>%
+  list.files(pattern = "Smp.*mzML", recursive = TRUE, full.names = TRUE) %>% 
   data.frame(filepath=.) %>%
   mutate(filename=basename(filepath)) %>%
-  mutate(shortname=basename(filepath)) %>%
-  mutate(shortname=str_remove(shortname, "-wIS|-noIS-neg|-noIS-pos")) %>%
+  mutate(shortname=str_remove(filename, "-wIS|-noIS-neg|-noIS-pos")) %>%
   mutate(shortname=str_remove(shortname, ".*_Smp_")) %>%
   mutate(IS_type=str_extract(filepath, "wIS|noIS")) %>%
-  mutate(polarity=dirname(filepath)) %>%
+  mutate(polarity=str_extract(filepath, "neg|pos")) %>%
   mutate(amendment=str_extract(shortname, "Nit|Amm|Arg|GMP")) %>%
   mutate(depth=str_extract(shortname, "Deep|Surf")) %>%
   mutate(startime=str_extract(shortname, "Eve|Morn")) %>%
@@ -171,6 +169,6 @@ samp_filedata <- samp_filedata %>%
 ```
 
 ```{r write out}
-write_csv(samp_filedata, file = "samp_filedata.csv")
+write_csv(samp_filedata, file = "metadata/samp_filedata.csv")
 ```
 
