@@ -1,20 +1,11 @@
----
-title: "Metadata collation"
-author: "William Kumler"
-date: "`r Sys.Date()`"
-output: html_document
----
-
-```{r setup, include=FALSE}
+## ----setup, include=FALSE-------------------------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(ggmap)
 library(RaMS)
-```
 
-## Read in water column .gof file
 
-```{r download raw data, eval=!file.exists("metadata/raw_data/paragon1.gof")}
+## ----download raw data, eval=!file.exists("metadata/raw_data/paragon1.gof")-----------------
 sum_url <- "http://scope.soest.hawaii.edu/data/scope2021/paragon1.sum"
 download.file(sum_url, destfile = "metadata/raw_data/paragon1.sum")
 
@@ -31,11 +22,9 @@ download.file(seaflow_url, destfile = "metadata/raw_data/SeaFlow_dataset_v1.4.xl
 magick::image_read("http://scope.soest.hawaii.edu/data/scope2021/Paragon1CTDchlp.pdf", density = 300) %>%
   magick::image_trim() %>%
   magick::image_write("metadata/raw_data/chl_pdf_url.png", format = "png")
-```
 
-![](metadata/raw_data/chl_pdf_url.png)
 
-```{r From SCOPE FTP}
+## ----From SCOPE FTP-------------------------------------------------------------------------
 para_cast_times <- "metadata/raw_data/paragon1.sum" %>%
   read_table(skip = 3, col_names = FALSE, col_types = cols(.default = col_character())) %>%
   mutate(mdyhms=paste(X3, X4, X5, X6)) %>%
@@ -71,9 +60,9 @@ para_core <- raw_gof %>%
   left_join(para_cast_times) %>%
   select(station:rosette, time, lat:oxy_um, chl_ug:phaeo_ug) %>%
   mutate(lon=-lon)
-```
 
-```{r visualize}
+
+## ----visualize------------------------------------------------------------------------------
 my_casts <- c(4, 5, 9, 11, 13, 14, 16, 18, 25, 27, 31, 32, 34, 36, 39, 41)
 
 gm <- readRDS("metadata/raw_data/ggmap_of_aloha.rds")
@@ -124,12 +113,9 @@ seaflowdata %>%
   geom_point(aes(x=time, y=value)) +
   facet_wrap(~name, ncol=1, scales="free_y") +
   scale_x_datetime(timezone = "HST", date_breaks = "1 day", date_labels="%b %d")
-```
 
 
-## Create file data from MS samples
-
-```{r}
+## -------------------------------------------------------------------------------------------
 samp_filedata <- "mzMLs" %>%
   list.files(pattern = "Smp.*mzML", recursive = TRUE, full.names = TRUE) %>% 
   data.frame(filepath=.) %>%
@@ -167,25 +153,19 @@ station_samp_map <- tribble(
 
 samp_filedata <- samp_filedata %>%
   left_join(station_samp_map)
-```
 
 
-## Get file timestamps using RaMS
-
-```{r}
+## -------------------------------------------------------------------------------------------
 mzml_timestamps <- grabMSdata(samp_filedata$filepath, grab_what = "metadata") %>%
   pluck("metadata") %>%
   select(filename, timestamp)
 samp_filedata <- left_join(samp_filedata, mzml_timestamps)
-```
 
-## Write out and purl doc
 
-```{r write out}
+## ----write out------------------------------------------------------------------------------
 write_csv(samp_filedata, file = "metadata/samp_filedata.csv")
-```
 
-```{r purl}
+
+## ----purl-----------------------------------------------------------------------------------
 knitr::purl("metadata/parametadata_control.Rmd", "metadata/parametadata_control.R")
-```
 
