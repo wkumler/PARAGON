@@ -3,4 +3,5 @@
 !metadata/*
 !untargeted/*
 !tmzMLs/*
+!mzMLs/*
 .Rproj.user
