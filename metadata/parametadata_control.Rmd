@@ -136,6 +136,7 @@ samp_filedata <- "mzMLs" %>%
   mutate(filename=basename(filepath)) %>%
   mutate(shortname=str_remove(filename, "-wIS|-noIS-neg|-noIS-pos")) %>%
   mutate(shortname=str_remove(shortname, ".*_Smp_")) %>%
+  mutate(samp_type="Smp") %>%
   mutate(IS_type=str_extract(filepath, "wIS|noIS")) %>%
   mutate(polarity=str_extract(filepath, "neg|pos")) %>%
   mutate(amendment=str_extract(shortname, "Nit|Amm|Arg|GMP")) %>%
@@ -165,7 +166,23 @@ station_samp_map <- tribble(
 ) %>%
   mutate(station=2)
 
-samp_filedata <- samp_filedata %>%
+other_filedata <- "mzMLs" %>%
+  list.files(recursive = TRUE, full.names = TRUE) %>%
+  str_subset("Smp.*mzML", negate = TRUE) %>%
+  str_subset("MSMS", negate = TRUE) %>%
+  str_subset("TMAO", negate = TRUE) %>%
+  data.frame(filepath=.) %>%
+  mutate(filename=basename(filepath)) %>%
+  mutate(shortname=str_remove(filename, "-wIS|-noIS-neg|-noIS-pos")) %>%
+  mutate(shortname=str_remove(shortname, ".*_Poo_|.*_Std_(4uMStds)?")) %>%
+  mutate(samp_type=str_extract(filename, "Poo|Std")) %>%
+  mutate(IS_type=str_extract(filepath, "wIS|noIS")) %>%
+  mutate(polarity=str_extract(filepath, "neg|pos")) %>%
+  mutate(amendment=str_extract(shortname, "Nit|Amm|Arg|GMP")) %>%
+  fill(IS_type, amendment, .direction = "down")
+
+all_filedata <- samp_filedata %>%
+  bind_rows(other_filedata) %>%
   left_join(station_samp_map)
 ```
 
@@ -173,19 +190,14 @@ samp_filedata <- samp_filedata %>%
 ## Get file timestamps using RaMS
 
 ```{r}
-mzml_timestamps <- grabMSdata(samp_filedata$filepath, grab_what = "metadata") %>%
+mzml_timestamps <- grabMSdata(all_filedata$filepath, grab_what = "metadata") %>%
   pluck("metadata") %>%
   select(filename, timestamp)
-samp_filedata <- left_join(samp_filedata, mzml_timestamps)
+parametadata <- left_join(all_filedata, mzml_timestamps)
 ```
 
-## Write out and purl doc
+## Write out
 
 ```{r write out}
-write_csv(samp_filedata, file = "metadata/samp_filedata.csv")
+write_csv(parametadata, file = "metadata/parametadata.csv")
 ```
-
-```{r purl}
-knitr::purl("metadata/parametadata_control.Rmd", "metadata/parametadata_control.R")
-```
-
