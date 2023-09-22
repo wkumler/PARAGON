@@ -1,0 +1,142 @@
+---
+title: "Untargeted control doc"
+author: "William Kumler"
+date: '`r Sys.Date()`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, purl=FALSE)
+options(pillar.sigfig=7)
+options(readr.num_columns = 0)
+options(readr.show_col_types = FALSE)
+library(tidyverse)
+library(data.table)
+library(xcms)
+library(RaMS)
+library(arrow)
+
+parametadata <- read_csv("metadata/samp_filedata.csv") %>% distinct()
+
+# polarity <- "pos"
+polarity <- "neg"
+amendment <- "Amm"
+# amendment <- "Nit"
+# amendment <- "GMP"
+# amendment <- "Arg"
+IS_type <- "noIS"
+# IS_type <- "wIS"
+
+output_folder <- paste(amendment, polarity, IS_type, "output", sep = "_") %>%
+  paste0("untargeted/", ., "/")
+if(!dir.exists(output_folder))dir.create(output_folder)
+output_csv_write <- function(object){
+  obj_name <- deparse(substitute(object))
+  write_csv(object, file = paste0(output_folder, obj_name, ".csv"))
+}
+
+xcms_file_data <- parametadata %>%
+  filter(amendment==!!amendment) %>%
+  filter(polarity==!!polarity) %>%
+  filter(IS_type==!!IS_type) %>%
+  mutate(samp_group=paste(amendment, depth, startime, timepoint, sep="-"))
+```
+
+```{r xcms}
+parallel_param <- SnowParam(
+  workers = parallel::detectCores()-1, 
+  tasks = nrow(xcms_file_data), 
+  progressbar = TRUE
+)
+
+register(BPPARAM = SerialParam(progressbar = TRUE))
+msnexp <- readMSData(
+  files = xcms_file_data$filepath, 
+  pdata = new("NAnnotatedDataFrame", xcms_file_data), 
+  msLevel. = 1, 
+  mode = "onDisk"
+)
+
+cwp <- CentWaveParam(
+  ppm = 5, 
+  peakwidth = c(20, 80), 
+  prefilter = c(3, 1e5), 
+  snthresh = 0, 
+  verboseColumns = TRUE, 
+  extendLengthMSW = TRUE, 
+  integrate = 2,
+  verboseBetaColumns = TRUE
+)
+msnexp_withpeaks <- findChromPeaks(msnexp, cwp, BPPARAM=parallel_param)
+
+# mid_file <- xcms_file_data %>%
+#   arrange(abs(timestamp-mean(timestamp))) %>%
+#   select(filename, timestamp) %>%
+#   slice(1) %>%
+#   pull(filename)
+# mid_file_idx <- which(basename(fileNames(msnexp_filled))==mid_file)
+# obp <- ObiwarpParam(binSize = 1, response = 1, distFun = "cor_opt", 
+#                     centerSample = mid_file_idx)
+# msnexp_rtcor <- adjustRtime(msnexp_withpeaks, obp)
+
+register(BPPARAM = SerialParam(progressbar = TRUE))
+pdp <- PeakDensityParam(
+  sampleGroups = xcms_file_data$samp_group, 
+  bw = 12, 
+  minFraction = 0, 
+  binSize = 0.001, 
+  minSamples = 2
+)
+msnexp_grouped <- groupChromPeaks(msnexp_withpeaks, pdp)
+
+fpp <- FillChromPeaksParam(ppm = 10)
+msnexp_filled <- fillChromPeaks(msnexp_grouped, fpp, BPPARAM=parallel_param)
+
+saveRDS(msnexp_filled, paste0(output_folder, "msnexp_filled.rds"))
+```
+
+```{r xcms QC, eval=FALSE}
+msnexp_filled <- readRDS(paste0(output_folder, "msnexp_filled.rds"))
+
+rt_corrections <- data.frame(initrt=rtime(msnexp_rtcor, adjusted = FALSE),
+                             adjrt=rtime(msnexp_rtcor, adjusted = TRUE)) %>%
+  rownames_to_column("fileidx") %>%
+  mutate(fileidx=as.numeric(str_extract(fileidx, "(?<=F)\\d+"))) %>%
+  mutate(filename=basename(fileNames(msnexp_rtcor)[fileidx]))
+
+rt_corrections %>%
+  left_join(xcms_file_data) %>%
+  ggplot() +
+  geom_line(aes(x=adjrt, y=adjrt-initrt, group=filename, color=timestamp))
+
+bet_eic <- dset %>%
+  filter(mz%between%pmppm(118.0865, 10)) %>%
+  dplyr::collect()
+bet_eic %>%
+  mutate(rt=round(rt*60, digits=7)) %>%
+  left_join(rt_corrections %>% mutate(initrt=round(initrt, digits=7)), 
+            by=c("filename", rt="initrt")) %>%
+  # filter(is.na(adjrt))
+  ggplot() +
+  geom_line(aes(x=rt, y=int, group=filename))
+```
+
+```{r making peak_data}
+msnexp_filled <- readRDS(paste0(output_folder, "msnexp_filled.rds"))
+peak_data_long <- msnexp_filled %>%
+  chromPeaks() %>%
+  as.data.frame() %>%
+  rownames_to_column() %>%
+  mutate(peakidx=row_number())
+peak_data <- msnexp_filled %>%
+  featureDefinitions() %>%
+  as.data.frame() %>%
+  select(mzmed, rtmed, npeaks, peakidx) %>%
+  rownames_to_column("id") %>%
+  unnest_longer(peakidx) %>%
+  rename_with(~paste0("feat_", .x), .cols = -peakidx) %>%
+  dplyr::rename(feature="feat_id") %>%
+  left_join(peak_data_long, by = join_by(peakidx)) %>%
+  mutate(filename=basename(fileNames(msnexp_filled))[sample])
+output_csv_write(peak_data)
+```
