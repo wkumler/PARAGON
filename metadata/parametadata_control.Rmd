@@ -196,12 +196,51 @@ if(!file.exists("metadata/raw_data/mzml_timestamps.csv")){
     select(filename, timestamp)
   write_csv(mzml_timestamps, "metadata/raw_data/mzml_timestamps.csv")
 }
-mzml_timestamps <- read_csv("metadata/raw_data/mzml_timestamps.csv")
-parametadata <- left_join(all_filedata, mzml_timestamps)
+mzml_timestamps <- read_csv("metadata/raw_data/mzml_timestamps.csv") %>%
+  distinct()
+parametadata <- all_filedata %>%
+  left_join(mzml_timestamps, by="filename")
 ```
 
-## Write out
+## Write out clean parametadata file
 
 ```{r write out}
 write_csv(parametadata, file = "metadata/parametadata.csv")
 ```
+
+## Create a clean and static list of standards
+
+```{r stans}
+base_url <- "https://raw.githubusercontent.com/IngallsLabUW/Ingalls_Standards/"
+mix_stans <- base_url %>%
+  paste0("1ddd97186fa9df1646941aec903dc64a65ef6cfe/Ingalls_Lab_Standards.csv") %>%
+  read_csv() %>%
+  select(compound_name=Compound_Name, mix=HILIC_Mix) %>%
+  drop_na() %>%
+  distinct()
+custom_stans <- base_url %>%
+  paste0("master/data_extra/custom_stans.csv") %>%
+  read_csv() %>%
+  select(compound_name=Compound_Name, mz, rt=RT_minute, z,
+         conc_um=Concentration_uM, compound_type=Compound_Type,
+         formula=Empirical_Formula, date_added=Date_Added, mix=HILIC_Mix) %>%
+  mutate(column="HILIC") %>%
+  mutate(date_added=230101) %>%
+  mutate(compound_name=str_remove(compound_name, "\\?$"))
+
+all_stans <- paste0(base_url, "master/Ingalls_Lab_Standards.csv") %>%
+  read_csv() %>%
+  select(compound_name=Compound_Name, mz, rt=RT_minute, z, column=Column, 
+         conc_um=Concentration_uM, compound_type=Compound_Type,
+         formula=Empirical_Formula, date_added=Date_Added) %>%
+  filter(column=="HILIC") %>%
+  left_join(mix_stans, by="compound_name") %>%
+  bind_rows(custom_stans) %>%
+  mutate(date_added=ifelse(is.na(date_added), 230101, date_added)) %>%
+  mutate(compound_name=ifelse(date_added<210813, compound_name,
+                              paste0(compound_name, "?"))) %>%
+  mutate(polarity=ifelse(z<0, "neg", "pos")) %>%
+  arrange(mz, rt)
+write_csv(all_stans, "metadata/all_stans.csv")
+```
+
