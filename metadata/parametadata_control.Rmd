@@ -167,7 +167,7 @@ station_samp_map <- tribble(
   mutate(station=2)
 
 other_filedata <- "mzMLs" %>%
-  list.files(recursive = TRUE, full.names = TRUE) %>%
+  list.files(recursive = TRUE, full.names = TRUE, pattern = ".mzML") %>%
   str_subset("Smp.*mzML", negate = TRUE) %>%
   str_subset("MSMS", negate = TRUE) %>%
   str_subset("TMAO", negate = TRUE) %>%
