@@ -183,16 +183,21 @@ other_filedata <- "mzMLs" %>%
 
 all_filedata <- samp_filedata %>%
   bind_rows(other_filedata) %>%
-  left_join(station_samp_map)
+  left_join(station_samp_map) %>%
+  distinct()
 ```
 
 
 ## Get file timestamps using RaMS
 
 ```{r}
-mzml_timestamps <- grabMSdata(all_filedata$filepath, grab_what = "metadata") %>%
-  pluck("metadata") %>%
-  select(filename, timestamp)
+if(!file.exists("metadata/raw_data/mzml_timestamps.csv")){
+  mzml_timestamps <- grabMSdata(all_filedata$filepath, grab_what = "metadata") %>%
+    pluck("metadata") %>%
+    select(filename, timestamp)
+  write_csv(mzml_timestamps, "metadata/raw_data/mzml_timestamps.csv")
+}
+mzml_timestamps <- read_csv("metadata/raw_data/mzml_timestamps.csv")
 parametadata <- left_join(all_filedata, mzml_timestamps)
 ```
 
