@@ -171,7 +171,7 @@ other_filedata <- "mzMLs" %>%
   str_subset("Smp.*mzML", negate = TRUE) %>%
   str_subset("MSMS", negate = TRUE) %>%
   str_subset("TMAO", negate = TRUE) %>%
-  data.frame(filepath=.) %>%
+  data.frame(filepath=.) %>% 
   mutate(filename=basename(filepath)) %>%
   mutate(shortname=str_remove(filename, "-wIS|-noIS-neg|-noIS-pos")) %>%
   mutate(shortname=str_remove(shortname, ".*_Poo_|.*_Std_(4uMStds)?")) %>%
@@ -182,9 +182,8 @@ other_filedata <- "mzMLs" %>%
   fill(IS_type, amendment, .direction = "down")
 
 all_filedata <- samp_filedata %>%
-  bind_rows(other_filedata) %>%
-  left_join(station_samp_map) %>%
-  distinct()
+  bind_rows(other_filedata) %>% 
+  left_join(station_samp_map)
 ```
 
 
