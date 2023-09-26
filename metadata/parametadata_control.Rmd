@@ -235,6 +235,7 @@ all_stans <- paste0(base_url, "master/Ingalls_Lab_Standards.csv") %>%
          formula=Empirical_Formula, date_added=Date_Added) %>%
   filter(column=="HILIC") %>%
   left_join(mix_stans, by="compound_name") %>%
+  filter(compound_name!="Turicine") %>%
   bind_rows(custom_stans) %>%
   mutate(date_added=ifelse(is.na(date_added), 230101, date_added)) %>%
   mutate(compound_name=ifelse(date_added<210813, compound_name,
