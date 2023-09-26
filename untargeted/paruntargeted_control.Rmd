@@ -139,7 +139,11 @@ all_feat_data <- peak_data %>%
 
 if(amendment=="Amm"){
   if(polarity=="pos"){
-    rescue_feats <- c("FT3015", "FT1319", "FT1321")
+    rescue_feats <- c("FT3015", Allopurinol="FT1319", Hypoxanthine="FT1321",
+                      `DMSOP`="FT1688", "Guan from guan"="FT1707", Tyrosine="FT2200",
+                      Phosphocholine="FT2228", Trimethyllysine="FT2278",
+                      Dexpanthenol="FT2426", Cytidine="FT2792",
+                      Mycogly='FT2814', Inosine="FT2960", Guanosine="FT3015")
   } else if(polarity=="neg"){
     
   }
@@ -240,42 +244,13 @@ all_stans <- read_csv("metadata/all_stans.csv") %>%
 #       write_csv("untargeted/anno_template.csv", append = TRUE)
 # })
 # # Gets copy-pasted into the Excel file manual_annotations.xlsx
+# # Then run eicscript.R to render the EICs for each standard and fill it in
+# # Afterward, use the "rescue_feats" object above to add those that didn't
+# # pass QC for shape or SNR back in
 
-pdf(paste0(output_folder, "anno_eics.pdf"), width = 8, height = 4)
-all_stans %>%
-  filter(polarity==!!polarity) %>%
-  mutate(mz=ifelse(compound_name=="Carnitine", mz[which(compound_name=="Threonine betaine?")], mz)) %>%
-  group_by(mz) %>%
-  summarise(cmpd_lab=paste0(compound_name, " (", mix, " ,", rt, ")", collapse = ", ")) %>%
-  slice(2) %>%
-  pwalk(function(...){
-    row_data <- list(...)
-    mass_feats <- best_feat_data %>% filter(mzmed%between%pmppm(row_data$mz, 5))
-    chosen_eic <- open_dataset("tmzMLs/pqds") %>%
-      filter(polarity==!!polarity) %>%
-      filter(amendment==!!amendment) %>%
-      filter(samp_type=="Poo" | samp_type=="Std") %>%
-      filter(mz%between%pmppm(row_data$mz, 5)) %>%
-      filter(rt%between%c(2, 20)) %>%
-      dplyr::collect()
-    gp_plot <- chosen_eic %>%
-      left_join(parametadata, by = join_by(filename, samp_type, amendment, polarity)) %>%
-      mutate(samp_type=str_extract(filename, "Mix\\d|Deep|Surf|Poo|Blk")) %>%
-      filter(!str_detect(filename, "Mat")) %>%
-      mutate(plot_facet=ifelse(samp_type%in%c("Mix1", "Mix2"), "Mixes", "Samples")) %>%
-      ggplot() +
-      geom_line(aes(x=rt, y=int, group=filename, color=samp_type)) +
-      facet_wrap(~plot_facet, scales = "free_y", ncol=1) +
-      geom_vline(aes(xintercept=rtmed), color="black", data = mass_feats) +
-      geom_text(aes(x=rtmed, y=Inf, label=feature), 
-                angle=90, hjust=1, vjust=1, data = mass_feats) +
-      ggtitle(row_data$cmpd_lab) +
-      scale_x_continuous(breaks = 2:20) +
-      theme_bw() +
-      theme(legend.position = c(0.9, 0.8), legend.title = element_blank(),
-            axis.title = element_blank())
-    print(gp_plot)
-  }, .progress = TRUE)
-dev.off()
+manual_anno <- readxl::read_excel("untargeted/manual_annotations.xlsx")
+
+manual_anno %>% filter(str_detect(notes, "Unpicked"))
 ```
+
 
