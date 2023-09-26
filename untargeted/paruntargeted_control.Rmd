@@ -230,14 +230,22 @@ mass_check(c("Proline"=116.0712))
 
 ```{r annotate}
 all_stans <- read_csv("metadata/all_stans.csv") %>%
-  filter(polarity==!!polarity)
+  mutate(polarity=factor(polarity, levels=c("pos", "neg"))) %>%
+  arrange(polarity)
+# map(c("Amm", "Nit", "GMP", "Arg"), function(amendment_i){
+#   all_stans %>%
+#       mutate(amendment=amendment_i) %>%
+#       select(amendment, polarity, compound_name, mz, rt, date_added, mix) %>%
+#       write_csv("untargeted/anno_template.csv", append = TRUE)
+# })
+# # Gets copy-pasted into the Excel file manual_annotations.xlsx
 
 pdf(paste0(output_folder, "anno_eics.pdf"), width = 8, height = 4)
 all_stans %>%
   filter(compound_type!="Internal Standard") %>%
   mutate(mz=ifelse(compound_name=="Carnitine", mz[which(compound_name=="Threonine betaine?")], mz)) %>%
   group_by(mz) %>%
-  summarise(cmpd_lab=paste0(compound_name, " (", mix, ",", rt, ")", collapse = ", ")) %>%
+  summarise(cmpd_lab=paste0(compound_name, " (", mix, " ,", rt, ")", collapse = ", ")) %>%
   # head(6) %>%
   pwalk(function(...){
     row_data <- list(...)
