@@ -231,7 +231,8 @@ mass_check(c("Proline"=116.0712))
 ```{r annotate}
 all_stans <- read_csv("metadata/all_stans.csv") %>%
   mutate(polarity=factor(polarity, levels=c("pos", "neg"))) %>%
-  arrange(polarity)
+  arrange(polarity) %>%
+  filter(compound_type!="Internal Standard")
 # map(c("Amm", "Nit", "GMP", "Arg"), function(amendment_i){
 #   all_stans %>%
 #       mutate(amendment=amendment_i) %>%
@@ -242,11 +243,11 @@ all_stans <- read_csv("metadata/all_stans.csv") %>%
 
 pdf(paste0(output_folder, "anno_eics.pdf"), width = 8, height = 4)
 all_stans %>%
-  filter(compound_type!="Internal Standard") %>%
+  filter(polarity==!!polarity) %>%
   mutate(mz=ifelse(compound_name=="Carnitine", mz[which(compound_name=="Threonine betaine?")], mz)) %>%
   group_by(mz) %>%
   summarise(cmpd_lab=paste0(compound_name, " (", mix, " ,", rt, ")", collapse = ", ")) %>%
-  # head(6) %>%
+  slice(2) %>%
   pwalk(function(...){
     row_data <- list(...)
     mass_feats <- best_feat_data %>% filter(mzmed%between%pmppm(row_data$mz, 5))
@@ -267,7 +268,7 @@ all_stans %>%
       facet_wrap(~plot_facet, scales = "free_y", ncol=1) +
       geom_vline(aes(xintercept=rtmed), color="black", data = mass_feats) +
       geom_text(aes(x=rtmed, y=Inf, label=feature), 
-                angle=90, hjust=1, vjust=0.5, data = mass_feats) +
+                angle=90, hjust=1, vjust=1, data = mass_feats) +
       ggtitle(row_data$cmpd_lab) +
       scale_x_continuous(breaks = 2:20) +
       theme_bw() +
