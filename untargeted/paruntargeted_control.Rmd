@@ -12,20 +12,26 @@ options(readr.num_columns = 0)
 options(readr.show_col_types = FALSE)
 library(tidyverse)
 library(data.table)
+library(arrow)
 library(xcms)
 library(RaMS)
-library(arrow)
 
-parametadata <- read_csv("metadata/samp_filedata.csv") %>% distinct()
-
-# polarity <- "pos"
-polarity <- "neg"
+polarity <- "pos"
+# polarity <- "neg"
 amendment <- "Amm"
 # amendment <- "Nit"
 # amendment <- "GMP"
 # amendment <- "Arg"
 IS_type <- "noIS"
 # IS_type <- "wIS"
+
+parametadata <- read_csv("metadata/parametadata.csv") %>% 
+  filter(polarity==!!polarity) %>%
+  filter(amendment==!!amendment) %>%
+  filter(IS_type==!!IS_type)
+
+chosen_stans <- read_csv("metadata/all_stans.csv") %>%
+  filter(polarity==!!polarity)
 
 output_folder <- paste(amendment, polarity, IS_type, "output", sep = "_") %>%
   paste0("untargeted/", ., "/")
@@ -97,31 +103,9 @@ saveRDS(msnexp_filled, paste0(output_folder, "msnexp_filled.rds"))
 
 ```{r xcms QC, eval=FALSE}
 msnexp_filled <- readRDS(paste0(output_folder, "msnexp_filled.rds"))
-
-rt_corrections <- data.frame(initrt=rtime(msnexp_rtcor, adjusted = FALSE),
-                             adjrt=rtime(msnexp_rtcor, adjusted = TRUE)) %>%
-  rownames_to_column("fileidx") %>%
-  mutate(fileidx=as.numeric(str_extract(fileidx, "(?<=F)\\d+"))) %>%
-  mutate(filename=basename(fileNames(msnexp_rtcor)[fileidx]))
-
-rt_corrections %>%
-  left_join(xcms_file_data) %>%
-  ggplot() +
-  geom_line(aes(x=adjrt, y=adjrt-initrt, group=filename, color=timestamp))
-
-bet_eic <- dset %>%
-  filter(mz%between%pmppm(118.0865, 10)) %>%
-  dplyr::collect()
-bet_eic %>%
-  mutate(rt=round(rt*60, digits=7)) %>%
-  left_join(rt_corrections %>% mutate(initrt=round(initrt, digits=7)), 
-            by=c("filename", rt="initrt")) %>%
-  # filter(is.na(adjrt))
-  ggplot() +
-  geom_line(aes(x=rt, y=int, group=filename))
 ```
 
-```{r making peak_data}
+```{r making peak_data and feat_data}
 msnexp_filled <- readRDS(paste0(output_folder, "msnexp_filled.rds"))
 peak_data_long <- msnexp_filled %>%
   chromPeaks() %>%
@@ -139,4 +123,55 @@ peak_data <- msnexp_filled %>%
   left_join(peak_data_long, by = join_by(peakidx)) %>%
   mutate(filename=basename(fileNames(msnexp_filled))[sample])
 output_csv_write(peak_data)
+
+all_feat_data <- peak_data %>%
+  left_join(parametadata) %>%
+  filter(samp_type=="Smp") %>%
+  group_by(feature) %>%
+  summarize(mzmed=unique(feat_mzmed), rtmed=unique(feat_rtmed)/60, n=n(),
+            med_cor=median(beta_cor, na.rm=TRUE), 
+            med_snr=median(beta_snr, na.rm=TRUE))
+# all_feat_data %>%
+#   # filter(med_cor>0.75) %>%
+#   mutate(n_group=cut(n, breaks = c(0, 2, 10, 40, 60, 62, 100, 130, Inf))) %>%
+#   ggplot(aes(label=feature)) +
+#   geom_point(aes(x=med_cor, y=med_snr, color=n_group))
+
+best_feat_data <- all_feat_data %>%
+  filter(med_cor>0.75) %>%
+  select(-med_cor, -med_snr)
+output_csv_write(best_feat_data)
 ```
+
+```{r diagnostic plots}
+mass_check <- function(mz_i){
+  mass_feats <- best_feat_data %>% 
+    filter(mzmed%between%pmppm(mz_i, 5)) %>%
+    print()
+  chosen_eic <- open_dataset("tmzMLs/pqds") %>%
+    filter(polarity==!!polarity) %>%
+    filter(amendment==!!amendment) %>%
+    filter(mz%between%pmppm(mz_i, 5)) %>%
+    filter(rt%between%c(2, 20)) %>%
+    dplyr::collect()
+  ggtitle_i <- ifelse(is.null(names(mz_i)), mz_i, names(mz_i))
+  chosen_eic %>%
+    left_join(parametadata, by = join_by(filename, samp_type, amendment, polarity)) %>%
+    mutate(samp_type=str_extract(filename, "Mix\\d|Deep|Surf|Poo|Blk")) %>%
+    filter(!str_detect(filename, "Mat")) %>%
+    mutate(plot_facet=ifelse(samp_type%in%c("Mix1", "Mix2"), "Mixes", "Samples")) %>%
+    ggplot() +
+    geom_line(aes(x=rt, y=int, group=filename, color=samp_type)) +
+    facet_wrap(~plot_facet, scales = "free_y", ncol=1) +
+    geom_vline(aes(xintercept=rtmed), color="black", data = mass_feats) +
+    ggtitle(ggtitle_i) +
+    theme_bw()
+}
+mass_check(c("Carn/THB/HMSB"=162.1125))
+mass_check(c("ACH/TMAB"=146.1181))
+mass_check(c("Ala/bAla/Sarc"=90.0555))
+mass_check(c("Arg"=175.119501))
+mass_check(c("Leu/Ile/TMAP"=132.1025))
+mass_check(c("15N Ile"=132.1025+0.997))
+```
+
