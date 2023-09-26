@@ -105,7 +105,7 @@ saveRDS(msnexp_filled, paste0(output_folder, "msnexp_filled.rds"))
 msnexp_filled <- readRDS(paste0(output_folder, "msnexp_filled.rds"))
 ```
 
-```{r making peak_data and feat_data}
+```{r making peak_data and best_feat_data}
 msnexp_filled <- readRDS(paste0(output_folder, "msnexp_filled.rds"))
 peak_data_long <- msnexp_filled %>%
   chromPeaks() %>%
@@ -137,23 +137,68 @@ all_feat_data <- peak_data %>%
 #   ggplot(aes(label=feature)) +
 #   geom_point(aes(x=med_cor, y=med_snr, color=n_group))
 
+if(amendment=="Amm"){
+  if(polarity=="pos"){
+    rescue_feats <- c("FT3015", "FT1319", "FT1321")
+  } else if(polarity=="neg"){
+    
+  }
+}
+if(amendment=="Nit"){
+  if(polarity=="pos"){
+    
+  } else if(polarity=="neg"){
+    
+  } else {
+    stop("Unknown polarity")
+  }
+}
+if(amendment=="GMP"){
+  if(polarity=="pos"){
+    
+  } else if(polarity=="neg"){
+    
+  } else {
+    stop("Unknown polarity")
+  }
+}
+if(amendment=="Arg"){
+  if(polarity=="pos"){
+    
+  } else if(polarity=="neg"){
+    
+  } else {
+    stop("Unknown polarity")
+  }
+}
+
 best_feat_data <- all_feat_data %>%
-  filter(med_cor>0.75) %>%
+  filter(med_cor>0.75 | feature%in%rescue_feats) %>%
   select(-med_cor, -med_snr)
 output_csv_write(best_feat_data)
 ```
 
 ```{r diagnostic plots}
-mass_check <- function(mz_i){
+mass_check <- function(mz_i, all_samps=FALSE){
   mass_feats <- best_feat_data %>% 
     filter(mzmed%between%pmppm(mz_i, 5)) %>%
     print()
-  chosen_eic <- open_dataset("tmzMLs/pqds") %>%
-    filter(polarity==!!polarity) %>%
-    filter(amendment==!!amendment) %>%
-    filter(mz%between%pmppm(mz_i, 5)) %>%
-    filter(rt%between%c(2, 20)) %>%
-    dplyr::collect()
+  if(all_samps){
+    chosen_eic <- open_dataset("tmzMLs/pqds") %>%
+      filter(polarity==!!polarity) %>%
+      filter(amendment==!!amendment) %>%
+      filter(mz%between%pmppm(mz_i, 5)) %>%
+      filter(rt%between%c(2, 20)) %>%
+      dplyr::collect()
+  } else {
+    chosen_eic <- open_dataset("tmzMLs/pqds") %>%
+      filter(polarity==!!polarity) %>%
+      filter(amendment==!!amendment) %>%
+      filter(samp_type=="Poo" | samp_type=="Std") %>%
+      filter(mz%between%pmppm(mz_i, 5)) %>%
+      filter(rt%between%c(2, 20)) %>%
+      dplyr::collect()
+  }
   ggtitle_i <- ifelse(is.null(names(mz_i)), mz_i, names(mz_i))
   chosen_eic %>%
     left_join(parametadata, by = join_by(filename, samp_type, amendment, polarity)) %>%
@@ -168,10 +213,132 @@ mass_check <- function(mz_i){
     theme_bw()
 }
 mass_check(c("Carn/THB/HMSB"=162.1125))
-mass_check(c("ACH/TMAB"=146.1181))
+mass_check(c("ACH/TMAB"=146.1181), all_samps = TRUE)
 mass_check(c("Ala/bAla/Sarc"=90.0555))
 mass_check(c("Arg"=175.119501))
 mass_check(c("Leu/Ile/TMAP"=132.1025))
 mass_check(c("15N Ile"=132.1025+0.997))
+mass_check(60.04510)
+mass_check(c("Ectoine"=143.0821))
+mass_check(c("Betonicine"=160.0974))
+mass_check(c("Adenine"=136.0623))
+mass_check(c("Pyroglut"=130.0504))
+mass_check(c("Glutamine"=147.076968))
+mass_check(c("Cytosine"=244.093347))
+mass_check(c("Proline"=116.0712))
+```
+
+```{r annotate}
+all_stans <- read_csv("metadata/all_stans.csv") %>%
+  filter(polarity==!!polarity)
+
+stan_mix_data <- peak_data %>% 
+  select(feature, filename, into) %>%
+  left_join(parametadata) %>%
+  filter(samp_type=="Std") %>%
+  filter(!str_detect(filename, "Mat")) %>%
+  mutate(mix=str_extract(filename, "Mix\\d")) %>%
+  select(feature, mix, into) %>%
+  pivot_wider(names_from = mix, values_from = into, values_fn = mean)
+
+stan_annotations <- best_feat_data %>%
+  pmap(function(...){
+    row_data <- list(...)
+    all_stans %>%
+      select(compound_name, mz, rt) %>%
+      filter(mz%between%pmppm(row_data$mzmed, 10)) %>%
+      mutate(feature=row_data$feature, mzmed=row_data$mzmed,
+             rtmed=row_data$rtmed, n=row_data$n)
+  }, .progress = TRUE) %>%
+  bind_rows() %>%
+  arrange(mz, rt, rtmed) %>%
+  left_join(stan_mix_data) %>%
+  left_join(all_stans %>% select(compound_name, mix)) %>%
+  mutate(mix_ratio=ifelse(mix=="Mix1", Mix1/Mix2, Mix2/Mix1)) %>%
+  filter(mix_ratio>3 | is.na(mix_ratio)) %>%
+  # select(feature, compound_name)
+  ungroup()
+
+missed_stans <- all_stans %>%
+  anti_join(stan_annotations %>% select(compound_name)) %>%
+  print(n=Inf)
+
+stan_choose <- function(df, compound_name_i, feature_i){
+  anti_df <- df %>%
+    filter(compound_name==compound_name_i) %>%
+    filter(feature!=feature_i)
+  join_vec <- join_by(compound_name, mz, rt, feature, mzmed, rtmed, n, 
+                      Mix1, Mix2, mix, mix_ratio)
+  df %>% anti_join(anti_df, by = join_vec)
+}
+stan_add <- function(df, compound_name_i, feature_i){
+  add_row(df, compound_name=compound_name_i, feature=feature_i)
+}
+stan_remove <- function(df, compound_name_i){
+  df %>% filter(!compound_name%in%compound_name_i)
+}
+if(amendment=="Amm"){
+  if(polarity=="pos"){
+    stan_annotations %>%
+      stan_choose("Sarcosine", "FT0348") %>%
+      stan_choose("beta-Alanine", "FT0347") %>%
+      stan_choose("Cytosine", "FT0769") %>%
+      stan_add("Cytosine from cytidine", "FT0770") %>%
+      stan_choose("L-Proline", "FT0862") %>%
+      stan_remove("5-Oxoproline") %>%
+      stan_choose("L-Leucine", "FT1244") %>%
+      stan_choose("L-Isoleucine", "FT1248") %>%
+      stan_choose("Proline betaine", "FT1572") %>%
+      stan_choose("Betonicine", "FT1842") %>%
+      stan_choose("Carnitine", "FT1857") %>%
+      stan_remove("Dimethylglycine") %>%
+      stan_remove("4-Aminobutyric acid") %>%
+      stan_remove("Creatinine from creatine?") %>%
+      stan_remove("L-Valine") %>%
+      stan_remove(c("L-Threonine", "L-Homoserine")) %>%
+      stan_add("Threonine/Homoserine", "FT0953") %>%
+      # stan_remove("Allopurinol") %>%
+      stan_remove("Guanine from guanosine?") %>%
+      stan_add("L-Glutamic acid", "FT1635") %>%
+      group_by(feature) %>%
+      group_by(compound_name) %>%
+      # filter(n()>1)
+      ungroup() -> stan_annotations
+  } else if(polarity=="neg"){
+    
+  } else {
+    stop("Unknown polarity")
+  }
+}
+if(amendment=="Nit"){
+  if(polarity=="pos"){
+    
+  } else if(polarity=="neg"){
+    
+  } else {
+    stop("Unknown polarity")
+  }
+}
+if(amendment=="GMP"){
+  if(polarity=="pos"){
+    
+  } else if(polarity=="neg"){
+    
+  } else {
+    stop("Unknown polarity")
+  }
+}
+if(amendment=="Arg"){
+  if(polarity=="pos"){
+    
+  } else if(polarity=="neg"){
+    
+  } else {
+    stop("Unknown polarity")
+  }
+}
+
+
+mass_check(c("Cytidine"=244.0933))
 ```
 
