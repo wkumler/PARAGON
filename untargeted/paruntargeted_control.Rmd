@@ -145,7 +145,7 @@ if(amendment=="Amm"){
                       Dexpanthenol="FT2426", Cytidine="FT2792",
                       Mycogly='FT2814', Inosine="FT2960", Guanosine="FT3015")
   } else if(polarity=="neg"){
-    
+    rescue_feats <- c()
   }
 }
 if(amendment=="Nit"){
@@ -182,7 +182,7 @@ best_feat_data <- all_feat_data %>%
 output_csv_write(best_feat_data)
 ```
 
-```{r diagnostic plots}
+```{r mass_check plots, eval=FALSE}
 mass_check <- function(mz_i, all_samps=FALSE){
   mass_feats <- best_feat_data %>% 
     filter(mzmed%between%pmppm(mz_i, 5)) %>%
@@ -251,6 +251,8 @@ all_stans <- read_csv("metadata/all_stans.csv") %>%
 manual_anno <- readxl::read_excel("untargeted/manual_annotations.xlsx")
 
 manual_anno %>% filter(str_detect(notes, "Unpicked"))
+
+
 ```
 
 
