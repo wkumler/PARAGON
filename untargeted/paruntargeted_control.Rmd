@@ -16,8 +16,8 @@ library(arrow)
 library(xcms)
 library(RaMS)
 
-polarity <- "pos"
-# polarity <- "neg"
+# polarity <- "pos"
+polarity <- "neg"
 # amendment <- "Amm"
 amendment <- "Nit"
 # amendment <- "GMP"
@@ -121,7 +121,9 @@ peak_data <- msnexp_filled %>%
   rename_with(~paste0("feat_", .x), .cols = -peakidx) %>%
   dplyr::rename(feature="feat_id") %>%
   left_join(peak_data_long, by = join_by(peakidx)) %>%
-  mutate(filename=basename(fileNames(msnexp_filled))[sample])
+  mutate(filename=basename(fileNames(msnexp_filled))[sample]) %>%
+  select(feature, feat_mzmed, feat_rtmed, feat_npeaks, filename,
+         mz, mzmin, mzmax, rt, rtmin, rtmax, into, sn, beta_cor, beta_snr)
 output_csv_write(peak_data)
 
 all_feat_data <- peak_data %>%
@@ -131,12 +133,14 @@ all_feat_data <- peak_data %>%
   summarize(mzmed=unique(feat_mzmed), rtmed=unique(feat_rtmed)/60, n=n(),
             med_cor=median(beta_cor, na.rm=TRUE), 
             med_snr=median(beta_snr, na.rm=TRUE))
+output_csv_write(all_feat_data)
 # all_feat_data %>%
 #   # filter(med_cor>0.75) %>%
 #   mutate(n_group=cut(n, breaks = c(0, 2, 10, 40, 60, 62, 100, 130, Inf))) %>%
 #   ggplot(aes(label=feature)) +
 #   geom_point(aes(x=med_cor, y=med_snr, color=n_group))
 
+# Rescue feats
 if(amendment=="Amm"){
   if(polarity=="pos"){
     rescue_feats <- c("FT3015", Allopurinol="FT1319", Hypoxanthine="FT1321",
@@ -150,9 +154,10 @@ if(amendment=="Amm"){
 }
 if(amendment=="Nit"){
   if(polarity=="pos"){
-    
+    rescue_feats <- c()
   } else if(polarity=="neg"){
-    
+    rescue_feats <- c(Bisulfate="FT0706", "Itaconic acid"="FT1544", 
+                      "Salicylic"="FT1841")
   } else {
     stop("Unknown polarity")
   }
@@ -182,7 +187,24 @@ best_feat_data <- all_feat_data %>%
 output_csv_write(best_feat_data)
 ```
 
-```{r mass_check plots, eval=FALSE}
+```{r rescue feats rendering}
+anno_manu <- readxl::read_excel("untargeted/manual_annotations.xlsx") %>%
+  filter(polarity==!!polarity) %>%
+  filter(amendment==!!amendment)
+all_feat_data <- read_csv(paste0(output_folder, "all_feat_data.csv"))
+anno_manu %>%
+  filter(str_detect(notes, "[Rr]escue"))
+all_feat_data %>%
+  filter(mzmed%between%pmppm(137.0239, 10))
+```
+
+
+```{r plots from mass check and others, eval=FALSE}
+best_feat_data %>%
+  ggplot() +
+  geom_point(aes(x=rtmed, y=mzmed, color=log10(n))) +
+  scale_color_viridis_c()
+
 mass_check <- function(mz_i, all_samps=FALSE){
   mass_feats <- best_feat_data %>% 
     filter(mzmed%between%pmppm(mz_i, 5)) %>%
@@ -213,9 +235,13 @@ mass_check <- function(mz_i, all_samps=FALSE){
     geom_line(aes(x=rt, y=int, group=filename, color=samp_type)) +
     facet_wrap(~plot_facet, scales = "free_y", ncol=1) +
     geom_vline(aes(xintercept=rtmed), color="black", data = mass_feats) +
+    scale_x_continuous(breaks = 2:20) +
     ggtitle(ggtitle_i) +
     theme_bw()
 }
+
+best_feat_data %>% slice_sample(n=1) %>% pull(mzmed) %>% mass_check()
+
 mass_check(c("Carn/THB/HMSB"=162.1125))
 mass_check(c("ACH/TMAB"=146.1181), all_samps = TRUE)
 mass_check(c("Ala/bAla/Sarc"=90.0555))
