@@ -18,8 +18,8 @@ library(RaMS)
 
 polarity <- "pos"
 # polarity <- "neg"
-amendment <- "Amm"
-# amendment <- "Nit"
+# amendment <- "Amm"
+amendment <- "Nit"
 # amendment <- "GMP"
 # amendment <- "Arg"
 IS_type <- "noIS"
