@@ -249,10 +249,101 @@ all_stans <- read_csv("metadata/all_stans.csv") %>%
 # # pass QC for shape or SNR back in
 
 manual_anno <- readxl::read_excel("untargeted/manual_annotations.xlsx")
-
 manual_anno %>% filter(str_detect(notes, "Unpicked"))
+```
 
+```{r check anno}
+all_stans <- read_csv("metadata/all_stans.csv") %>%
+  filter(polarity==!!polarity) %>%
+  filter(compound_type!="Internal Standard")
+manual_anno <- readxl::read_excel("untargeted/manual_annotations.xlsx") %>%
+  filter(polarity==!!polarity) %>%
+  filter(amendment==!!amendment)
+best_feat_data <- output_folder %>%
+  paste0("best_feat_data.csv") %>%
+  read_csv()
+mz_rt_check_df <- best_feat_data %>%
+  left_join(manual_anno) %>%
+  select(feature, compound_name, mzmed, rtmed) %>%
+  filter(!is.na(compound_name)) %>%
+  left_join(all_stans) %>%
+  select(feature, compound_name, mzmed, rtmed, mz, rt)
+mz_rt_check_df %>%
+  ggplot(aes(label=compound_name)) +
+  geom_point(aes(x=rtmed, y=rt)) +
+  geom_abline(slope = 1) +
+  coord_fixed()
+mz_rt_check_df %>%
+  ggplot(aes(label=compound_name)) +
+  geom_point(aes(x=mzmed, y=mz-mzmed))
+```
 
+```{r find isotopes (stans only)}
+all_stans <- read_csv("metadata/all_stans.csv") %>%
+  filter(polarity==!!polarity) %>%
+  filter(compound_type!="Internal Standard") %>%
+  select(compound_name, formula)
+manual_anno <- readxl::read_excel("untargeted/manual_annotations.xlsx") %>%
+  filter(polarity==!!polarity) %>%
+  filter(amendment==!!amendment) %>%
+  select(feature, compound_name)
+best_feat_data <- output_folder %>%
+  paste0("best_feat_data.csv") %>%
+  read_csv() %>%
+  left_join(manual_anno) %>%
+  left_join(all_stans)
+peak_rt_bounds <- output_folder %>%
+  paste0("peak_data.csv") %>%
+  read_csv() %>%
+  select(feature, filename, rtmin, rtmax) %>%
+  distinct()
+iso_mzs <- best_feat_data %>%
+  filter(!is.na(formula)) %>%
+  mutate(n_count=str_extract(formula, "N\\d+")) %>%
+  mutate(n_count=as.numeric(str_remove(n_count, "N"))) %>%
+  mutate(n_count=ifelse(str_detect(formula, "N") & is.na(n_count), 1, n_count)) %>%
+  filter(!is.na(n_count)) %>%
+  slice(rep(seq(n()), n_count+1)) %>%
+  group_by(feature) %>%
+  mutate(n_count=1:n()) %>%
+  mutate(labeled_mzmed=mzmed+0.997025*(n_count-1)) %>%
+  select(compound_name, feature, labeled_mzmed, n_count) %>%
+  left_join(peak_rt_bounds, relationship = "many-to-many") %>%
+  left_join(parametadata) %>%
+  filter(samp_type=="Smp") %>%
+  select(compound_name, feature, n_count, labeled_mzmed, filename, rtmin, rtmax)
+
+iso_areas <- iso_mzs %>%
+  split(.$filename) %>% 
+  imap(function(file_peaks, file_name_i){
+    msdata <- open_dataset("tmzMLs/pqds") %>%
+      filter(amendment=="Amm") %>%
+      filter(polarity=="pos") %>%
+      filter(filename==file_name_i) %>%
+      dplyr::collect()
+    file_peaks %>%
+      pmap(function(...){
+        row_data <- data.frame(...)
+        area <- msdata[mz%between%pmppm(row_data$labeled_mzmed, 100)] %>%
+          .[rt%between%c(row_data$rtmin/60, row_data$rtmax/60)] %>%
+          .[,sum(int)]
+        cbind(row_data, area=area)
+      }) %>%
+      bind_rows()
+  }, .progress=TRUE) %>%
+  bind_rows() %>%
+  select(compound_name, filename, area, n_count)
+
+output_csv_write(iso_areas)
+
+iso_areas %>%
+  filter(compound_name=="L-Arginine") %>%
+  left_join(parametadata) %>%
+  filter(!is.na(depth)) %>%
+  mutate(timepoint=factor(timepoint, levels=paste0("T", c(0,1,3,10,26)))) %>%
+  ggplot() +
+  geom_boxplot(aes(x=factor(n_count), y=area, color=timepoint)) +
+  facet_grid(depth~startime, scales="free_y")
 ```
 
 
