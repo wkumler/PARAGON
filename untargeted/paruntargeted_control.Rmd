@@ -16,8 +16,8 @@ library(arrow)
 library(xcms)
 library(RaMS)
 
-# polarity <- "pos"
-polarity <- "neg"
+polarity <- "pos"
+# polarity <- "neg"
 # amendment <- "Amm"
 amendment <- "Nit"
 # amendment <- "GMP"
@@ -154,7 +154,10 @@ if(amendment=="Amm"){
 }
 if(amendment=="Nit"){
   if(polarity=="pos"){
-    rescue_feats <- c()
+    rescue_feats <- c(Creatinine="FT1339", `Homocysteine thiolactone`="FT1444",
+                      Leucine="FT1956", Ornithine="FT1980", Lysine="FT2404",
+                      THB="FT2706", Lysinebetaineish='FT3317', glucogly="FT4428")
+
   } else if(polarity=="neg"){
     rescue_feats <- c(Bisulfate="FT0706", "Itaconic acid"="FT1544", 
                       "Salicylic"="FT1841")
@@ -195,7 +198,7 @@ all_feat_data <- read_csv(paste0(output_folder, "all_feat_data.csv"))
 anno_manu %>%
   filter(str_detect(notes, "[Rr]escue"))
 all_feat_data %>%
-  filter(mzmed%between%pmppm(137.0239, 10))
+  filter(mzmed%between%pmppm(132.1025, 10))
 ```
 
 
