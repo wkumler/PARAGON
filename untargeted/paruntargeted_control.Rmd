@@ -18,8 +18,8 @@ library(RaMS)
 
 polarity <- "pos"
 # polarity <- "neg"
-# amendment <- "Amm"
-amendment <- "Nit"
+amendment <- "Amm"
+# amendment <- "Nit"
 # amendment <- "GMP"
 # amendment <- "Arg"
 IS_type <- "noIS"
@@ -493,7 +493,7 @@ dev.off()
 ```{r overall analysis}
 iso_areas <- read_csv(paste0(output_folder, "iso_areas.csv"))
 areas_scaled <- iso_areas %>%
-  filter(labeled_n_count>0) %>%
+  # filter(labeled_n_count>0) %>%
   left_join(parametadata) %>%
   filter(!is.na(depth)) %>%
   mutate(compound_iso=paste0(compound_name, " 15N", labeled_n_count)) %>%
@@ -530,7 +530,7 @@ areas_scaled %>%
   theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5)) +
   facet_wrap(~name, ncol=1)
 
-areas_scaled %>%
+areas_mat <- areas_scaled %>%
   left_join(parametadata, by="shortname") %>%
   select(compound_iso, shortname, norm_area) %>%
   group_by(compound_iso) %>%
@@ -539,8 +539,12 @@ areas_scaled %>%
   column_to_rownames("shortname") %>%
   data.matrix()
 
+adon_expl <- data.frame(shortname=rownames(areas_mat)) %>%
+  left_join(parametadata %>% select(shortname, depth, timepoint, startime), by="shortname")
+vegan::adonis2(
+  areas_mat~timepoint+startime+depth, data = adon_expl, by = "margin", 
+  permutations = 999, method = "manhattan")
 ```
-
 
 ```{r multivar analysis by depth}
 multivar_analysis <- areas_scaled %>%
@@ -588,8 +592,6 @@ multivar_analysis %>%
   facet_wrap(~depth, ncol=1) +
   theme_bw() +
   coord_fixed()
-
-
 
 multivar_analysis$perm_output
 ```
