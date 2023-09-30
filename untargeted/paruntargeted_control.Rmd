@@ -28,7 +28,10 @@ IS_type <- "noIS"
 parametadata <- read_csv("metadata/parametadata.csv") %>% 
   filter(polarity==!!polarity) %>%
   filter(amendment==!!amendment) %>%
-  filter(IS_type==!!IS_type)
+  filter(IS_type==!!IS_type) %>%
+  mutate(startime=factor(startime, levels=c("Morn", "Eve"))) %>%
+  mutate(depth=factor(depth, levels=c("Surf", "Deep"))) %>%
+  mutate(timepoint=factor(timepoint, levels=paste0("T", c(0,1,3,10,26,73))))
 
 chosen_stans <- read_csv("metadata/all_stans.csv") %>%
   filter(polarity==!!polarity)
