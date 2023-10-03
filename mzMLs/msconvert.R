@@ -8,9 +8,6 @@ folder_paths <- c(
 
 sapply(folder_paths, function(path_i){
   sapply(c("positive", "negative"), function(polarity){
-    if(path_i=="Z:/1_QEdata/2021/2021_Will_PARAGON/210813_Will_NIT-Expt_PARAGON_HILIC" & polarity=="positive"){
-      return(0)
-    }
     message(paste("Converting", basename(path_i), polarity))
     short_pol <- gsub("[ia]tive", "", polarity)
     match_pattern <- paste0("wIS.raw|noIS-", short_pol, ".*.raw|_Std_.*raw")
