@@ -10,7 +10,7 @@ sapply(folder_paths, function(path_i){
   sapply(c("positive", "negative"), function(polarity){
     message(paste("Converting", basename(path_i), polarity))
     short_pol <- gsub("[ia]tive", "", polarity)
-    match_pattern <- paste0("wIS.raw|noIS-", short_pol, ".*.raw|_Std_.*raw")
+    match_pattern <- paste0("wIS.raw|noIS-", short_pol, ".*.raw|_Std_.*raw|wIS-(Full|Half)")
     files_to_convert <- list.files(path_i, pattern = match_pattern, full.names = TRUE)
     mscommand <- paste(
       "msconvert",
