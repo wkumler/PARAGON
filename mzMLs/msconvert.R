@@ -16,7 +16,7 @@ sapply(folder_paths, function(path_i){
       "msconvert",
       paste(files_to_convert, collapse = " "),
       "--mzML",
-      paste0('-o ', short_pol),
+      paste0('-o mzMLs/', short_pol),
       '--filter "peakPicking true 1-"',
       paste('--filter "polarity', polarity, '"')
     )
@@ -28,7 +28,7 @@ sapply(folder_paths, function(path_i){
       "msconvert",
       paste(msms_to_convert, collapse = " "),
       "--mzML",
-      paste0('-o ', short_pol, "/MSMS"),
+      paste0('-o mzMLs/', short_pol, "/MSMS"),
       '--filter "peakPicking true 1-"',
       paste('--filter "polarity', polarity, '"')
     )
