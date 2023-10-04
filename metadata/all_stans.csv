@@ -91,6 +91,7 @@ Salicylic acid,137.02387,2.2,-1,HILIC,4,Antioxidant,C7H6O3,160401,Mix1,neg
 Urocanic acid,137.035103,8.16,-1,HILIC,4,Amino Acid derivative,C6H6N2O2,180701,Mix2,neg
 Allopurinol,137.046336,4.16,1,HILIC,4,Purine derivative,C5H4N4O,180701,Mix2,pos
 Hypoxanthine,137.046336,6.2,1,HILIC,4,Purine derivative,C5H4N4O,190514,Mix2,pos
+Hypoxanthine from inosine?,137.046336,7.8,1,HILIC,NA,Custom,C5H4N4O,230101,Mix2,pos
 3-Aminopropanesulfonate,138.022491,11.49,-1,HILIC,4,Sulfur,C3H9NO3S,160401,Mix2,neg
 Homarine,138.055503,6.19,1,HILIC,4,Osmolyte,C7H7NO2,160401,Mix2,pos
 Trigonelline,138.055503,8.36,1,HILIC,0.5,Osmolyte,C7H7NO2,170331,Mix1,pos
