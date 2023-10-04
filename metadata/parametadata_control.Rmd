@@ -176,6 +176,7 @@ other_filedata <- "mzMLs" %>%
   mutate(filename=basename(filepath)) %>%
   mutate(shortname=str_remove(filename, "-wIS|-noIS-neg|-noIS-pos")) %>%
   mutate(shortname=str_remove(shortname, ".*_Poo_|.*_Std_(4uMStds)?")) %>%
+  mutate(shortname=str_remove(shortname, ".mzML")) %>%
   mutate(samp_type=str_extract(filename, "Poo|Std")) %>%
   mutate(IS_type=str_extract(filepath, "wIS|noIS")) %>%
   mutate(polarity=str_extract(filepath, "neg|pos")) %>%
