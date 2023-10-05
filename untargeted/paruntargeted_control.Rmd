@@ -16,22 +16,23 @@ library(arrow)
 library(xcms)
 library(RaMS)
 
-polarity <- "pos"
-# polarity <- "neg"
-amendment <- "Amm"
+# polarity <- "pos"
+polarity <- "neg"
+# amendment <- "Amm"
 # amendment <- "Nit"
 # amendment <- "GMP"
-# amendment <- "Arg"
+amendment <- "Arg"
 IS_type <- "noIS"
 # IS_type <- "wIS"
 
-parametadata <- read_csv("metadata/parametadata.csv") %>% 
-  filter(polarity==!!polarity) %>%
-  filter(amendment==!!amendment) %>%
-  filter(IS_type==!!IS_type) %>%
+parametadata_all <- read_csv("metadata/parametadata.csv") %>% 
   mutate(startime=factor(startime, levels=c("Morn", "Eve"))) %>%
   mutate(depth=factor(depth, levels=c("Surf", "Deep"))) %>%
   mutate(timepoint=factor(timepoint, levels=paste0("T", c(0,1,3,10,26,73))))
+parametadata <- parametadata_all %>%
+  filter(polarity==!!polarity) %>%
+  filter(amendment==!!amendment) %>%
+  filter(IS_type==!!IS_type)
 
 chosen_stans <- read_csv("metadata/all_stans.csv") %>%
   filter(polarity==!!polarity)
@@ -45,9 +46,6 @@ output_csv_write <- function(object){
 }
 
 xcms_file_data <- parametadata %>%
-  filter(amendment==!!amendment) %>%
-  filter(polarity==!!polarity) %>%
-  filter(IS_type==!!IS_type) %>%
   mutate(samp_group=paste(amendment, depth, startime, timepoint, sep="-"))
 
 mz_group <- function(mz_vals, ppm){
@@ -330,7 +328,7 @@ mz_rt_check_df %>%
   geom_point(aes(x=mzmed, y=mz-mzmed))
 ```
 
-# Isotope exploration
+# Isotope detection
 
 ```{r find isotopes (stans only)}
 all_stans <- read_csv("metadata/all_stans.csv") %>%
@@ -361,13 +359,15 @@ iso_mzs <- best_feat_data %>%
   group_by(feature) %>%
   mutate(n_count=1:n()) %>%
   mutate(labeled_mzmed=mzmed+0.997025*(n_count-1)) %>%
-  select(compound_name, feature, labeled_mzmed, n_count) %>%
+  select(compound_name, feature, labeled_mzmed, n_count)
+output_csv_write(iso_mzs)
+
+iso_mz_bounds <- iso_mzs %>%
   left_join(peak_rt_bounds, relationship = "many-to-many") %>%
   left_join(parametadata) %>%
   filter(samp_type=="Smp") %>%
   select(compound_name, feature, n_count, labeled_mzmed, filename, rtmin, rtmax)
-
-iso_areas <- iso_mzs %>%
+iso_areas <- iso_mz_bounds %>%
   split(.$filename) %>% 
   imap(function(file_peaks, file_name_i){
     msdata <- open_dataset("tmzMLs/pqds") %>%
@@ -850,4 +850,5 @@ multivar_analysis$perm_output
 
 
 # Univariate followup
+
 
