@@ -388,14 +388,106 @@ iso_areas <- iso_mzs %>%
   bind_rows() %>%
   mutate(labeled_n_count=n_count-1) %>%
   select(compound_name, filename, area, labeled_n_count)
-
 output_csv_write(iso_areas)
+```
+
+# BMIS and quant
+
+```{r get IS areas from Skyline}
+n_only_is <- c("L-Isoleucine, 15N", "AMP, 15N5", "GMP, 15N5", 
+               "Nitrate, 15N", "DL-Histidine, 15N")
+if(system("untargeted/IS_integrations/SkylineRunner.exe", show.output.on.console = FALSE)){
+  # Website = https://skyline.ms/wiki/home/software/Skyline/page.view?name=SkylineInstall_64_21-1&submit=false
+  stop("Please grab a copy of SkylineRunner from the website")
+}
+if(!file.exists("untargeted/IS_integrations/GMP_pos.csv")){
+  success_vec <- "untargeted/IS_integrations" %>%
+  list.files(pattern = "sky$", full.names = TRUE) %>%
+  sapply(skyline_files, function(skyfile){
+    polarity <- str_extract(skyfile, "POSITIVE|NEGATIVE")
+    polarity <- switch(polarity, "POSITIVE"="pos", "NEGATIVE"="neg")
+    amendment <- str_extract(skyfile, "Amm|Nit|GMP|Arg")
+  
+    sky_cmd <- paste0(
+      "untargeted/IS_integrations/SkylineRunner.exe",
+      " --in=", skyfile,
+      ' --report-name="Molecule Peak Boundaries Modified"', 
+      ' --report-file=untargeted/IS_integrations/', amendment, "_", polarity, ".csv"
+    )
+    failed <- system(sky_cmd)
+    if(failed){
+      warning(paste("Extraction failed for file", skyfile))
+    }
+    
+    new_csv_name <- paste0("untargeted/IS_integrations/", amendment, "_", polarity, ".csv")
+    new_csv <- read.csv(new_csv_name)
+    new_csv$polarity <- polarity
+    new_csv$amendment <- amendment
+    write.csv(new_csv, new_csv_name, row.names = FALSE)
+  })
+}
+IS_areas_all <- "untargeted/IS_integrations/" %>%
+  list.files(pattern = "(Amm|Nit|Arg|GMP)_(pos|neg).csv", full.names = TRUE) %>%
+  lapply(read.csv) %>%
+  do.call(what = "rbind") %>%
+  mutate(Area=as.numeric(Area)) %>%
+  mutate(Area=ifelse(is.na(Area), 0, Area)) %>%
+  select(filename=File.Name, IS_name=Molecule, rtmin=Min.Start.Time,
+         rtmax=Max.End.Time, IS_area=Area, polarity, amendment) %>%
+  mutate(filename=str_replace(filename, ".raw", ".mzML")) %>%
+  filter(!IS_name%in%n_only_is) %>%
+  filter(!IS_name=="Succinic acid, 2H4") %>%
+  mutate(lead_IS_area=lead(IS_area), lag_IS_area=lag(IS_area)) %>%
+  left_join(parametadata_all) %>%
+  mutate(IS_area=case_when(
+    shortname=="Amm-Surf-Eve-T3-A"~(lead_IS_area+lag_IS_area)/2,
+    shortname=="Nit-Deep-Eve-T0-A"~(lead_IS_area+lag_IS_area)/2,
+    TRUE~IS_area
+  )) %>%
+  select(IS_name, filename, IS_area)
+
+# write.csv(IS_areas_all, "untargeted/IS_integrations/IS_areas.csv", row.names = FALSE)
+
+IS_areas_all %>%
+  slice(1) %>%
+  left_join(parametadata_all)
+  filter(amendment==!!amendment) %>%
+  arrange(timestamp) %>%
+  mutate(shortname=fct_inorder(shortname)) %>%
+  ggplot() +
+  geom_col(aes(x=shortname, y=IS_area, fill=samp_type), width=1) +
+  facet_wrap(~IS_name, scales="free_y", ncol=3)
+```
+
+```{r get PheTau areas from raw files}
+
+```
+
+
+
+# Isotope visualization
+
+```{r load isotope mzs and areas}
+all_stans <- read_csv("metadata/all_stans.csv") %>%
+  filter(polarity==!!polarity) %>%
+  filter(compound_type!="Internal Standard") %>%
+  select(compound_name, formula)
+manual_anno <- readxl::read_excel("untargeted/manual_annotations.xlsx") %>%
+  filter(polarity==!!polarity) %>%
+  filter(amendment==!!amendment) %>%
+  select(feature, compound_name)
+best_feat_data <- output_folder %>%
+  paste0("best_feat_data.csv") %>%
+  read_csv() %>%
+  left_join(manual_anno) %>%
+  left_join(all_stans)
+iso_mzs <- read_csv(paste0(output_folder, "iso_mzs.csv"))
+iso_areas <- read_csv(paste0(output_folder, "iso_areas.csv"))
 ```
 
 ```{r individual isotope EIC}
 single_cmpd_iso_req <- iso_mzs %>%
-  filter(compound_name=="Taurine") %>%
-  distinct(compound_name, n_count, labeled_mzmed) %>%
+  filter(compound_name=="Guanine") %>%
   mutate(labeled_mzmed=round(labeled_mzmed, 5)) %>%
   summarise(req_cmd=paste0("mz%between%pmppm(", labeled_mzmed, ", 10)", collapse="|")) %>%
   pull(req_cmd)
