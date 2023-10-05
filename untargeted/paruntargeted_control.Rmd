@@ -188,18 +188,20 @@ if(amendment=="Nit"){
 }
 if(amendment=="GMP"){
   if(polarity=="pos"){
-    
+    rescue_feats <- c()
   } else if(polarity=="neg"){
-    
+    rescue_feats <- c()
   } else {
     stop("Unknown polarity")
   }
 }
 if(amendment=="Arg"){
   if(polarity=="pos"){
-    
+    rescue_feats <- c("FT0945", "FT1138", "FT1346", "FT1413", "FT1476",
+                      "FT1505", "FT1533", "FT1935", "FT1945", "FT2029",
+                      "FT2425", "FT2774", "FT2999", "FT3668")
   } else if(polarity=="neg"){
-    
+    rescue_feats <- c("FT0790", "FT1022", "FT1031", "FT1387")
   } else {
     stop("Unknown polarity")
   }
@@ -215,13 +217,12 @@ output_csv_write(best_feat_data)
 
 ```{r rescue feats rendering, eval=FALSE}
 anno_manu <- readxl::read_excel("untargeted/manual_annotations.xlsx") %>%
-  filter(polarity==!!polarity) %>%
   filter(amendment==!!amendment)
 all_feat_data <- read_csv(paste0(output_folder, "all_feat_data.csv"))
 anno_manu %>%
   filter(str_detect(notes, "[Rr]escue"))
 all_feat_data %>%
-  filter(mzmed%between%pmppm(132.1025, 10))
+  filter(mzmed%between%pmppm(138.9701 , 10))
 ```
 
 ```{r plots from mass check and others, eval=FALSE}
