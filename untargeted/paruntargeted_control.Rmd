@@ -20,8 +20,8 @@ library(RaMS)
 polarity <- "neg"
 # amendment <- "Amm"
 # amendment <- "Nit"
-# amendment <- "GMP"
-amendment <- "Arg"
+amendment <- "GMP"
+# amendment <- "Arg"
 IS_type <- "noIS"
 # IS_type <- "wIS"
 
@@ -186,9 +186,9 @@ if(amendment=="Nit"){
 }
 if(amendment=="GMP"){
   if(polarity=="pos"){
-    rescue_feats <- c()
+    rescue_feats <- c("FT1422", "FT1580", "FT1585", "FT1603", "FT3030")
   } else if(polarity=="neg"){
-    rescue_feats <- c()
+    rescue_feats <- c("FT0865")
   } else {
     stop("Unknown polarity")
   }
@@ -220,7 +220,7 @@ all_feat_data <- read_csv(paste0(output_folder, "all_feat_data.csv"))
 anno_manu %>%
   filter(str_detect(notes, "[Rr]escue"))
 all_feat_data %>%
-  filter(mzmed%between%pmppm(138.9701 , 10))
+  filter(mzmed%between%pmppm(111.0195 , 10))
 ```
 
 ```{r plots from mass check and others, eval=FALSE}
