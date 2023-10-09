@@ -5,5 +5,4 @@
 !tmzMLs/*
 !mzMLs/*
 .Rproj.user
-!eicscript.R
-!arrowscript.R
+!run_analysis.R
