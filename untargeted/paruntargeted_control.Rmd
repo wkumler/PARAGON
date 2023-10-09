@@ -16,11 +16,11 @@ library(arrow)
 library(xcms)
 library(RaMS)
 
-# polarity <- "pos"
-polarity <- "neg"
-# amendment <- "Amm"
+polarity <- "pos"
+# polarity <- "neg"
+amendment <- "Amm"
 # amendment <- "Nit"
-amendment <- "GMP"
+# amendment <- "GMP"
 # amendment <- "Arg"
 IS_type <- "noIS"
 # IS_type <- "wIS"
@@ -220,7 +220,7 @@ all_feat_data <- read_csv(paste0(output_folder, "all_feat_data.csv"))
 anno_manu %>%
   filter(str_detect(notes, "[Rr]escue"))
 all_feat_data %>%
-  filter(mzmed%between%pmppm(111.0195 , 10))
+  filter(mzmed%between%pmppm(135.030686 , 10))
 ```
 
 ```{r plots from mass check and others, eval=FALSE}
@@ -391,6 +391,7 @@ iso_areas <- iso_mz_bounds %>%
 output_csv_write(iso_areas)
 ```
 
+
 # BMIS and quant
 
 ```{r get IS areas from Skyline}
@@ -402,29 +403,29 @@ if(system("untargeted/IS_integrations/SkylineRunner.exe", show.output.on.console
 }
 if(!file.exists("untargeted/IS_integrations/GMP_pos.csv")){
   success_vec <- "untargeted/IS_integrations" %>%
-  list.files(pattern = "sky$", full.names = TRUE) %>%
-  sapply(skyline_files, function(skyfile){
-    polarity <- str_extract(skyfile, "POSITIVE|NEGATIVE")
-    polarity <- switch(polarity, "POSITIVE"="pos", "NEGATIVE"="neg")
-    amendment <- str_extract(skyfile, "Amm|Nit|GMP|Arg")
-  
-    sky_cmd <- paste0(
-      "untargeted/IS_integrations/SkylineRunner.exe",
-      " --in=", skyfile,
-      ' --report-name="Molecule Peak Boundaries Modified"', 
-      ' --report-file=untargeted/IS_integrations/', amendment, "_", polarity, ".csv"
-    )
-    failed <- system(sky_cmd)
-    if(failed){
-      warning(paste("Extraction failed for file", skyfile))
-    }
-    
-    new_csv_name <- paste0("untargeted/IS_integrations/", amendment, "_", polarity, ".csv")
-    new_csv <- read.csv(new_csv_name)
-    new_csv$polarity <- polarity
-    new_csv$amendment <- amendment
-    write.csv(new_csv, new_csv_name, row.names = FALSE)
-  })
+    list.files(pattern = "sky$", full.names = TRUE) %>%
+    sapply(skyline_files, function(skyfile){
+      polarity <- str_extract(skyfile, "POSITIVE|NEGATIVE")
+      polarity <- switch(polarity, "POSITIVE"="pos", "NEGATIVE"="neg")
+      amendment <- str_extract(skyfile, "Amm|Nit|GMP|Arg")
+      
+      sky_cmd <- paste0(
+        "untargeted/IS_integrations/SkylineRunner.exe",
+        " --in=", skyfile,
+        ' --report-name="Molecule Peak Boundaries Modified"', 
+        ' --report-file=untargeted/IS_integrations/', amendment, "_", polarity, ".csv"
+      )
+      failed <- system(sky_cmd)
+      if(failed){
+        warning(paste("Extraction failed for file", skyfile))
+      }
+      
+      new_csv_name <- paste0("untargeted/IS_integrations/", amendment, "_", polarity, ".csv")
+      new_csv <- read.csv(new_csv_name)
+      new_csv$polarity <- polarity
+      new_csv$amendment <- amendment
+      write.csv(new_csv, new_csv_name, row.names = FALSE)
+    })
 }
 IS_areas_all <- "untargeted/IS_integrations/" %>%
   list.files(pattern = "(Amm|Nit|Arg|GMP)_(pos|neg).csv", full.names = TRUE) %>%
@@ -450,7 +451,7 @@ IS_areas_all <- "untargeted/IS_integrations/" %>%
 
 IS_areas_all %>%
   slice(1) %>%
-  left_join(parametadata_all)
+  left_join(parametadata_all) %>%
   filter(amendment==!!amendment) %>%
   arrange(timestamp) %>%
   mutate(shortname=fct_inorder(shortname)) %>%
