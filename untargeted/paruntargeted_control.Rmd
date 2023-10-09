@@ -16,12 +16,12 @@ library(arrow)
 library(xcms)
 library(RaMS)
 
-polarity <- "pos"
-# polarity <- "neg"
-amendment <- "Amm"
+# polarity <- "pos"
+polarity <- "neg"
+# amendment <- "Amm"
 # amendment <- "Nit"
 # amendment <- "GMP"
-# amendment <- "Arg"
+amendment <- "Arg"
 IS_type <- "noIS"
 # IS_type <- "wIS"
 
@@ -32,7 +32,7 @@ parametadata_all <- read_csv("metadata/parametadata.csv") %>%
 parametadata <- parametadata_all %>%
   filter(polarity==!!polarity) %>%
   filter(amendment==!!amendment) %>%
-  filter(IS_type==!!IS_type)
+  filter(IS_type==!!IS_type | samp_type=="Std")
 
 chosen_stans <- read_csv("metadata/all_stans.csv") %>%
   filter(polarity==!!polarity)
@@ -217,10 +217,13 @@ output_csv_write(best_feat_data)
 anno_manu <- readxl::read_excel("untargeted/manual_annotations.xlsx") %>%
   filter(amendment==!!amendment)
 all_feat_data <- read_csv(paste0(output_folder, "all_feat_data.csv"))
+best_feat_data <- read_csv(paste0(output_folder, "best_feat_data.csv"))
 anno_manu %>%
   filter(str_detect(notes, "[Rr]escue"))
 all_feat_data %>%
-  filter(mzmed%between%pmppm(135.030686 , 10))
+  filter(mzmed%between%pmppm(128.0325, 10))
+# 128.0325, 130.047052, 174.1365
+mass_check(128.0325)
 ```
 
 ```{r plots from mass check and others, eval=FALSE}
@@ -279,7 +282,7 @@ mass_check(c("Adenine"=136.0623))
 mass_check(c("Pyroglut"=130.0504))
 mass_check(c("Glutamine"=147.076968))
 mass_check(c("Cytosine"=244.093347))
-mass_check(c("Proline"=116.0712))
+mass_check(c("Proline"=174.1365))
 ```
 
 ```{r annotate}
