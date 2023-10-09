@@ -218,12 +218,8 @@ anno_manu <- readxl::read_excel("untargeted/manual_annotations.xlsx") %>%
   filter(amendment==!!amendment)
 all_feat_data <- read_csv(paste0(output_folder, "all_feat_data.csv"))
 best_feat_data <- read_csv(paste0(output_folder, "best_feat_data.csv"))
-anno_manu %>%
-  filter(str_detect(notes, "[Rr]escue"))
-all_feat_data %>%
-  filter(mzmed%between%pmppm(128.0325, 10))
-# 128.0325, 130.047052, 174.1365
-mass_check(128.0325)
+anno_manu %>% filter(str_detect(notes, "[Rr]escue"))
+all_feat_data %>% filter(mzmed%between%pmppm(128.0325, 10))
 ```
 
 ```{r plots from mass check and others, eval=FALSE}
@@ -231,6 +227,14 @@ best_feat_data %>%
   ggplot() +
   geom_point(aes(x=rtmed, y=mzmed, color=log10(n))) +
   scale_color_viridis_c()
+
+anno_manu %>%
+  select(compound_name, feature, mz) %>%
+  filter(!feature=="NA") %>%
+  left_join(all_feat_data) %>%
+  ggplot(aes(label=feature)) +
+  geom_point(aes(x=mz, y=mzmed-mz)) +
+  geom_abline(slope = 1, intercept = 0)
 
 mass_check <- function(mz_i, all_samps=FALSE){
   mass_feats <- best_feat_data %>% 
