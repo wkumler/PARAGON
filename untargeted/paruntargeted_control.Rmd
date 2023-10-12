@@ -16,12 +16,12 @@ library(arrow)
 library(xcms)
 library(RaMS)
 
-# polarity <- "pos"
-polarity <- "neg"
-# amendment <- "Amm"
+polarity <- "pos"
+# polarity <- "neg"
+amendment <- "Amm"
 # amendment <- "Nit"
 # amendment <- "GMP"
-amendment <- "Arg"
+# amendment <- "Arg"
 IS_type <- "noIS"
 # IS_type <- "wIS"
 
@@ -62,6 +62,18 @@ mz_group <- function(mz_vals, ppm){
     group_num <- group_num+1L
   }
   group_vec
+}
+trapz <- function(x, y) {
+  y <- y[order(x)]
+  x <- x[order(x)]
+  m <- length(x)
+  xp <- c(x, x[m:1])
+  yp <- c(numeric(m), y[m:1])
+  n <- 2*m
+  p1 <- sum(xp[1:(n-1)]*yp[2:n]) + xp[n]*yp[1]
+  p2 <- sum(xp[2:n]*yp[1:(n-1)]) + xp[1]*yp[n]
+  
+  return(0.5*(p1-p2))
 }
 ```
 
@@ -372,7 +384,7 @@ output_csv_write(iso_mzs)
 iso_mz_bounds <- iso_mzs %>%
   left_join(peak_rt_bounds, relationship = "many-to-many") %>%
   left_join(parametadata) %>%
-  filter(samp_type=="Smp") %>%
+  # filter(samp_type=="Smp") %>%
   select(compound_name, feature, n_count, labeled_mzmed, filename, rtmin, rtmax)
 iso_areas <- iso_mz_bounds %>%
   split(.$filename) %>% 
@@ -394,7 +406,8 @@ iso_areas <- iso_mz_bounds %>%
   }, .progress=TRUE) %>%
   bind_rows() %>%
   mutate(labeled_n_count=n_count-1) %>%
-  select(compound_name, filename, area, labeled_n_count)
+  left_join(parametadata) %>%
+  select(filename, samp_type, compound_name, labeled_n_count, area)
 output_csv_write(iso_areas)
 ```
 
@@ -490,7 +503,8 @@ best_feat_data <- output_folder %>%
   left_join(manual_anno) %>%
   left_join(all_stans)
 iso_mzs <- read_csv(paste0(output_folder, "iso_mzs.csv"))
-iso_areas <- read_csv(paste0(output_folder, "iso_areas.csv"))
+iso_areas <- read_csv(paste0(output_folder, "iso_areas.csv")) %>%
+  filter(samp_type=="Smp")
 ```
 
 ```{r individual isotope EIC}
