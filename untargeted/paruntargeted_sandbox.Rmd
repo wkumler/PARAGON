@@ -33,7 +33,11 @@ parametadata <- parametadata_all %>%
   filter(polarity==!!polarity) %>%
   filter(amendment==!!amendment) %>%
   filter(IS_type==!!IS_type | samp_type=="Std")
-all_stans <- read_csv("metadata/all_stans.csv")
+manual_typing <- readxl::read_excel("metadata/manual_typing.xlsx") %>%
+  mutate(manual_type=ifelse(is.na(manual_type), "Others", manual_type)) %>%
+  add_row(compound_name="Thymidine", manual_type="Nucleobases +")
+all_stans <- read_csv("metadata/all_stans.csv") %>%
+  left_join(manual_typing)
 
 output_folder <- paste(amendment, polarity, IS_type, "output", sep = "_") %>%
   paste0("untargeted/", ., "/")
