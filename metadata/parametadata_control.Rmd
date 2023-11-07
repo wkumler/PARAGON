@@ -144,9 +144,7 @@ samp_filedata <- "mzMLs" %>%
   mutate(depth=str_extract(shortname, "Deep|Surf")) %>%
   mutate(startime=str_extract(shortname, "Eve|Morn")) %>%
   mutate(timepoint=str_extract(shortname, "T\\d+")) %>%
-  mutate(timepoint_num=as.numeric(str_remove(timepoint, "T"))) %>%
-  mutate(tripl=str_extract(shortname, "[A-C]$")) %>%
-  mutate(untripl=str_remove(shortname, "-[A-C]$"))
+  mutate(tripl=str_extract(shortname, "[A-C]$"))
 
 station_samp_map <- tribble(
   ~amendment, ~depth, ~startime, ~cast,

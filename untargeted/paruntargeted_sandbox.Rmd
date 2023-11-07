@@ -6,12 +6,38 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+knitr::opts_chunk$set(echo = TRUE, purl=FALSE)
+options(pillar.sigfig=7)
+options(readr.num_columns = 0)
+options(readr.show_col_types = FALSE)
+library(tidyverse)
+library(data.table)
+library(arrow)
+library(xcms)
+library(RaMS)
 
-# Isotope visualization
+# polarity <- "pos"
+# polarity <- "neg"
+# amendment <- "Amm"
+# amendment <- "Nit"
+# amendment <- "GMP"
+# amendment <- "Arg"
+# IS_type <- "noIS"
+# IS_type <- "wIS"
 
-```{r load isotope mzs and areas}
+parametadata_all <- read_csv("metadata/parametadata.csv") %>% 
+  mutate(startime=factor(startime, levels=c("Morn", "Eve"))) %>%
+  mutate(depth=factor(depth, levels=c("Surf", "Deep"))) %>%
+  mutate(timepoint=factor(timepoint, levels=paste0("T", c(0,1,3,10,26,73))))
+parametadata <- parametadata_all %>%
+  filter(polarity==!!polarity) %>%
+  filter(amendment==!!amendment) %>%
+  filter(IS_type==!!IS_type | samp_type=="Std")
+all_stans <- read_csv("metadata/all_stans.csv")
+
+output_folder <- paste(amendment, polarity, IS_type, "output", sep = "_") %>%
+  paste0("untargeted/", ., "/")
+
 all_stans <- read_csv("metadata/all_stans.csv") %>%
   filter(polarity==!!polarity) %>%
   filter(compound_type!="Internal Standard") %>%
@@ -25,6 +51,43 @@ best_feat_data <- output_folder %>%
   read_csv() %>%
   left_join(manual_anno) %>%
   left_join(all_stans)
+
+all_areas <- map(c("pos", "neg"), function(pol_i){
+  pol_i_areas <- map(c("Amm", "Nit", "GMP", "Arg"), function(amendment_i){
+    file_path <- paste0("G:/My Drive/PARAGON/untargeted/", amendment_i, "_", 
+                        pol_i, "_noIS_output/iso_areas.csv")
+      read_csv(file_path) %>%
+      mutate(amendment=amendment_i)
+  }) %>% bind_rows() %>%
+    mutate(polarity=pol_i)
+}) %>% bind_rows()
+all_rfs <- all_areas %>% 
+  group_by(amendment, polarity) %>%
+  filter(samp_type=="Std") %>%
+  filter(labeled_n_count==0) %>%
+  left_join(all_stans %>% select(compound_name, mix, conc_um, polarity)) %>%
+  mutate(samp_type=str_extract(filename, paste0(mix, "InMatrix|H2OInMatrix"))) %>%
+  drop_na() %>%
+  mutate(samp_type=str_remove(samp_type, "(?<=Mix)\\d")) %>%
+  select(compound_name, samp_type, area, conc_um) %>%
+  pivot_wider(names_from=samp_type, values_from = area, values_fn = mean) %>%
+  mutate(rf=(MixInMatrix-H2OInMatrix)/conc_um) %>%
+  select(compound_name, rf) %>%
+  filter(!is.na(rf)) %>%
+  filter(rf>0)
+all_concs <- all_areas %>%
+  right_join(all_rfs) %>%
+  mutate(uM_in_vial=area/rf) %>%
+  mutate(uM_in_env=(uM_in_vial*(400/1e6))/2) %>%
+  mutate(nM_in_env=uM_in_env*1e3) %>%
+  select(compound_name, filename, amendment, polarity, labeled_n_count, nM_in_env)
+```
+
+# Isotope visualization
+
+## Targeted things
+
+```{r load isotope mzs and areas}
 iso_mzs <- read_csv(paste0(output_folder, "iso_mzs.csv"))
 iso_areas <- read_csv(paste0(output_folder, "iso_areas.csv")) %>%
   filter(samp_type=="Smp")
@@ -62,6 +125,34 @@ iso_mzs %>%
   geom_line(aes(x=rt, y=int, group=filename, color=timepoint)) +
   facet_grid(timepoint~n_count) +
   ggtitle("Surface morning spiked samples")
+```
+
+```{r individual isotope unknown eic}
+unknown_eic <- open_dataset("tmzMLs/pqds") %>%
+  filter(amendment=="Amm") %>%
+  filter(samp_type=="Smp") %>%
+  filter(polarity=="pos") %>%
+  filter(mz%between%pmppm(84.04496, 10) | mz%between%pmppm(85.04196, 10)) %>%
+  dplyr::collect()
+unknown_eic %>%
+  mutate(labeled=ifelse(mz<85, "Unlabeled", "Labeled")) %>%
+  filter(rt%between%c(10, 13)) %>%
+  left_join(parametadata) %>%
+  filter(timepoint=="T26") %>%
+  ggplot() +
+  geom_line(aes(x=rt, y=int, group=filename)) +
+  facet_wrap(~labeled, ncol=1, scales="free_y")
+unknown_eic %>%
+  mutate(labeled=ifelse(mz<85, "Unlabeled", "Labeled")) %>%
+  filter(rt%between%c(10, 13)) %>%
+  left_join(parametadata) %>%
+  arrange(timestamp) %>%
+  arrange(timepoint) %>%
+  mutate(shortname=fct_inorder(shortname)) %>%
+  ggplot() +
+  geom_point(aes(x=rt, y=shortname, group=filename, color=log10(int))) +
+  facet_wrap(~labeled, ncol=1, scales="free_y") +
+  scale_color_viridis_c()
 ```
 
 ```{r individual isotope area plots}
@@ -282,6 +373,215 @@ iso_areas %>%
        fill="Number of\n15N atoms in\nisotopologue")
 ```
 
+## Among good peak isotope pairs
+
+```{r make iso_pairs}
+peak_data <- read_csv(paste0(output_folder, "peak_data.csv"))
+iso_pairs <- read_csv(paste0(output_folder, "iso_pairs.csv"))
+
+clean_iso_data <- iso_pairs %>% 
+  select(feature, feature_iso) %>%
+  left_join(peak_data %>% select(feature, filename, into), by="feature") %>%
+  left_join(parametadata, by="filename") %>%
+  filter(samp_type=="Smp") %>%
+  filter(!str_detect(shortname, "Blk")) %>%
+  left_join(peak_data %>% select(feature, filename, into), 
+            by=c(feature_iso="feature", "filename")) %>%
+  mutate(label_ratio=into.y/into.x) %>%
+  group_by(feature, feature_iso, untripl) %>%
+  mutate(label_ratio=ifelse(is.na(label_ratio), median(label_ratio, na.rm=TRUE), label_ratio)) %>%
+  group_by(feature, feature_iso, depth) %>%
+  # mutate(label_ratio=rank(label_ratio)) %>%
+  ungroup() %>%
+  select(feature, feature_iso, shortname, label_ratio, timepoint, timepoint_num, depth, startime)
+```
+
+```{r render all iso_pairs ratios}
+pdf(paste0(output_folder, "iso_untarg_ratios.pdf"), width = 6, height = 6)
+pb <- txtProgressBar(max = nrow(iso_pairs), style = 3)
+for(ind_i in seq_len(nrow(iso_pairs))){
+  setTxtProgressBar(pb, ind_i)
+  iso_gp <- iso_pairs %>% 
+    slice(ind_i) %>%
+    select(feature, feature_iso) %>%
+    left_join(peak_data %>% select(feature, filename, into), by="feature") %>%
+    left_join(parametadata, by="filename") %>%
+    filter(samp_type=="Smp") %>%
+    filter(!str_detect(shortname, "Blk")) %>%
+    left_join(peak_data %>% select(feature, filename, into), by=c(feature_iso="feature", "filename")) %>%
+    mutate(label_ratio=into.y/into.x) %>%
+    group_by(untripl) %>%
+    mutate(label_ratio=ifelse(is.na(label_ratio), median(label_ratio, na.rm=TRUE), label_ratio)) %>%
+    ungroup() %>%
+    arrange(depth, startime, timepoint) %>%
+    mutate(shortname=fct_inorder(shortname)) %>%
+    ggplot() +
+    geom_col(aes(x=label_ratio, y=shortname, fill=timepoint)) +
+    scale_x_log10() +
+    scale_fill_discrete(drop=FALSE) +
+    facet_wrap(~depth, ncol=1, scales="free") +
+    ggtitle(paste0(iso_pairs$feature[ind_i], ": ", 
+                  ifelse(is.na(iso_pairs$compound_name[ind_i]), 
+                         round(iso_pairs$mzmed[ind_i], 5), 
+                         iso_pairs$compound_name[ind_i])))
+  print(iso_gp)
+}
+close(pb)
+dev.off()
+```
+
+```{r make clean_iso_data}
+clean_iso_data %>%
+  filter(feature%in%c("FT0085", "FT0239", "FT0240")) %>%
+  ggplot(aes(x=timepoint_num, y=label_ratio)) +
+  geom_smooth(method=minpack.lm::nlsLM, color="black", formula="y~a*x^b+d", se = FALSE, 
+              method.args=list(start=list(a=1, b=2, d=1))) +
+  geom_point(aes(color=timepoint, shape=startime)) +
+  # geom_boxplot(aes(color=timepoint, group=timepoint_num)) +
+  ggh4x::facet_grid2(depth~feature, scales="free_y", independent = "y")
+```
+
+```{r manual curve log/lin/exp classification}
+shape_classes <- clean_iso_data %>%
+  # filter(depth=="Surf") %>%
+  # filter(feature%in%c("FT0085", "FT0239", "FT0240")) %>%
+  nest(data=-c(feature, depth)) %>%
+  mutate(lin_test=map(data, ~broom::tidy(lm(.x$label_ratio~.x$timepoint_num)))) %>%
+  mutate(exp_test=map(data, ~broom::tidy(lm(log(.x$label_ratio)~.x$timepoint_num)))) %>%
+  mutate(log_test=map(data, ~broom::tidy(lm(exp(.x$label_ratio)~.x$timepoint_num)))) %>%
+  unnest(ends_with("test"), names_sep = "_") %>%
+  filter(lin_test_term==".x$timepoint_num") %>%
+  select(feature, depth, data, ends_with("p.value")) %>%
+  pivot_longer(ends_with("p.value")) %>%
+  group_by(feature, depth) %>%
+  arrange(value) %>%
+  slice(1) %>%
+  ungroup() %>%
+  mutate(name=str_remove(name, "_test_p.value")) %>%
+  select(feature, depth, cluster=name)
+shape_classes %>%
+  left_join(clean_iso_data %>% select(feature, label_ratio, shortname, timepoint, depth)) %>%
+  group_by(feature) %>%
+  mutate(label_ratio=scale(label_ratio)[,1]) %>%
+  ungroup() %>%
+  group_by(cluster, shortname, timepoint, depth) %>%
+  summarise(label_ratio=mean(label_ratio, na.rm=TRUE)) %>%
+  ggplot(aes(x=timepoint, y=label_ratio, color=timepoint)) +
+  geom_hline(yintercept = 0) +
+  geom_boxplot() +
+  facet_grid(depth~cluster)
+shape_classes %>%
+  left_join(iso_anno) %>%
+  filter(!is.na(compound_name)) %>%
+  print(n=Inf)
+```
+
+```{r kmeans isotope curve classification}
+kmeans_obj <- clean_iso_data %>%
+  select(feature, shortname, label_ratio) %>%
+  complete(feature, shortname) %>%
+  group_by(feature) %>%
+  filter(sum(is.na(label_ratio))==0) %>%
+  mutate(label_ratio=scale(label_ratio)[,1]) %>%
+  ungroup() %>%
+  pivot_wider(names_from = shortname, values_from = label_ratio) %>%
+  column_to_rownames("feature") %>%
+  kmeans(centers = 3)
+data.frame(cluster=kmeans_obj$cluster) %>%
+  mutate(cluster=paste0("Cluster ", cluster, ", n=", kmeans_obj$size[cluster])) %>%
+  rownames_to_column("feature") %>%
+  left_join(clean_iso_data %>% select(feature, label_ratio, shortname, timepoint, depth)) %>%
+  group_by(feature) %>%
+  mutate(label_ratio=scale(label_ratio)[,1]) %>%
+  ungroup() %>%
+  # group_by(cluster, shortname, timepoint, depth) %>%
+  # summarise(label_ratio=mean(label_ratio)) %>%
+  ggplot(aes(x=timepoint, y=label_ratio, color=timepoint)) +
+  geom_hline(yintercept = 0) +
+  geom_boxplot() +
+  facet_grid(depth~cluster)
+```
+
+```{r nls curve classification w minpack.lm package}
+library(minpack.lm)
+clean_iso_data %>%
+  complete(feature, shortname) %>%
+  mutate(untripl=str_remove(shortname, "-[A-C]")) %>%
+  group_by(feature) %>%
+  filter(sum(is.na(label_ratio))==0) %>%
+  nest(data=-c(feature, depth)) %>%
+  mutate(nls_test=map(data, ~broom::tidy(nlsLM(label_ratio~a*timepoint_num^b+d, 
+                                             start = list(a=1, b=2, d=1), data=.x,
+                                             control=nls.lm.control(maxiter = 500))))) %>%
+  unnest(nls_test) %>%
+  select(feature, depth, data, term, estimate) %>%
+  pivot_wider(names_from = term, values_from = estimate) %>%
+  # left_join(shape_classes) %>%
+  mutate(a_sign=factor(ifelse(a<0, "neg", "pos"), levels=c("pos", "neg"))) %>%
+  mutate(a=abs(a)) %>%
+  left_join(iso_pairs %>% select(feature, compound_name) %>% drop_na()) %>%
+  mutate(feature=ifelse(is.na(compound_name), feature, compound_name)) %>%
+  ggplot() +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 1) +
+  geom_text(aes(x=b, y=a, label=feature, color=depth), hjust=0.2) +
+  annotate("label", x=1, y=Inf, hjust=0, vjust=1, label="Exponential", label.r=unit(0, "in")) +
+  annotate("label", x=1, y=Inf, hjust=1, vjust=1, label="Logarithmic", label.r=unit(0, "in")) +
+  scale_y_log10() +
+  facet_wrap(~a_sign, ncol=1, scales = "free_y")
+ggsave(filename = paste0(output_folder, "nls_coefs.pdf"), device = "pdf", 
+       width = 10, height = 10, units = "in")
+
+clean_iso_data %>%
+  left_join(iso_pairs %>% select(feature, compound_name) %>% drop_na()) %>%
+  mutate(feature=ifelse(is.na(compound_name), feature, compound_name)) %>%
+  ggplot(aes(x=timepoint_num, y=label_ratio)) +
+  geom_hline(yintercept = 0) +
+  geom_smooth(method="nlsLM", color="black", formula="y~a*x^b+d", se = FALSE, 
+              method.args=list(start=list(a=1, b=2, d=1))) +
+  geom_point(aes(color=timepoint, shape=startime)) +
+  ggh4x::facet_grid2(depth~feature, scales="free_y", independent = "y")
+ggsave(filename = paste0(output_folder, "nls_fits.pdf"), device = "pdf",
+       width = 80, height = 4, units = "in", limitsize = FALSE)
+```
+
+## For all untargeted compounds from isotope envelopes
+
+```{r}
+raw_iso_envelopes <- read_csv(paste0(output_folder, "raw_iso_envelopes.csv"))
+
+label_frac <- raw_iso_envelopes %>%
+  group_by(feature, iso_count) %>%
+  mutate(med_corr=median(corr, na.rm=TRUE)) %>%
+  filter(med_corr>0.8) %>%
+  select(feature, filename, iso_count, area) %>%
+  # ggplot() + geom_boxplot(aes(x=iso_count, y=area, group=iso_count))
+  mutate(label_type=ifelse(iso_count==0, "unlabeled", "labeled")) %>%
+  select(-iso_count) %>%
+  group_by(feature, filename, label_type) %>%
+  summarise(area=sum(area, na.rm=TRUE)) %>%
+  pivot_wider(names_from=label_type, values_from = area) %>%
+  mutate(labeled_ratio=labeled/(unlabeled+labeled)) %>%
+  left_join(parametadata) %>%
+  drop_na()
+label_frac %>%
+  # filter(feature=="FT0915") %>%
+  # filter(feature=="FT1705") %>%
+  filter(feature=="FT0239") %>%
+  ggplot() + 
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  geom_abline(slope = 1, intercept = 0) +
+  geom_point(aes(x=labeled, y=unlabeled, color=timepoint, shape=startime)) +
+  facet_wrap(~depth, ncol=1, scales="free")
+label_frac %>%
+  filter(feature=="FT0239") %>%
+  ggplot() +
+  geom_hline(yintercept = 0) +
+  geom_point(aes(x=timepoint, y=labeled_ratio, color=timepoint, shape=startime)) +
+  facet_wrap(~depth, ncol=1, scales="free")
+```
+
 
 # Multivariate approaches
 
@@ -393,7 +693,33 @@ multivar_analysis %>%
 multivar_analysis$perm_output
 ```
 
+```{r kmeans clustering of isotope signals}
+
+
+```
+
 
 # Univariate followup
 
+```{r}
+amend_plot <- function(cmpd_name_i){
+  amend_comp_concs %>%
+    filter(compound_name==cmpd_name_i) %>%
+    ggplot() +
+    geom_col(aes(x=timepoint, y=nM_in_env, fill=labeled_n_count), color="black") +
+    facet_grid2(depth~amendment, scales="free_y", space = "free", 
+                strip = strip_themed(
+                  background_x=elem_list_rect(fill = scales::hue_pal()(4)[c(1,4,3,2)])
+                )) +
+    scale_fill_gradient(low = "grey20", high = "grey80") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+    scale_x_discrete(breaks=c("T0", "T1", "T3", "T10", "T26", "T73"), labels=c("T0", 1,3,10,26, 73)) +
+    theme_bw() +
+    theme(text = element_text(size=14), legend.text = element_text(size=18), 
+          legend.position = "none", strip.text = element_text(size=18)) +
+    labs(x="Timepoint (hours after spike)", 
+         y="Concentration (nM)\nin each 15N label",
+         title = cmpd_name_i)
+}
+```
 

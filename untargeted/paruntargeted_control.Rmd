@@ -16,12 +16,12 @@ library(arrow)
 library(xcms)
 library(RaMS)
 
-# polarity <- "pos"
-polarity <- "neg"
-# amendment <- "Amm"
+polarity <- "pos"
+# polarity <- "neg"
+amendment <- "Amm"
 # amendment <- "Nit"
 # amendment <- "GMP"
-amendment <- "Arg"
+# amendment <- "Arg"
 IS_type <- "noIS"
 # IS_type <- "wIS"
 
@@ -481,70 +481,396 @@ IS_areas_all %>%
 ```
 
 ```{r get PheTau areas from raw files}
-pdf("untargeted/IS_integrations/IS_area_vis.pdf", width = 7, height = 4)
-IS_eics <- open_dataset("tmzMLs/pqds") %>%
-  filter(samp_type%in%c("Smp", "Poo")) %>%
-  filter(mz%between%pmppm(174.1365, 10) & rt%between%c(3, 7.5) | 
-           mz%between%pmppm(128.0325, 10) & rt%between%c(8, 12) | 
-           mz%between%pmppm(130.0471, 10) & rt%between%c(8, 12)) %>%
-  dplyr::collect()
-IS_eics %>%
-  filter(amendment!="Nit") %>%
-  mutate(compound_name=case_when(
-    mz<129~"Taurine, 2H4, neg",
-    mz<140~"Taurine, 2H4, pos",
-    TRUE~"Phenylalanine, 2H8, pos"
-  )) %>%
-  left_join(parametadata_all) %>%
-  group_by(amendment) %>%
-  mutate(timestamp=as.numeric(timestamp-min(timestamp))/as.numeric(max(timestamp)-min(timestamp))) %>%
-  ggplot() +
-  geom_line(aes(x=rt, y=int, group=filename, color=timestamp)) +
-  facet_grid(compound_name~amendment, scales="free")
-IS_eics %>%
-  mutate(compound_name=case_when(
-    mz<129~"Taurine, 2H4, neg",
-    mz<140~"Taurine, 2H4, pos",
-    TRUE~"Phenylalanine, 2H8, pos"
-  )) %>%
-  filter(amendment!="Nit") %>%
-  group_by(filename, compound_name) %>%
-  summarise(into=trapz(rt, int)*60, .groups = "drop") %>%
-  left_join(parametadata_all) %>%
-  arrange(timestamp) %>%
-  mutate(shortname=fct_inorder(paste0(amendment, shortname))) %>%
-  ggplot() +
-  geom_col(aes(x=shortname, y=into, fill=samp_type), width=1) +
-  facet_grid(compound_name~amendment, scales="free") +
-  ggtitle("Reintegrated IS from raw EICs")
 
-PheTau_all_amendments <- readxl::read_excel("untargeted/manual_annotations.xlsx") %>%
-  filter(compound_name%in%c("Taurine, 2H4", "Phenylalanine, 2H8")) %>%
-  mutate(output_folder=paste(amendment, polarity, "noIS_output/", sep="_")) %>%
-  nest(IS_info=-output_folder) %>%
-  mutate(IS_data=map(paste0("untargeted/", output_folder, "peak_data.csv"), read_csv)) %>%
-  unnest(IS_info) %>%
-  mutate(IS_data=map2(feature, IS_data, ~filter(.y, feature==.x))) %>%
-  select(-feature, -mz, -rt) %>%
-  unnest(cols = c(IS_data)) %>%
-  select(amendment, polarity, compound_name, filename, into)
-PheTau_all_amendments %>%
-  mutate(compound_name=paste(compound_name, polarity, sep=", ")) %>%
-  arrange(desc(into)) %>%
-  group_by(compound_name, filename) %>%
-  mutate(n=n()) %>%
-  slice(1) %>%
-  ungroup() %>%
-  left_join(parametadata_all) %>%
-  filter(samp_type!="Std") %>%
-  arrange(timestamp) %>%
-  mutate(shortname=fct_inorder(paste0(amendment, shortname))) %>%
+```
+
+
+
+# Isotope visualization
+
+```{r load isotope mzs and areas}
+all_stans <- read_csv("metadata/all_stans.csv") %>%
+  filter(polarity==!!polarity) %>%
+  filter(compound_type!="Internal Standard") %>%
+  select(compound_name, formula)
+manual_anno <- readxl::read_excel("untargeted/manual_annotations.xlsx") %>%
+  filter(polarity==!!polarity) %>%
+  filter(amendment==!!amendment) %>%
+  select(feature, compound_name)
+best_feat_data <- output_folder %>%
+  paste0("best_feat_data.csv") %>%
+  read_csv() %>%
+  left_join(manual_anno) %>%
+  left_join(all_stans)
+iso_mzs <- read_csv(paste0(output_folder, "iso_mzs.csv"))
+iso_areas <- read_csv(paste0(output_folder, "iso_areas.csv")) %>%
+  filter(samp_type=="Smp")
+```
+
+```{r individual isotope EIC}
+single_cmpd_iso_req <- iso_mzs %>%
+  filter(compound_name=="Guanine") %>%
+  mutate(labeled_mzmed=round(labeled_mzmed, 5)) %>%
+  summarise(req_cmd=paste0("mz%between%pmppm(", labeled_mzmed, ", 10)", collapse="|")) %>%
+  pull(req_cmd)
+full_arrow_req <- paste(
+  'open_dataset("tmzMLs/pqds") %>%',
+  'filter(amendment==!!amendment) %>%',
+  'filter(samp_type=="Smp") %>%',
+  'filter(polarity==!!polarity) %>% ',
+  'filter(', single_cmpd_iso_req, ') %>% ',
+  'dplyr::collect()'
+)
+single_cmpd_iso_eic <- eval(parse(text=full_arrow_req))
+
+iso_mzs %>%
+  filter(compound_name=="Guanine") %>%
+  pmap(function(...){
+    row_data <- list(...)
+    single_cmpd_iso_eic %>%
+      filter(mz%between%pmppm(row_data$labeled_mzmed, 10)) %>%
+      mutate(n_count=row_data$n_count)
+  }) %>%
+  bind_rows() %>%
+  filter(rt%between%c(7, 9)) %>%
+  left_join(parametadata) %>%
+  filter(depth=="Surf" & startime=="Morn") %>%
   ggplot() +
-  geom_col(aes(x=shortname, y=into, fill=samp_type), width=1) +
-  facet_grid(compound_name~amendment, scales="free") +
-  ggtitle("IS areas from XCMS")
+  geom_line(aes(x=rt, y=int, group=filename, color=timepoint)) +
+  facet_grid(timepoint~n_count) +
+  ggtitle("Surface morning spiked samples")
+```
+
+```{r individual isotope area plots}
+iso_areas <- read_csv(paste0(output_folder, "iso_areas.csv"))
+
+cmpd_name_i <- "Guanine"
+single_cmpd_iso_data <- iso_areas %>%
+  filter(compound_name==cmpd_name_i) %>%
+  left_join(parametadata) %>%
+  filter(!is.na(depth)) %>%
+  mutate(labeled_n_count=factor(labeled_n_count))
+
+single_cmpd_iso_data %>%
+  ggplot() +
+  geom_boxplot(aes(x=labeled_n_count, y=area, color=timepoint)) +
+  facet_grid(depth~startime, scales="free_y") +
+  ggtitle("Raw peak areas across depth and time")
+
+single_cmpd_iso_data %>%
+  group_by(depth, startime, labeled_n_count) %>%
+  mutate(area=area/sum(area)) %>%
+  ggplot() +
+  geom_boxplot(aes(x=labeled_n_count, y=area, color=timepoint)) +
+  facet_grid(depth~startime) +
+  ggtitle("Peak areas normalized to the max within each isotope")
+
+single_cmpd_iso_data %>%
+  group_by(depth, startime, labeled_n_count, timepoint) %>%
+  summarize(area=median(area)) %>%
+  group_by(depth, startime, timepoint) %>%
+  mutate(lower_bound=cumsum(lag(area, default = 0))/sum(area)) %>%
+  mutate(upper_bound=lead(lower_bound, default = 1)) %>%
+  ggplot() +
+  geom_ribbon(aes(x=timepoint, ymin=lower_bound, ymax=upper_bound, 
+                  fill=labeled_n_count, group=labeled_n_count)) +
+  facet_grid(depth~startime) +
+  scale_fill_brewer(type = "qual", palette = 3) +
+  theme_bw() +
+  labs(title = "Median triplicate peak area as a fraction of total for each timepoint",
+       x="Timepoint", fill="15N count", 
+       y="Fraction of peak area in each isotopologue")
+
+single_cmpd_iso_data %>%
+  # group_by(depth, startime, labeled_n_count, timepoint) %>%
+  # summarize(area=median(area)) %>%
+  ggplot() +
+  geom_col(aes(x=timepoint, y=area, fill=labeled_n_count), color="grey50") +
+  facet_grid(depth~startime, scales="free_y") +
+  scale_fill_brewer(type = "qual", palette = 3) +
+  theme_bw() +
+  labs(x="Timepoint (hours after spike)", y="Peak area with 15N label",
+       fill="Number of\n15N atoms in\nisotopologue",
+       title = "Summed peak area by timepoint")
+```
+
+```{r isotopes for all targ cmpds}
+pdf(paste0(output_folder, "targ_cmpd_mids.pdf"), width = 6, height = 3)
+walk(unique(iso_areas$compound_name), function(cmpd_name_i){
+  gp <- iso_areas %>%
+    filter(compound_name==cmpd_name_i) %>%
+    left_join(parametadata, by="filename") %>%
+    filter(!is.na(depth)) %>%
+    mutate(labeled_n_count=factor(labeled_n_count)) %>%
+    group_by(depth, startime, labeled_n_count, timepoint) %>%
+    summarize(area=median(area), .groups = "drop") %>%
+    group_by(depth, startime, timepoint) %>%
+    mutate(lower_bound=cumsum(lag(area, default = 0))/sum(area)) %>%
+    mutate(upper_bound=lead(lower_bound, default = 1)) %>%
+    ggplot() +
+    geom_ribbon(aes(x=timepoint, ymin=lower_bound, ymax=upper_bound, 
+                    fill=labeled_n_count, group=labeled_n_count)) +
+    facet_grid(startime~depth) +
+    scale_fill_brewer(type = "qual", palette = 3) +
+    labs(x="Timepoint", fill="15N count", y="Fraction of peak area in\neach isotopologue") +
+    theme_bw() +
+    ggtitle(cmpd_name_i)
+  plot(gp)
+}, .progress = TRUE)
 dev.off()
 ```
 
+```{r special classes of isotope trends}
+iso_areas <- read_csv(paste0(output_folder, "iso_areas.csv"))
+nucleos <- c("Adenine", "Guanine", "Cytosine", "Hypoxanthine", 
+             "Adenosine", "Guanosine", "Cytidine", "Inosine",
+             "Deoxyadenosine", "Deoxyguanosine?", "Deoxycytidine?")
+iso_areas %>%
+  filter(compound_name%in%nucleos) %>%
+  mutate(compound_name=factor(compound_name, levels=nucleos)) %>%
+  left_join(parametadata) %>%
+  filter(!is.na(depth)) %>%
+  mutate(labeled_n_count=factor(labeled_n_count)) %>%
+  filter(depth=="Surf") %>%
+  # filter(compound_name=="Guanine") %>%
+  group_by(compound_name, labeled_n_count, timepoint) %>%
+  summarize(area=median(area)) %>%
+  group_by(compound_name, timepoint) %>%
+  mutate(lower_bound=cumsum(lag(area, default = 0))/sum(area)) %>%
+  mutate(upper_bound=lead(lower_bound, default = 1)) %>%
+  ggplot() +
+  geom_ribbon(aes(x=timepoint, ymin=lower_bound, ymax=upper_bound, 
+                  fill=labeled_n_count, group=labeled_n_count)) +
+  facet_wrap(~compound_name, nrow=3) +
+  scale_fill_brewer(type = "qual", palette = 3) +
+  theme_bw() +
+  labs(x="Timepoint (hours after spike)", 
+       y="Fraction of peak area with 15N label",
+       fill="Number of\n15N atoms in\nisotopologue")
+
+nbases <- c("Adenine", "Guanine", "Cytosine", "Hypoxanthine")
+iso_areas %>%
+  filter(compound_name%in%nbases) %>%
+  mutate(compound_name=factor(compound_name, levels=nbases)) %>%
+  left_join(parametadata) %>%
+  filter(!is.na(depth)) %>%
+  filter(labeled_n_count>0) %>%
+  mutate(labeled_n_count=factor(labeled_n_count)) %>%
+  filter(timepoint=="T26") %>%
+  ggplot() +
+  geom_boxplot(aes(x=labeled_n_count, y=area)) +
+  ggh4x::facet_grid2(depth~compound_name, scales="free_y", independent = "y")
+
+
+aminos <- c("Glycine", "L-Alanine", "L-Serine", "L-Proline", 
+            "L-Threonine", "L-Leucine", "L-Isoleucine", "L-Tyrosine", 
+            "L-Aspartic acid", "L-Asparagine", "beta-Glutamic acid", 
+            "L-Glutamine", "L-Methionine", "L-Histidine", "L-Arginine")
+iso_areas %>%
+  filter(compound_name%in%aminos) %>%
+  mutate(compound_name=factor(compound_name, levels=aminos)) %>%
+  left_join(parametadata) %>%
+  filter(!is.na(depth)) %>%
+  mutate(labeled_n_count=factor(labeled_n_count)) %>%
+  filter(depth=="Surf") %>%
+  group_by(compound_name, labeled_n_count, timepoint) %>%
+  summarize(area=median(area)) %>%
+  group_by(compound_name, timepoint) %>%
+  mutate(lower_bound=cumsum(lag(area, default = 0))/sum(area)) %>%
+  mutate(upper_bound=lead(lower_bound, default = 1)) %>%
+  ggplot() +
+  geom_ribbon(aes(x=timepoint, ymin=lower_bound, ymax=upper_bound, 
+                  fill=labeled_n_count, group=labeled_n_count)) +
+  facet_wrap(~compound_name, ncol=5) +
+  scale_fill_brewer(type = "qual", palette = 3) +
+  theme_bw() +
+  labs(x="Timepoint (hours after spike)", 
+       y="Fraction of peak area with 15N label",
+       fill="Number of\n15N atoms in\nisotopologue")
+
+MAAs <- c("Palythine?", "Mycosporine-glycine?", "Asterina-330?", 
+          "Shinorine?", "Porphyra-334?", "Mycosporine-2-glycine?")
+iso_areas %>%
+  filter(compound_name%in%MAAs) %>%
+  mutate(compound_name=factor(compound_name, levels=MAAs)) %>%
+  left_join(parametadata) %>%
+  filter(!is.na(depth)) %>%
+  mutate(labeled_n_count=factor(labeled_n_count)) %>%
+  filter(depth=="Surf") %>%
+  group_by(compound_name, startime, labeled_n_count, timepoint) %>%
+  summarize(area=median(area)) %>%
+  group_by(compound_name, startime, timepoint) %>%
+  mutate(lower_bound=cumsum(lag(area, default = 0))/sum(area)) %>%
+  mutate(upper_bound=lead(lower_bound, default = 1)) %>%
+  ggplot() +
+  geom_ribbon(aes(x=timepoint, ymin=lower_bound, ymax=upper_bound, 
+                  fill=labeled_n_count, group=labeled_n_count)) +
+  facet_grid(startime~compound_name) +
+  scale_fill_brewer(type = "qual", palette = 3) +
+  coord_cartesian(ylim = c(0.5, 1)) +
+  theme_bw() +
+  labs(x="Timepoint (hours after spike)", 
+       y="Fraction of peak area with 15N label",
+       fill="Number of\n15N atoms in\nisotopologue")
+
+others <- c("Theanine?", "Citrulline", "N-Methyl-L-glutamic acid?", 
+            "Ectoine", "5-Hydroxyectoine")
+iso_areas %>%
+  filter(compound_name%in%others) %>%
+  mutate(compound_name=factor(compound_name, levels=others)) %>%
+  left_join(parametadata) %>%
+  filter(!is.na(depth)) %>%
+  mutate(labeled_n_count=factor(labeled_n_count)) %>%
+  group_by(compound_name, depth, labeled_n_count, timepoint) %>%
+  summarize(area=median(area)) %>%
+  group_by(compound_name, depth, timepoint) %>%
+  mutate(lower_bound=cumsum(lag(area, default = 0))/sum(area)) %>%
+  mutate(upper_bound=lead(lower_bound, default = 1)) %>%
+  ggplot() +
+  geom_ribbon(aes(x=timepoint, ymin=lower_bound, ymax=upper_bound, 
+                  fill=labeled_n_count, group=labeled_n_count)) +
+  facet_grid(depth~compound_name) +
+  scale_fill_brewer(type = "qual", palette = 3) +
+  theme_bw() +
+  labs(x="Timepoint (hours after spike)", 
+       y="Fraction of peak area with 15N label",
+       fill="Number of\n15N atoms in\nisotopologue")
+```
+
+```{r special classes of isotope trends alt visualization total area}
+chosen_cmpds <- MAAs
+iso_areas %>%
+  mutate(compound_name=factor(compound_name, levels=chosen_cmpds)) %>%
+  drop_na() %>%
+  left_join(parametadata) %>%
+  filter(!is.na(depth)) %>%
+  filter(depth=="Surf") %>%
+  mutate(labeled_n_count=factor(labeled_n_count, levels = 5:0)) %>%
+  group_by(depth, compound_name, labeled_n_count, timepoint, startime) %>%
+  summarize(area=median(area)) %>%
+  ggplot() +
+  geom_col(aes(x=timepoint, y=area, fill=labeled_n_count)) +
+  ggh4x::facet_grid2(startime~compound_name, scales="free_y", independent="y") +
+  # facet_grid(startime~compound_name) +
+  scale_fill_brewer(type = "qual", palette = 3, direction = -1) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(x="Timepoint (hours after spike)", y="Peak area with 15N label",
+       fill="Number of\n15N atoms in\nisotopologue")
+```
+
+
+# Multivariate approaches
+
+```{r overall analysis}
+iso_areas <- read_csv(paste0(output_folder, "iso_areas.csv"))
+areas_scaled <- iso_areas %>%
+  # filter(labeled_n_count>0) %>%
+  # filter(labeled_n_count==0) %>%
+  left_join(parametadata) %>%
+  filter(!is.na(depth)) %>%
+  mutate(compound_iso=paste0(compound_name, " 15N", labeled_n_count)) %>%
+  arrange(desc(area)) %>%
+  select(shortname, compound_iso, area) %>%
+  group_by(shortname, compound_iso) %>%
+  slice(1) %>%
+  ungroup() %>%
+  complete(shortname, compound_iso, fill = list(area=0)) %>%
+  group_by(compound_iso) %>%
+  # mutate(norm_area=(area-min(area))/(max(area)-min(area))) %>%
+  # mutate(norm_area=rank(area)) %>%
+  mutate(norm_area=scale(area)[,1]) %>%
+  ungroup() %>%
+  select(shortname, compound_iso, norm_area)
+
+areas_scaled %>%
+  pivot_wider(names_from = shortname, values_from = norm_area) %>%
+  column_to_rownames("compound_iso") %>%
+  data.matrix() %>%
+  t() %>%
+  prcomp() %>%
+  pluck("x") %>%
+  as.data.frame() %>%
+  rownames_to_column("shortname") %>%
+  select(shortname, PC1:PC3) %>%
+  left_join(parametadata) %>%
+  arrange(timepoint) %>%
+  mutate(shortname=fct_inorder(shortname)) %>%
+  pivot_longer(starts_with("PC")) %>%
+  filter(name%in%paste0("PC", 1:3)) %>%
+  ggplot() +
+  geom_col(aes(x=shortname, y=value, fill=timepoint)) +
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5)) +
+  facet_wrap(~name, ncol=1)
+
+areas_mat <- areas_scaled %>%
+  left_join(parametadata, by="shortname") %>%
+  select(compound_iso, shortname, norm_area) %>%
+  group_by(compound_iso) %>%
+  filter(sum(norm_area==0)<n()*0.9) %>%
+  pivot_wider(names_from = "compound_iso", values_from = norm_area) %>%
+  column_to_rownames("shortname") %>%
+  data.matrix()
+
+adon_expl <- data.frame(shortname=rownames(areas_mat)) %>%
+  left_join(parametadata %>% select(shortname, depth, timepoint, startime), by="shortname")
+vegan::adonis2(
+  areas_mat~timepoint+startime+depth, data = adon_expl, by = "margin", 
+  permutations = 999, method = "manhattan")
+```
+
+```{r multivar analysis by depth}
+multivar_analysis <- areas_scaled %>%
+  left_join(parametadata, by="shortname") %>%
+  nest(data=-depth) %>%
+  mutate(wide_peaks=map(data, function(metab_df){
+    metab_df %>%
+      select(compound_iso, shortname, norm_area) %>%
+      group_by(compound_iso) %>%
+      filter(sum(norm_area==0)<n()*0.9) %>%
+      pivot_wider(names_from = "compound_iso", values_from = norm_area) %>%
+      column_to_rownames("shortname") %>%
+      data.matrix()
+  })) %>%
+  mutate(nmds_output=map(wide_peaks, function(metab_mat){
+    # env_vec <- pull(parametadata, timepoint, shortname)[rownames(metab_mat)]
+    vegan::metaMDS(metab_mat, k = 2, distance = "manhattan", trace = 0, 
+                   autotransform = FALSE, noshare = FALSE, wascores = FALSE)
+    # vegan::MDSrotate(env_vec)
+  })) %>%
+  mutate(nmds_stress=map_dbl(nmds_output, pluck, "stress")) %>%
+  mutate(perm_output=map(wide_peaks, function(metab_mat){
+    adon_expl <- data.frame(shortname=rownames(metab_mat)) %>%
+      left_join(parametadata %>% select(shortname, timepoint, startime), by="shortname")
+    vegan::adonis2(
+      metab_mat~timepoint+startime, data = adon_expl, by = "margin", 
+      permutations = 999, method = "manhattan")
+  })) %>%
+  mutate(pca_output=map(wide_peaks, prcomp)) %>%
+  mutate(hclust_obj=map(wide_peaks, ~hclust(dist(.x))))
+
+multivar_analysis %>%
+  mutate(nmds_points=map(nmds_output, function(nmds_output_i){
+    nmds_output_i %>% pluck("points") %>% as.data.frame()
+  })) %>%
+  select(depth, nmds_points) %>%
+  unnest_longer(nmds_points, indices_to = "shortname") %>%
+  unnest_wider(nmds_points) %>%
+  left_join(parametadata %>% distinct(shortname, shortname, timepoint, startime)) %>%
+  # mutate(MDS2=ifelse(str_detect(depth,"Deep"), MDS2*-1, MDS2)) %>%
+  ggplot(aes(label=shortname)) +
+  geom_vline(xintercept = 0) +
+  geom_hline(yintercept = 0) +
+  geom_point(aes(x=MDS1, y=MDS2, fill=timepoint, shape=startime), color="black", size=4) +
+  scale_shape_manual(values = c(22, 23), breaks = c("Morn", "Eve")) +
+  facet_wrap(~depth, ncol=1) +
+  theme_bw() +
+  coord_fixed()
+
+multivar_analysis$perm_output
+```
+
+
+# Univariate followup
 
 
