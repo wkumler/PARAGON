@@ -16,13 +16,13 @@ library(arrow)
 library(xcms)
 library(RaMS)
 
-# polarity <- "pos"
+polarity <- "pos"
 # polarity <- "neg"
-# amendment <- "Amm"
+amendment <- "Amm"
 # amendment <- "Nit"
 # amendment <- "GMP"
 # amendment <- "Arg"
-# IS_type <- "noIS"
+IS_type <- "noIS"
 # IS_type <- "wIS"
 
 parametadata_all <- read_csv("metadata/parametadata.csv") %>% 
@@ -34,7 +34,7 @@ parametadata <- parametadata_all %>%
   filter(amendment==!!amendment) %>%
   filter(IS_type==!!IS_type | samp_type=="Std")
 manual_typing <- readxl::read_excel("metadata/manual_typing.xlsx") %>%
-  mutate(manual_type=ifelse(is.na(manual_type), "Others", manual_type)) %>%
+  mutate(manual_type=ifelse(is.na(manual_type), "Other", manual_type)) %>%
   add_row(compound_name="Thymidine", manual_type="Nucleobases +")
 all_stans <- read_csv("metadata/all_stans.csv") %>%
   left_join(manual_typing)
@@ -697,9 +697,86 @@ multivar_analysis %>%
 multivar_analysis$perm_output
 ```
 
+```{r logistic curve fitting contour plot and curve fitting}
+glm_coef_data <- all_concs %>%
+  left_join(parametadata_all) %>%
+  filter(amendment=="Amm") %>%
+  filter(samp_type=="Smp") %>%
+  filter(!str_detect(filename, "Blk")) %>%
+  mutate(label_type=ifelse(labeled_n_count==0, "Unlabeled", "Labeled")) %>%
+  select(compound_name, filename, label_type, nM_in_env, timepoint_num, depth, startime) %>%
+  pivot_wider(names_from = label_type, values_from=nM_in_env, values_fn = sum) %>%
+  mutate(frac_labeled=Labeled/(Labeled+Unlabeled)) %>%
+  nest(data=-c(compound_name, depth)) %>%
+  mutate(nls_test=map(data, ~broom::tidy(glm(.x$frac_labeled~.x$timepoint_num, family=quasibinomial)))) %>%
+  unnest(nls_test) %>%
+  select(compound_name, depth, data, term, estimate) %>%
+  pivot_wider(names_from = term, values_from = estimate) %>%
+  dplyr::rename(intercept=`(Intercept)`, slope=`.x$timepoint_num`) %>%
+  mutate(intercept=1-(exp(-intercept)/(1+exp(-intercept)))) %>%
+  left_join(manual_typing)
+```
+
 ```{r kmeans clustering of isotope signals}
+frac_labeled_df <- all_areas %>%
+  left_join(parametadata_all) %>%
+  filter(amendment=="Amm") %>%
+  filter(samp_type=="Smp") %>%
+  filter(!str_detect(filename, "Blk")) %>%
+  filter(polarity=="pos") %>%
+  mutate(label_type=ifelse(labeled_n_count==0, "Unlabeled", "Labeled")) %>%
+  select(compound_name, shortname, label_type, area, timepoint_num, depth, startime) %>%
+  pivot_wider(names_from = label_type, values_from=area, values_fn = sum) %>%
+  mutate(frac_labeled=Labeled/(Labeled+Unlabeled)) %>%
+  ungroup() %>%
+  arrange(depth, startime, timepoint_num) %>%
+  mutate(shortname=fct_inorder(shortname))
+  
+frac_labeled_df %>%
+  filter(compound_name=="L-Glutamine") %>%
+  ggplot() +
+  geom_point(aes(x=timepoint_num, y=frac_labeled)) +
+  facet_grid(depth~startime)
 
+frac_mat <- frac_labeled_df %>%
+  select(compound_name, shortname, frac_labeled) %>%
+  pivot_wider(names_from=shortname, values_from=frac_labeled) %>%
+  mutate(across(everything(), function(x)ifelse(is.na(x), 0, x))) %>%
+  # filter(compound_name=="L-Glutamine") %>%
+  # filter(is.na(`210916_Smp_Amm-Deep-Eve-T0-A-noIS-pos.mzML`)) %>%
+  column_to_rownames("compound_name")
 
+# heatmaply::heatmaply(frac_mat, Colv=FALSE)
+kmeans_obj <- kmeans(frac_mat, centers = 4)
+mapping <- `names<-`(1:6, order(kmeans_obj$size, decreasing = TRUE))
+old_names <- names(kmeans_obj$cluster)
+kmeans_obj$cluster <- mapping[as.character(kmeans_obj$cluster)]
+names(kmeans_obj$cluster) <- old_names
+kmeans_obj$size <- sort(kmeans_obj$size, decreasing = TRUE)
+table(kmeans_obj$cluster)
+
+data.frame(cluster=kmeans_obj$cluster) %>%
+  # split(.$cluster)
+  mutate(cluster=paste0("Cluster ", cluster, " n=", kmeans_obj$size[cluster])) %>%
+  rownames_to_column("compound_name") %>%
+  left_join(frac_labeled_df) %>%
+  # ggplot() +
+  # geom_boxplot(aes(x=timepoint_num, y=frac_labeled, color=startime, group=interaction(timepoint_num, startime))) +
+  # facet_grid(depth~cluster)
+  group_by(cluster, shortname) %>%
+  summarise(mean_labeled=mean(frac_labeled, na.rm=TRUE)) %>%
+  left_join(parametadata) %>%
+  ggplot() +
+  geom_point(aes(x=timepoint_num, y=mean_labeled, color=startime)) +
+  facet_grid(depth~cluster)
+
+library(randomForest)
+library(rpart)
+# library(rpart.plot)
+
+(rfmodel <- randomForest(frac_mat, y=factor(kmeans_obj$cluster), ntree = 5000, 
+                        importance=TRUE, proximity = TRUE, keep.forest = TRUE))
+# varImpPlot(rfmodel, n.var = 60)
 ```
 
 
