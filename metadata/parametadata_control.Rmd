@@ -137,7 +137,7 @@ samp_filedata <- "mzMLs" %>%
   mutate(shortname=str_remove(filename, "-wIS|-noIS-neg|-noIS-pos")) %>%
   mutate(shortname=str_remove(shortname, ".*_Smp_")) %>%
   mutate(shortname=str_remove(shortname, ".mzML$")) %>%
-  mutate(samp_type="Smp") %>%
+  mutate(samp_type=ifelse(str_detect(shortname, "Blk"), "Blk", "Smp")) %>%
   mutate(IS_type=str_extract(filepath, "wIS|noIS")) %>%
   mutate(polarity=str_extract(filepath, "neg|pos")) %>%
   mutate(amendment=str_extract(shortname, "Nit|Amm|Arg|GMP")) %>%
