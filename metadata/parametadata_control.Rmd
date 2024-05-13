@@ -28,9 +28,9 @@ download.file(seaflow_url, destfile = "metadata/raw_data/SeaFlow_dataset_v1.4.xl
 # gm <- get_map(location = c(-156.5, 21.8), zoom = 8, maptype = "hybrid")
 # saveRDS(object = gm, file = "metadata/raw_data/ggmap_of_aloha.rds")
 
-magick::image_read("http://scope.soest.hawaii.edu/data/scope2021/Paragon1CTDchlp.pdf", density = 300) %>%
-  magick::image_trim() %>%
-  magick::image_write("metadata/raw_data/chl_pdf_url.png", format = "png")
+# magick::image_read("http://scope.soest.hawaii.edu/data/scope2021/Paragon1CTDchlp.pdf", density = 300) %>%
+#   magick::image_trim() %>%
+#   magick::image_write("metadata/raw_data/chl_pdf_url.png", format = "png")
 ```
 
 ![](metadata/raw_data/chl_pdf_url.png)
@@ -73,7 +73,7 @@ para_core <- raw_gof %>%
   mutate(lon=-lon)
 ```
 
-```{r visualize}
+```{r visualize, eval=FALSE}
 my_casts <- c(4, 5, 9, 11, 13, 14, 16, 18, 25, 27, 31, 32, 34, 36, 39, 41)
 
 gm <- readRDS("metadata/raw_data/ggmap_of_aloha.rds")
@@ -209,7 +209,11 @@ parametadata_all <- all_filedata %>%
 ## Write out clean parametadata file
 
 ```{r write out}
-write_csv(parametadata_all, file = "metadata/parametadata.csv")
+parametadata_all %>%
+  mutate(depth=factor(depth, levels=c("Surf", "Deep"))) %>%
+  mutate(startime=factor(startime, levels=c("Morn", "Eve"))) %>%
+  arrange(polarity, amendment, depth, startime, timepoint_num, tripl) %>%
+  write_csv(file = "metadata/parametadata.csv")
 ```
 
 ## Create a clean and static list of standards
