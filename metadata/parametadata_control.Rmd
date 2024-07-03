@@ -183,7 +183,7 @@ other_filedata <- "mzMLs" %>%
   mutate(IS_type=str_extract(filepath, "wIS|noIS")) %>%
   mutate(polarity=str_extract(filepath, "neg|pos")) %>%
   mutate(amendment=str_extract(shortname, "Nit|Amm|Arg|GMP")) %>%
-  fill(IS_type, amendment, .direction = "down")
+  fill(amendment)
 
 all_filedata <- samp_filedata %>%
   bind_rows(other_filedata) %>% 
