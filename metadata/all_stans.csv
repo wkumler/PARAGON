@@ -2,11 +2,13 @@ compound_name,mz,rt,z,column,conc_um,compound_type,formula,date_added,mix,polari
 Trimethylamine,60.081324,7.2,1,HILIC,10,Osmolyte,C3H9N,180130,Mix1,pos
 Propylamine?,60.081324,19.7,1,HILIC,20,Amine,C3H9N,230511,NA,pos
 Urea,61.040188,6.4,1,HILIC,30,Urea cycle,CH4N2O,210415,Mix1,pos
+Nitrate?,61.98709,5.2,-1,HILIC,NA,Custom,NO3,230101,NA,neg
 Ethanolamine,62.060589,15.66,1,HILIC,6,Osmolyte,C2H7NO,210615,Mix1,pos
 "Nitrate, 15N?",62.9842,4.55,-1,HILIC,5,Internal Standard,N(15)O3,220628,NA,neg
 Glycine,76.039854,11.9,1,HILIC,4,Amino Acid,C2H5NO2,160401,Mix1,pos
 Trimethylamine N-oxide,76.076239,6.9,1,HILIC,4,Osmolyte,C3H9NO,180130,Mix1,pos
 Bromine79?,78.91768,7,-1,HILIC,NA,Custom,Br(79),230101,NA,neg
+Sulfite?,79.95616,14.7,-1,HILIC,NA,Custom,SO3,230101,NA,neg
 Bromine81?,80.91563,7,-1,HILIC,NA,Custom,Br(81),230101,NA,neg
 "Trimethylamine N-oxide, 2H9?",85.1327,6.9,1,HILIC,4,Internal Standard,C3H(2)9NO,220628,NA,pos
 Oxalic acid,88.987485,15.11,-1,HILIC,4,Organic Acid,C2H2O4,160401,Mix1,neg
@@ -40,6 +42,7 @@ Glycine betaine,118.086804,7.27,1,HILIC,4,Betaine,C5H11NO2,160401,Mix1,pos
 L-Valine,118.086804,9.09,1,HILIC,4,Amino Acid,C5H11NO2,160401,Mix1,pos
 L-Threonine,120.066069,10.92,1,HILIC,4,Amino Acid,C4H9NO3,160401,Mix1,pos
 L-Homoserine,120.066069,11.32,1,HILIC,4,Amino Acid derivative,C4H9NO3,170331,Mix1,pos
+gamma-Amino-beta-hydroxybutyric acid?,120.066069,11.85,1,HILIC,5,Demethylated carnitine,C4H9NO3,240130,NA,pos
 Dimethylsulfonioacetate,121.032327,8.39,1,HILIC,4,Sulfur,C4H9O2S,180701,Mix2,pos
 "Succinic acid, 2H4",121.0444,11.9,-1,HILIC,10,Internal Standard,C4H(2)4H2O4,160401,NA,neg
 Erythritol?,121.050085,7.97,-1,HILIC,20,Sugar alchohol,C4H10O4,230511,NA,neg
@@ -56,6 +59,7 @@ Thymine,125.035103,3.06,-1,HILIC,4,Nucleic Acid,C5H6N2O2,160401,Mix2,neg
 Taurine,126.022491,10,1,HILIC,5,Sulfur,C2H7NO3S,160401,Mix2,pos
 5-Methylcytosine,126.066737,5.53,1,HILIC,4,Pyrimidine derivative,C5H7N3O,190514,Mix2,pos
 "L-Valine, 2H8",126.1365,9.09,1,HILIC,1,Internal Standard,C5H4H(2)8NO2,170301,NA,pos
+Iodine?,126.904,5.1,-1,HILIC,NA,Custom,I,230101,NA,neg
 "Isethionic acid, 13C2",126.9981,7.2,-1,HILIC,0.5,Internal Standard,C(13)2H6O4S,160401,NA,neg
 Thymine,127.050753,3.06,1,HILIC,4,Nucleic Acid,C5H6N2O2,160401,Mix2,pos
 Melamine,127.073219,6.68,1,HILIC,4,Cursed,C3H6N6,180701,Mix2,pos
@@ -123,13 +127,14 @@ Hydroxyisoleucine,148.097369,8.34,1,HILIC,4,Amino Acid derivative,C6H13NO3,18070
 Guanine,150.041585,8.18,-1,HILIC,4,Nucleic Acid,C5H5N5O,160401,Mix2,neg
 L-Methionine,150.058876,7.96,1,HILIC,4,Amino Acid,C5H11NO2S,160401,Mix1,pos
 N6-Methyladenine,150.07797,3.97,1,HILIC,4,Purine derivative,C6H7N5,190514,Mix2,pos
+Xanthine?,151.025601,7.26,-1,HILIC,5,Purine,C5H4N4O2,240130,NA,neg
 Dimethylsulfoxonium propionate?,151.042892,9.88,1,HILIC,4,Sulfur,C5H11O3S,230330,NA,pos
 TMAO 2M+H?,151.14404,7,1,HILIC,NA,Custom,C6H19N2O2,230101,NA,pos
-TMAO friend?,151.14404,7,1,HILIC,NA,Custom,Unknown,230101,NA,pos
 L-Cysteinesulfinic acid,152.001756,10.74,-1,HILIC,5,Sulfur,C3H7NO4S,190514,Mix2,neg
 Guanine,152.057235,8.18,1,HILIC,4,Nucleic Acid,C5H5N5O,160401,Mix2,pos
 Guanine from guanosine?,152.057235,9.06,1,HILIC,NA,Custom,C5H5N5O,230101,Mix2,pos
 "2,5-Dihydroxybenzoic acid",153.018785,4.08,-1,HILIC,5,Lignin,C7H6O4,160401,Mix2,neg
+Xanthine?,153.041251,7.26,1,HILIC,5,Purine,C5H4N4O2,240130,NA,pos
 "L-Methionine, 2H3",153.0771,7.96,1,HILIC,1,Internal Standard,C5H(2)3H8NO2S,160401,NA,pos
 Cysteinolic acid?,154.017406,9.5,-1,HILIC,7.5,Sulfur,C3H9NO4S,220111,Mix2,neg
 L-Cysteinesulfinic acid,154.017406,10.74,1,HILIC,5,Sulfur,C3H7NO4S,190514,Mix2,pos
@@ -146,11 +151,13 @@ L-2-Aminoadipic acid?,160.060984,10.4,-1,HILIC,5,Organic Acid,C6H11NO4,230511,NA
 Betonicine,160.097369,8.45,1,HILIC,4,Betaine,C7H13NO3,180701,Mix2,pos
 N-Methyl-L-glutamic acid?,162.076634,8.69,1,HILIC,5,Amino Acid derivative,C6H11NO4,230718,NA,pos
 (R)-2-(Methylamino)pentanedioic acid?,162.076634,9.72,1,HILIC,5,Organic Acid,C6H11NO4,230511,NA,pos
+Deoxynojirimycin?,162.076634,10.34,-1,HILIC,4,alpha-Glucosidase inhibitor,C6H13NO4,240130,NA,neg
 L-2-Aminoadipic acid?,162.076634,10.9,1,HILIC,5,Organic Acid,C6H11NO4,230511,NA,pos
 Threonine betaine?,162.1125,5,1,HILIC,NA,Custom,C7H15NO3,230101,NA,pos
 Homoserine betaine?,162.1125,6.7,1,HILIC,NA,Custom,C7H15NO3,230101,NA,pos
 Carnitine,162.113019,10.21,1,HILIC,1,Betaine,C7H15NO3,170331,Mix1,pos
 L-Hydroxylysine,163.108268,16.37,1,HILIC,4,Amino Acid - collagen,C6H14N2O3,160401,Mix1,pos
+Deoxynojirimycin?,164.092284,10.34,1,HILIC,4,alpha-Glucosidase inhibitor,C6H13NO4,240130,NA,pos
 N-Acetyltaurine,166.017406,3.74,-1,HILIC,4,Sulfur,C4H9NO4S,160401,Mix2,neg
 Taurocyamine,166.028637,12.02,-1,HILIC,5,Sulfur,C3H9N3O3S,210415,Mix1,neg
 L-Methionine S-oxide,166.053791,9.73,1,HILIC,4,Amino Acid - degraded,C5H11NO3S,170331,Mix1,pos
