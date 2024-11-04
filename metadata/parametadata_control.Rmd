@@ -249,7 +249,19 @@ all_stans <- paste0(base_url, "master/Ingalls_Lab_Standards.csv") %>%
   mutate(compound_name=ifelse(date_added<210813, compound_name,
                               paste0(compound_name, "?"))) %>%
   mutate(polarity=ifelse(z<0, "neg", "pos")) %>%
-  arrange(mz, rt)
+  arrange(mz, rt) %>%
+  mutate(n_C=as.numeric(str_extract(formula, "(?<=C)\\d+"))) %>%
+  mutate(n_C=case_when(
+    !str_detect(formula, "C")~0,
+    str_detect(formula, "C") & is.na(n_C)~1,
+    TRUE~n_C
+  )) %>%
+  mutate(n_N=as.numeric(str_extract(formula, "(?<=N)\\d+"))) %>%
+  mutate(n_N=case_when(
+    !str_detect(formula, "C")~0,
+    str_detect(formula, "C") & is.na(n_N)~1,
+    TRUE~n_N
+  ))
 write_csv(all_stans, "metadata/all_stans.csv")
 ```
 
