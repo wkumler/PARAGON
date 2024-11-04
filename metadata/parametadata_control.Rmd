@@ -167,7 +167,8 @@ station_samp_map <- tribble(
   "Amm", "Deep", "Morn", 39,
   "Amm", "Deep", "Eve", 41
 ) %>%
-  mutate(station=2)
+  mutate(station=2) %>%
+  left_join(para_core %>% distinct(station, cast, cast_datetime=time))
 
 other_filedata <- "mzMLs" %>%
   list.files(recursive = TRUE, full.names = TRUE, pattern = ".mzML") %>%
