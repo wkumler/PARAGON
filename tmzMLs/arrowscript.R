@@ -3,7 +3,7 @@ library(RaMS)
 library(arrow)
 
 parametadata <- fread("metadata/parametadata.csv")[
-  IS_type=="noIS"|is.na(IS_type),c("filepath", "filename", "samp_type", "amendment", "polarity")
+  IS_type=="wIS"|is.na(IS_type),c("filepath", "filename", "samp_type", "amendment", "polarity")
 ]
 parametadata[, .N, by=c("samp_type", "amendment", "polarity")]
 
@@ -14,7 +14,7 @@ for(samp_type_i in unique(parametadata$samp_type)){
       # ms_files <- head(ms_files, 3)
       if(length(ms_files)==0)next
       msdata <- grabMSdata(ms_files, grab_what = "MS1")
-      parq_dir <- paste0("tmzMLs/pqds",
+      parq_dir <- paste0("tmzMLs/pqds_wIS",
                          "/samp_type=", samp_type_i, 
                          "/amendment=", amendment_i, 
                          "/polarity=", polarity_i)

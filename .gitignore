@@ -2,7 +2,5 @@
 !.gitignore
 !metadata/*
 !untargeted/*
-!tmzMLs/*
-!mzMLs/*
 .Rproj.user
 !run_analysis.R
