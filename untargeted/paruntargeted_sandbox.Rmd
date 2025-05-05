@@ -377,6 +377,51 @@ iso_areas %>%
        fill="Number of\n15N atoms in\nisotopologue")
 ```
 
+```{r nested geom_tile plot overview multicompound comparison}
+library(ggh4x)
+iso_areas %>%
+  filter(!str_detect(filename, "Blk")) %>%
+  filter(compound_name%in%c("Guanine", "Guanosine", "Adenine", "Adenosine",
+                            "Cytosine", "Cytidine", "Thymine", "Thymidine",
+                            "Uracil", "Uridine", "Hypoxanthine", "Inosine")) %>%
+  left_join(parametadata_all) %>%
+  group_by(compound_name, timepoint, depth, startime, tripl) %>%
+  mutate(area=area/sum(area)) %>%
+  ggplot() +
+  geom_tile(aes(x=tripl, y=labeled_n_count, fill=area)) +
+  ggh4x::facet_nested(compound_name~depth+startime+timepoint, space = "free_y", scales = "free_y") +
+  scale_fill_viridis_c(labels=scales::label_percent()) +
+  labs(y="Number of labeled nitrogens", fill="Fraction\nof total\npeak area") +
+  theme(axis.text.x = element_blank(), axis.title.x = element_blank(),
+        axis.ticks.x=element_blank())
+
+iso_areas %>%
+  filter(!str_detect(filename, "Blk")) %>%
+  filter(compound_name%in%c("Guanine", "Guanosine", "Adenine", "Adenosine")) %>%
+  left_join(parametadata_all) %>%
+  ggplot() +
+  geom_boxplot(aes(x=factor(labeled_n_count), y=area, color=timepoint)) +
+  ggh4x::facet_nested(compound_name~depth+startime, scales="free_y", independent = "y") +
+  labs(x="Number of labeled nitrogens", y="Peak area", color="Timepoint") +
+  theme_bw()
+
+iso_areas %>%
+  filter(!str_detect(filename, "Blk")) %>%
+  filter(compound_name%in%c("Guanine", "Guanosine", "Adenine", "Adenosine")) %>%
+  left_join(parametadata_all) %>%
+  group_by(compound_name, depth, startime, timepoint, labeled_n_count) %>%
+  summarise(med_area=median(area), .groups = "drop_last") %>%
+  mutate(med_area=med_area/sum(med_area)) %>%
+  mutate(labeled_n_count=factor(labeled_n_count, levels=5:0)) %>%
+  ggplot() +
+  geom_col(aes(x=timepoint, y=med_area, fill=labeled_n_count), position = "stack") +
+  facet_nested(compound_name~depth+startime) +
+  scale_y_continuous(labels=scales::percent_format()) +
+  scale_fill_viridis_d(direction = -1) +
+  labs(x="Timepoint", y="Isotope distribution", fill="Number of\nlabeled\nnitrogens")
+```
+
+
 ## Among good peak isotope pairs
 
 ```{r make iso_pairs}
@@ -802,5 +847,127 @@ amend_plot <- function(cmpd_name_i){
          y="Concentration (nM)\nin each 15N label",
          title = cmpd_name_i)
 }
+```
+
+```{r}
+parametadata <- read_csv("metadata/parametadata.csv") %>% 
+  mutate(timepoint=fct_inorder(timepoint)) %>%
+  mutate(depth=fct_inorder(depth)) %>%
+  mutate(startime=fct_inorder(startime))
+amm_iso_areas <- read_csv("untargeted/Amm_pos_noIS_output/iso_areas.csv") %>%
+  select(-samp_type)
+
+amm_iso_areas %>%
+  filter(compound_name=="L-Glutamine") %>% # Or l-glutamine, or carnitine,
+  left_join(parametadata) %>%
+  filter(samp_type=="Smp") %>%
+  ggplot() +
+  # geom_col(aes(x=tripl, y=area, fill=labeled_n_count), position = "fill") +
+  geom_col(aes(x=tripl, y=area, fill=labeled_n_count)) +
+  facet_grid(depth~startime+timepoint, scales = "free_y") +
+  theme(axis.text.x = element_blank(), axis.title.x = element_blank(), 
+        axis.ticks.x=element_blank())
+
+```
+
+Demo written up for PARAGON group meeting:
+
+```{r}
+library(tidyverse)
+amm_iso_areas <- read_csv("untargeted/Amm_pos_noIS_output/iso_areas.csv") %>%
+  mutate(amend="Amm")
+nit_iso_areas <- read_csv("untargeted/Nit_pos_noIS_output/iso_areas.csv") %>%
+  mutate(amend="Nit")
+parametadata <- read_csv("metadata/parametadata.csv")
+
+library(ggh4x)
+bind_rows(amm_iso_areas, nit_iso_areas) %>%
+  filter(compound_name%in%c("L-Glutamine", "Guanine", "Shinorine?")) %>%
+  mutate(compound_name=factor(compound_name, levels=c("L-Glutamine", "Guanine", "Shinorine?"))) %>%
+  filter(samp_type=="Smp") %>%
+  mutate(label_boolean=ifelse(labeled_n_count>0, "Labeled", "Unlabeled")) %>%
+  left_join(parametadata) %>%
+  # Shinorine isn't found in deep samples
+  filter(!(compound_name=="Shinorine?" & depth=="Deep")) %>%
+  # Add factors to order things correctly
+  arrange(timepoint_num) %>%
+  mutate(timepoint=fct_inorder(timepoint)) %>%
+  mutate(startime=factor(startime, levels=c("Morn", "Eve"))) %>%
+  mutate(depth=factor(depth, levels=c("Surf", "Deep"), labels=c("25m", "175m"))) %>%
+  # Calculate label fractions
+  group_by(amend, compound_name, timepoint, timepoint_num, label_boolean, labeled_n_count, tripl, depth, startime) %>%
+  summarize(area=median(area)) %>%
+  group_by(amend, compound_name, timepoint, timepoint_num, tripl, depth, startime) %>%
+  mutate(area=area/sum(area)) %>%
+  group_by(amend, compound_name, timepoint, timepoint_num, label_boolean, tripl, depth, startime) %>%
+  summarise(area=sum(area)) %>%
+  drop_na() %>%
+  ggplot() +
+  geom_col(aes(x=tripl, y=area, fill=label_boolean), position = "fill", width = 1, color="black") +
+  facet_nested(compound_name+depth~amend+startime+timepoint) +
+  scale_y_continuous(labels = scales::label_percent(), expand = expansion()) +
+  scale_x_discrete(expand = expansion()) +
+  scale_fill_manual(breaks=c("Unlabeled", "Labeled"), values = c("#a6cde3", "#1d7cb4")) +
+  theme_bw() +
+  theme(axis.text.x = element_blank(), axis.title.x = element_blank(), 
+        axis.ticks.x = element_blank(), legend.position = "top") +
+  labs(y="Fraction labeled", fill=NULL)
+
+
+
+bind_rows(amm_iso_areas, nit_iso_areas) %>%
+  filter(compound_name%in%c("L-Glutamine", "Guanine")) %>%
+  mutate(compound_name=factor(compound_name, levels=c("L-Glutamine", "Guanine"))) %>%
+  filter(samp_type=="Smp") %>%
+  mutate(label_boolean=ifelse(labeled_n_count>0, "Labeled", "Unlabeled")) %>%
+  left_join(parametadata) %>%
+  filter(startime=="Morn") %>%
+  filter(depth=="Surf") %>%
+  arrange(timepoint_num) %>%
+  mutate(timepoint=fct_inorder(timepoint)) %>%
+  group_by(amend, compound_name, timepoint, timepoint_num, label_boolean, labeled_n_count, tripl) %>%
+  summarize(area=median(area)) %>%
+  group_by(amend, compound_name, timepoint, timepoint_num, tripl) %>%
+  mutate(area=area/sum(area)) %>%
+  group_by(amend, compound_name, timepoint, timepoint_num, label_boolean, tripl) %>%
+  summarise(area=sum(area)) %>%
+  ggplot() +
+  geom_col(aes(x=tripl, y=area, fill=label_boolean), position = "fill", width = 1, color="black") +
+  facet_nested(compound_name~amend+timepoint) +
+  scale_y_continuous(labels = scales::label_percent(), expand = expansion()) +
+  scale_x_discrete(expand = expansion()) +
+  scale_fill_manual(breaks=c("Unlabeled", "Labeled"), values = c("#a6cde3", "#1d7cb4")) +
+  theme_bw() +
+  theme(axis.text.x = element_blank(), axis.title.x = element_blank(), 
+        axis.ticks.x = element_blank(), legend.position = "top") +
+  labs(y="Fraction labeled", fill=NULL)
+
+
+
+bind_rows(amm_iso_areas, nit_iso_areas) %>%
+  filter(compound_name%in%c("L-Glutamine", "Guanine")) %>%
+  mutate(compound_name=factor(compound_name, levels=c("L-Glutamine", "Guanine"))) %>%
+  filter(samp_type=="Smp") %>%
+  mutate(label_boolean=ifelse(labeled_n_count>0, "Labeled", "Unlabeled")) %>%
+  left_join(parametadata) %>%
+  filter(startime=="Morn") %>%
+  filter(depth=="Surf") %>%
+  arrange(timepoint_num) %>%
+  mutate(timepoint=fct_inorder(timepoint)) %>%
+  group_by(amend, compound_name, timepoint, timepoint_num, label_boolean, labeled_n_count) %>%
+  summarize(area=median(area)) %>%
+  group_by(amend, compound_name, timepoint, timepoint_num) %>%
+  mutate(area=area/sum(area)) %>%
+  group_by(amend, compound_name, timepoint, timepoint_num, label_boolean) %>%
+  summarise(area=sum(area)) %>%
+  ggplot() +
+  geom_col(aes(x=timepoint, y=area, fill=label_boolean), position = "fill", width = 1, color="black") +
+  facet_nested(compound_name~amend) +
+  scale_y_continuous(labels = scales::label_percent(), expand = expansion()) +
+  scale_x_discrete(expand = expansion()) +
+  scale_fill_manual(breaks=c("Labeled", "Unlabeled"), values = c("#1d7cb4", "#a6cde3")) +
+  theme_bw() +
+  theme(legend.position = "top") +
+  labs(y="Fraction labeled", fill=NULL, x="Timepoint")
 ```
 
