@@ -4,6 +4,7 @@
 !untargeted/*
 !targeted/*
 !manuscript/*
+!manuscript/figures/*
 targeted/*.rds
 .Rproj.user
 !run_analysis.R

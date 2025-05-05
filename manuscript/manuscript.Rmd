@@ -124,7 +124,7 @@ One way to reveal the pathways and transformations that marine N undergoes in a 
 
 ## Results
 
-```{r figure 1 small heatmap compound groups}
+```{r fig small heatmap compound groups}
 class_levels <- c("Glutamine", "Glutamic acid", "Aspartic acid", "Asparagine", "Other amino acids", "Theanine?", "Citrulline", "Ectoine", "Guanine", "Other nucleic acids", "MAAs", "Betaines", "All others")
 
 labeled_fracs %>%
@@ -207,10 +207,17 @@ labeled_fracs %>%
       legend.text = ggtext::element_markdown(hjust=c(0, 0, 0.5, 1, 1)))
     )
   )
+
+ggsave(filename = "grouped_heatmap.png", device = "png", path = "manuscript/figures",
+       width = 6.5, height = 4, units = "in", dpi = 300)
 ```
 
+![](figures/grouped_heatmap.png)
 
-```{r fig 2 MAA labeling patterns}
+*Figure XX: Fraction of each metabolite or metabolite group containing at least one 15N label during the treatments amended with 15N ammonia after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the compound signal was isotopically labeled. Separate incubations were started at 6AM and 6PM with water from both 25 meters and 175 meters near Station ALOHA. Three biological replicates are stacked vertically at each timepoint.*
+
+
+```{r fig MAA labeling patterns}
 chosen_maas <- c("Mycosporine-glycine?", "Shinorine?", "Palythine?",
                  "Palythene/Usujirene?", "Also Palythene/Usujirene?", 
                  "Also Porphyra-334?")
@@ -251,7 +258,7 @@ labeled_fracs %>%
   geom_point(aes(x=clock_time, y=labeled_frac, shape=startime, fill=startime),
              color="black", size=2, alpha=0.7) +
   facet_nested(compound_name~amendment) +
-  scale_x_continuous(breaks = c(6, 18, 30, 42), labels = c("6AM", "6PM", "6AM", "6PM")) +
+  scale_x_continuous(breaks = c(6, 18, 30, 42), labels = c("6AM", "6PM", "6AM", "")) +
   scale_y_continuous(labels = scales::label_percent(),
                      limits = c(0, 1), breaks = c(0, 0.5, 1)) +
   scale_shape_manual(values=c(24, 25), breaks = c("6AM start", "6PM start")) +
@@ -262,14 +269,19 @@ labeled_fracs %>%
   theme(axis.text.y = element_markdown(vjust=c(0, 0.5, 1)),
         axis.title.x = element_blank(),
         legend.position = "inside",
-        legend.margin = margin(0.1,0.1,0.1,0.1, unit="lines"),
-        legend.position.inside = c(0, 1),
-        legend.justification = c(0, 1), 
-        legend.background = element_rect(color="black"), 
-        legend.direction = "horizontal") +
+        legend.margin = margin(0.1,0.25,0.1,0.1, unit="lines"),
+        legend.position.inside = c(1, 1),
+        legend.justification = c(1, 1), 
+        legend.background = element_rect(fill="#FFFFFFAA", color="black", linewidth = 0)) +
   guides(shape=guide_legend(override.aes = list(size=3, stroke=1.2, alpha=1, linetype=0)))
+
+ggsave(filename = "MAA_curves.png", device = "png", path = "manuscript/figures",
+       width = 3, height = 6, units = "in", dpi = 300)
 ```
 
+![](figures/MAA_curves.png)
+
+*Figure XX: Fraction of UV-reactive mycosporine-like amino acids (MAAs) containing at least one 15N label over one day during the treatments amended with 15N labeled ammonia or nitrate. Incubations started at 6AM are shown in yellow while incubations started at 6PM are shown in blue, with grey background regions highlighting nighttime. Three replicates are included at each of the 5 timepoints and best-fit power law curves have been fit behind the data.*
 
 ## Discussion
 
