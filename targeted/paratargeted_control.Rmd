@@ -1,0 +1,1091 @@
+---
+title: "PARAGON targeted analysis"
+author: "William Kumler"
+date: "2024-05-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(RaMS)
+library(arrow)
+library(ggh4x)
+options(pillar.sigfig=7)
+
+parametadata <- read_csv("metadata/parametadata.csv") %>%
+  mutate(depth=fct_inorder(depth)) %>%
+  mutate(startime=fct_inorder(startime)) %>%
+  mutate(timepoint=fct_inorder(timepoint))
+all_stans <- read_csv("metadata/all_stans.csv") %>%
+  mutate(n_C=as.numeric(str_extract(formula, "(?<=C)\\d+"))) %>%
+  mutate(n_C=case_when(
+    !str_detect(formula, "C")~0,
+    str_detect(formula, "C") & is.na(n_C)~1,
+    TRUE~n_C
+  )) %>%
+  mutate(n_N=as.numeric(str_extract(formula, "(?<=N)\\d+"))) %>%
+  mutate(n_N=case_when(
+    !str_detect(formula, "N")~0,
+    str_detect(formula, "N") & is.na(n_N)~1,
+    TRUE~n_N
+  ))
+iso_stans <- all_stans %>%
+  select(compound_name, mz, n_C, n_N, polarity) %>%
+  pmap(function(...){
+    row_data <- list(...)
+    expand_grid(n_C=0:row_data$n_C, n_N=0:row_data$n_N, 
+                amendment=c("Amm", "Nit", "Arg", "GMP")) %>%
+      mutate(compound_name=row_data$compound_name, mz=row_data$mz,
+             polarity=row_data$polarity)
+  }) %>%
+  bind_rows() %>%
+  filter(!(amendment%in%c("Amm", "Nit") & n_C>0)) %>%
+  mutate(mz=mz+1.003355*n_C+0.997035*n_N) %>%
+  mutate(iso_name = paste0(compound_name, ", 13C", n_C, ", 15N", n_N))
+
+splividis <- function(n, ...){
+  vir <- viridis::viridis(n, ...)
+  if(n%%2==0){
+    vir[as.numeric(matrix(1:n, ncol=2, byrow = TRUE))]
+  } else {
+    index_vec <- suppressWarnings(as.numeric(matrix(1:n, ncol=2, byrow = TRUE)))
+    vir[head(index_vec, -1)]
+  }
+}
+```
+
+## Integrations for isotopes
+### Make graphs for peak boundaries
+
+```{r extract EICs and convert to PDF using 0-20 RT}
+all_stans <- read_csv("metadata/all_stans.csv") %>%
+  mutate(polarity=factor(polarity, levels=c("pos", "neg"))) %>%
+  arrange(polarity) %>%
+  filter(compound_type!="Internal Standard")
+
+all_stans %>%
+  select(polarity, compound_name, mz, rt, date_added, mix) %>%
+  expand_grid(amendment=c("Amm", "Nit", "GMP", "Arg"), .) %>%
+  mutate(rtstart=0, rtend=20, notes=NA) %>%
+  write_csv("targeted/peak_bounds.csv")
+
+pdf("targeted/feat_bounds.pdf", onefile = TRUE, width = 7, height = 4)
+all_stans %>%
+  expand_grid(amendment=c("Amm", "Nit", "GMP", "Arg"), .) %>%
+  # head() %>%
+  pwalk(function(...){
+    row_data <- list(...)
+    eic_i <- open_dataset("tmzMLs/pqds") %>%
+      filter(polarity==row_data$polarity) %>%
+      filter(samp_type%in%c("Poo", "Std")) %>%
+      filter(amendment==row_data$amendment) %>%
+      filter(mz%between%pmppm(row_data$mz, 10)) %>%
+      filter(rt%between%c(0.5, 20)) %>%
+      collect()
+    gp <- eic_i %>%
+      mutate(mixtype=str_extract(filename, "Poo|Mix1|Mix2")) %>%
+      filter(!str_detect(filename, "H2OInMatrix")) %>%
+      left_join(parametadata, by = join_by(filename, samp_type, amendment, polarity)) %>%
+      mutate(mixtype=factor(mixtype, levels=c("Poo", "Mix1", "Mix2"))) %>%
+      ggplot() +
+      geom_vline(xintercept = 1:19, color="grey70") +
+      geom_vline(xintercept = row_data$rt, color="red") +
+      geom_line(aes(x=rt, y=int, group=filename, color=mixtype), linewidth=0.8) +
+      facet_wrap(~mixtype, ncol=1, scales="free") +
+      ggtitle(paste0(row_data$amendment, " ", row_data$compound_name, 
+                     "  (", row_data$mix, ")")) +
+      theme_bw() +
+      theme(legend.position = "none") +
+      scale_x_continuous(breaks = 0:20, limits = c(0, 20)) +
+      scale_color_manual(breaks=c("Mix1", "Mix2", "Poo"), 
+                         values = c("purple", "mediumorchid1", "blue"))
+    print(gp)
+  }, .progress = TRUE)
+dev.off()
+```
+
+```{r check integration consistency between runs}
+bound_stans <- readxl::read_excel("targeted/peak_bounds.xlsx")
+
+bound_stans %>%
+  filter(rtstart>0) %>%
+  ggplot() +
+  geom_segment(aes(x=rtstart, xend=rtend, y=mz, yend=mz, color=polarity)) +
+  facet_wrap(~amendment)
+
+library(GGally)
+bound_stans %>%
+  filter(polarity=="pos") %>%
+  select(compound_name, amendment, rtstart) %>%
+  pivot_wider(names_from = amendment, values_from = rtstart) %>%
+  column_to_rownames("compound_name") %>%
+  ggpairs(aes(alpha=0.5), diag = list(continuous = "blankDiag"))
+
+bound_stans %>%
+  filter(polarity=="pos") %>%
+  select(compound_name, amendment, rtstart) %>%
+  pivot_wider(names_from = amendment, values_from = rtstart) %>%
+  filter(Amm>0|GMP>0) %>%
+  ggplot(aes(x=Amm, y=GMP, label=compound_name)) +
+  geom_abline(slope=1) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  geom_point() +
+  geom_text() +
+  scale_x_continuous(expand = expansion(0.2))
+```
+
+```{r check integration bounds by plotting chroms}
+bound_stans <- readxl::read_excel("targeted/peak_bounds.xlsx")
+
+eic_data <- bound_stans %>%
+  filter(rtstart>0) %>%
+  # filter(compound_name%in%head(unique(compound_name))) %>%
+  nest(row_data=c(amendment, rtstart, rtend, in_pooled, notes)) %>%
+  mutate(eic=pbapply::pbmapply(function(mz_i, polarity_i){
+    open_dataset("tmzMLs/pqds") %>%
+      filter(polarity==polarity_i) %>%
+      filter(mz%between%pmppm(mz_i, 10)) %>%
+      filter(rt%between%c(0.5, 20)) %>%
+      collect()
+    }, .$mz, .$polarity, SIMPLIFY = FALSE))
+saveRDS(eic_data, "targeted/eic_data.rds")
+
+eic_data <- readRDS("targeted/eic_data.rds")
+pdf("targeted/samp_int_check.pdf", onefile = TRUE, width = 7, height = 4)
+for(i in 1:nrow(eic_data)){
+  gp <- left_join(eic_data$row_data[[i]], eic_data$eic[[i]], by=join_by(
+    amendment, dplyr::between(y$rt, x$rtstart, x$rtend))
+    ) %>%
+    filter(samp_type%in%c("Smp","Poo")) %>%
+    qplotMS1data() +
+    ggtitle(eic_data$compound_name[[i]]) +
+    facet_wrap(~amendment, scales="free_y")
+  print(gp)
+}
+dev.off()
+```
+
+### Integrate areas
+
+```{r get feature eics for integration}
+cmpd_bounds <- readxl::read_xlsx("targeted/peak_bounds.xlsx") %>%
+  filter(rtstart>0) %>%
+  filter(is.na(notes) | notes!="Remove") %>%
+  mutate(mz=ifelse(compound_name=="Homarine", 138.0541, mz)) %>%
+  select(amendment, polarity, compound_name, rtstart, rtend)
+
+# Update iso_stans to reflect the changes made during the Excel annotation
+updated_iso_stans <- iso_stans %>%
+  filter(!compound_name=="beta-Glutamic acid") %>%
+  mutate(compound_name=str_replace(compound_name, "L-Glutamic acid", "L-Glutamic acid/beta-Glutamic acid")) %>%
+  filter(!compound_name=="L-Isoleucine") %>%
+  mutate(compound_name=str_replace(compound_name, "L-Leucine", "L-Leucine/L-Isoleucine")) %>%
+  filter(!compound_name=="L-Homoserine") %>%
+  mutate(compound_name=str_replace(compound_name, "L-Threonine", "L-Threonine/L-Homoserine")) %>%
+  filter(!compound_name=="Allopurinol") %>%
+  mutate(compound_name=str_replace(compound_name, "Hypoxanthine", "Hypoxanthine/Allopurinol")) %>%
+  distinct(amendment, compound_name, iso_name, polarity, mz, n_C, n_N) %>%
+  filter(compound_name%in%unique(cmpd_bounds$compound_name))
+new_pory_entry <- updated_iso_stans %>% 
+  filter(compound_name=="Porphyra-334?") %>% 
+  mutate(compound_name="Also Porphyra-334?") %>%
+  mutate(iso_name=str_replace(iso_name, "Porphyra-334\\?", "Also Porphyra-334\\?"))
+new_paly_entry <- updated_iso_stans %>% 
+  filter(compound_name=="Palythene/Usujirene?") %>% 
+  mutate(compound_name="Another Palythene/Usujirene?") %>%
+  mutate(iso_name=str_replace(iso_name, "Palythene/Usujirene\\?", "Another Palythene/Usujirene\\?"))
+updated_iso_stans <- updated_iso_stans %>% 
+  bind_rows(new_pory_entry) %>% 
+  bind_rows(new_paly_entry)
+
+final_bounds <- cmpd_bounds %>%
+  left_join(updated_iso_stans)
+
+cmpd_eics <- final_bounds %>%
+  nest(amend_specs=-c(compound_name, polarity)) %>%
+  # head() %>%
+  # slice(1)  -> row_data
+  # filter(compound_name=="Theanine?") -> row_data
+  pmap(function(...){
+    row_data <- list(...)
+    # print(row_data$compound_name)
+    amend_specs <- row_data$amend_specs %>%
+      rowwise() %>%
+      mutate(mzmin=pmppm(mz, 10)[1]) %>%
+      mutate(mzmax=pmppm(mz, 10)[2]) %>%
+      ungroup()
+    mzmin <- min(amend_specs$mz)-0.5
+    mzmax <- max(amend_specs$mz)+0.5
+    rtmin <- min(amend_specs$rtstart)
+    rtmax <- max(amend_specs$rtend)
+    all_eic <- open_dataset("tmzMLs/pqds") %>%
+      filter(polarity==row_data$polarity) %>%
+      filter(mz%between%c(mzmin, mzmax)) %>%
+      filter(rt%between%c(rtmin, rtmax)) %>%
+      collect()
+    cmpd_eic <- left_join(amend_specs, all_eic, by=join_by(
+      amendment, dplyr::between(y$rt, x$rtstart, x$rtend), 
+      dplyr::between(y$mz, x$mzmin, x$mzmax)
+    )) %>%
+      distinct() %>%
+      group_by(amendment, filename, iso_name, rt) %>%
+      # nest() %>% ungroup() %>% slice(1) %>% unnest(data)
+      slice_max(int) %>%
+      ungroup() %>%
+      mutate(compound_name=row_data$compound_name) %>%
+      select(amendment, compound_name, iso_name, rt, mz=mz.y, int, filename, polarity)
+    cmpd_eic
+  }, .progress = TRUE) %>%
+  bind_rows() %>%
+  ungroup()
+saveRDS(cmpd_eics, "targeted/cmpd_eics.rds")
+```
+
+```{r single compound demo check}
+cmpd_eics <- readRDS("targeted/cmpd_eics.rds")
+cmpd_eics %>%
+  ungroup() %>%
+  filter(compound_name=="Theanine?") %>%
+  left_join(iso_stans %>% select(-mz)) %>%
+  # filter(filename=="210916_Poo_TruePooAmm-noIS-pos-Full_5.mzML") %>%
+  filter(n_C==0 & n_N<=1) %>%
+  left_join(parametadata) %>%
+  mutate(iso_name=str_remove(iso_name, ".*?, ")) %>%
+  qplotMS1data(color_col = "timepoint") + 
+  facet_grid(iso_name~amendment, scales = "free")
+```
+
+```{r integrate areas}
+cmpd_eics <- readRDS("targeted/cmpd_eics.rds")
+raw_areas <- cmpd_eics %>%
+  left_join(updated_iso_stans %>% select(-mz)) %>%
+  split(.$compound_name) %>%
+  pbapply::pbsapply(function(cmpd_eic_i){
+    unlabeled_eic <- cmpd_eic_i %>%
+      group_by(filename) %>%
+      filter(n_C==0 & n_N==0) %>%
+      mutate(unlab_n=n()) %>%
+      select(filename, rt, unlab_int=int, unlab_n) %>%
+      ungroup()
+    cmpd_eic_i %>%
+      inner_join(unlabeled_eic, by = join_by(rt, filename)) %>%
+      group_by(filename, iso_name) %>%
+      filter(n()>5) %>%
+      arrange(filename, iso_name, rt) %>%
+      summarise(cor_model=list(cor.test(int, unlab_int)), 
+                cor_coef=cor_model[[1]]$estimate,
+                cor_pval=cor_model[[1]]$p.value,
+                overlap_frac=n()/unique(unlab_n), 
+                area=trapz(rt, int, baseline="square"),
+                .groups = "drop")
+}, simplify = FALSE) %>% 
+  bind_rows(.id = "compound_name") %>%
+  group_by(compound_name) %>%
+  mutate(fdr_pval=p.adjust(cor_pval, method="fdr")) %>%
+  mutate(holm_pval=p.adjust(cor_pval, method="holm")) %>%
+  mutate(compound_name=factor(compound_name, levels=unique(cmpd_eics$compound_name))) %>%
+  arrange(compound_name) %>%
+  ungroup()
+```
+
+```{r inspect raw peaks to decide on thresholds}
+raw_areas %>%
+  # filter(compound_name=="L-Arginine") %>%
+  filter(compound_name=="L-Glutamic acid/beta-Glutamic acid") %>%
+  left_join(parametadata %>% distinct(filename, amendment, startime, depth, timepoint)) %>%
+  arrange(timepoint) %>%
+  filter(amendment=="Arg") %>%
+  filter(startime=="Morn" & depth=="Surf") %>%
+  distinct(filename, compound_name, amendment) %>%
+  drop_na() %>% 
+  # select(filename, overlap_frac, cor_coef) %>% print(n=Inf)
+  pwalk(function(...){
+    row_data <- data.frame(...)
+    gp <- row_data %>% 
+      left_join(cmpd_eics, by = join_by(compound_name, amendment, filename)) %>%
+      group_by(iso_name) %>%
+      ggplot() +
+      geom_line(aes(x=rt, y=int, group = interaction(iso_name, filename), color=iso_name)) +
+      facet_wrap(~iso_name, ncol=1, scales="free_y") +
+      ggtitle(row_data$filename) +
+      theme(legend.position="none")
+    print(gp)
+  }, .progress = TRUE)
+raw_areas %>%
+  # filter(compound_name=="L-Arginine") %>%
+  filter(compound_name=="L-Glutamic acid/beta-Glutamic acid") %>%
+  left_join(parametadata %>% distinct(filename, amendment, startime, depth, shortname)) %>%
+  filter(amendment=="Arg") %>%
+  filter(startime=="Morn" & depth=="Surf") %>%
+  drop_na() %>% 
+  select(shortname, iso_name, overlap_frac, cor_coef, holm_pval, area) %>%
+  print(n=Inf)
+```
+
+```{r define peak areas by filtering out intrusive ions}
+deionized_areas <- raw_areas %>%
+  filter(cor_pval<0.01) %>%
+  select(filename, compound_name, iso_name, area)
+
+raw_areas %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(compound_name=="L-Glutamine") %>%
+  filter(amendment=="Arg") %>%
+  filter(depth=="Deep") %>%
+  filter(startime=="Morn") %>%
+  filter(iso_name=="L-Glutamine, 13C5, 15N1") %>%
+  select(filename, iso_name, cor_pval, area) %>%
+  print(n=Inf)
+```
+
+```{r visualize final peak areas}
+peak_areas %>%
+  filter(compound_name=="L-Glutamic acid/beta-Glutamic acid") %>%
+  left_join(parametadata) %>%
+  filter(samp_type=="Smp") %>%
+  # filter(amendment%in%c("Arg", "GMP")) %>%
+  ggplot() +
+  geom_col(aes(x=tripl, y=area, fill=iso_name)) +
+  facet_nested(depth+amendment~startime+timepoint, scales="free_y")
+# cmpd_eics %>%
+#   filter(compound_name=="L-Glutamic acid/beta-Glutamic acid") %>%
+#   left_join(parametadata) %>%
+#   filter(samp_type=="Smp") %>%
+#   # filter(amendment%in%c("Arg", "GMP")) %>%
+#   filter(timepoint=="T3") %>%
+#   ggplot() +
+#   geom_line(aes(x=rt, y=int, group=filename, color=amendment)) +
+#   facet_wrap(~iso_name, ncol=2, scales="free_y")
+```
+
+### Fix problematic areas from IS contamination
+
+```{r}
+is_contam_shortnames <- c("Amm-Surf-Eve-T3-A", "Amm-Surf-Eve-T3-B", 
+                          "Amm-Surf-Morn-T26-A", "Arg-Deep-Eve-T10-A", 
+                          "Nit-Deep-Eve-T0-A")
+problem_stans <- all_stans %>%
+  filter(compound_type=="Internal Standard") %>%
+  select(compound_name, polarity) %>%
+  mutate(unlab_name=str_remove(compound_name, ", .*")) %>%
+  filter(str_detect(compound_name, "15N|13C")) %>%
+  mutate(n_C=str_extract(compound_name, "(?<=13C)\\d+")) %>%
+  mutate(n_C=case_when(
+    !str_detect(compound_name, "13C")~"0",
+    str_detect(compound_name, "13C") & is.na(n_C)~"1",
+    TRUE~n_C
+  )) %>%
+  mutate(n_N=str_extract(compound_name, "(?<=15N)\\d+")) %>%
+  mutate(n_N=case_when(
+    !str_detect(compound_name, "15N")~"0",
+    str_detect(compound_name, "15N") & is.na(n_N)~"1",
+    TRUE~n_N
+  )) %>%
+  mutate(contam_name=paste0(unlab_name, ", 13C", n_C, ", 15N", n_N)) %>%
+  expand_grid(shortname=is_contam_shortnames) %>%
+  left_join(parametadata %>% distinct(shortname, filename)) %>%
+  select(iso_name=contam_name, filename)
+
+decontam_areas <- deionized_areas %>%
+  anti_join(problem_stans)
+```
+
+```{r write out}
+write_csv(decontam_areas, "targeted/all_peak_areas_w_isos.csv")
+```
+
+### Some visualizations
+
+```{r}
+peak_areas <- read_csv("targeted/all_peak_areas_w_isos.csv")
+```
+
+```{r Stacked barplots}
+peak_areas %>%
+  filter(compound_name%in%c("Theanine?")) %>%
+  inner_join(parametadata %>% filter(samp_type=="Smp")) %>%
+  ggplot() +
+  geom_col(aes(x=tripl, y=area, fill=iso_name), position = position_fill(), 
+           color="black", width=1) +
+  facet_nested(amendment+depth~compound_name+startime+timepoint, scales="free_y")
+```
+
+```{r Logistic regression curves}
+peak_areas %>%
+  filter(compound_name=="L-Glutamine") %>%
+  mutate(labeled_frac=1-area/sum(area), .by = c("filename", "compound_name")) %>%
+  select(compound_name, iso_name, filename, labeled_frac) %>%
+  filter(str_detect(iso_name, "13C0, 15N0")) %>%
+  select(-iso_name) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(!is.na(startime)) %>%
+  ggplot(aes(x=timepoint_num, y=labeled_frac)) +
+  geom_point() +
+  geom_smooth(method = "glm", formula = y~x, method.args = list(family = "quasibinomial")) +
+  facet_nested(amendment+depth~startime)
+```
+
+```{r Logistic regression coefficients}
+peak_areas %>%
+  filter(compound_name=="L-Glutamine") %>%
+  mutate(labeled_frac=1-area/sum(area), .by = c("filename", "compound_name")) %>%
+  select(compound_name, iso_name, filename, labeled_frac) %>%
+  left_join(parametadata %>% distinct(filename, samp_type, amendment, depth, startime, timepoint_num)) %>%
+  filter(samp_type=="Smp") %>%
+  filter(str_detect(iso_name, "13C0, 15N0")) %>%
+  select(-iso_name, -samp_type) %>%
+  nest(data=c(filename, timepoint_num, labeled_frac)) %>%
+  mutate(log_fit=map(data, ~glm(.x$labeled_frac~.x$timepoint_num, family="quasibinomial")),
+         coefs=map(log_fit, function(x)broom::tidy(x))) %>%
+  unnest(coefs) %>%
+  # filter(p.adjust(p.value, "fdr")<0.05) %>%
+  select(-statistic, -p.value, -std.error) %>%
+  pivot_wider(names_from = term, values_from = estimate) %>%
+  rename(intercept=`(Intercept)`, slope=`.x$timepoint_num`) %>%
+  mutate(half_max=-intercept/slope, scale=1/slope) %>%
+  mutate(frac_at_T24 = 1/(1+exp(-(intercept+slope*24)))) %>%
+  ggplot() +
+  geom_point(aes(x=half_max, y=frac_at_T24, color=amendment, shape=depth, size=startime), alpha=0.5) +
+  scale_size_manual(values=c(5, 3))
+```
+
+```{r Logreg attempting to propagate errors via delta correction}
+library(msm)
+peak_areas %>%
+  filter(compound_name=="L-Glutamine") %>%
+  mutate(labeled_frac=1-area/sum(area), .by = c("filename", "compound_name")) %>%
+  select(compound_name, iso_name, filename, labeled_frac) %>%
+  left_join(parametadata %>% distinct(filename, samp_type, amendment, depth, startime, timepoint_num)) %>%
+  filter(samp_type=="Smp") %>%
+  filter(str_detect(iso_name, "13C0, 15N0")) %>%
+  select(-iso_name, -samp_type) %>%
+  nest(data=c(filename, timepoint_num, labeled_frac)) %>%
+  mutate(log_fit=map(data, ~glm(.x$labeled_frac~.x$timepoint_num, family="quasibinomial")),
+         coefs=map(log_fit, function(x)broom::tidy(x))) %>%
+  unnest(coefs) %>%
+  select(-statistic, -p.value, -std.error) %>%
+  mutate(term=ifelse(term=="(Intercept)", "intercept", "slope")) %>%
+  pivot_wider(names_from = term, values_from = estimate) %>%
+  mutate(half_max=-intercept/slope) %>%
+  mutate(frac_at_T24 = 1/(1+exp(-(intercept+slope*24)))) %>%
+  rowwise() %>%
+  mutate(half_max_se = msm::deltamethod(~ -x1 / x2, coef(log_fit), vcov(log_fit))) %>%
+  mutate(frac24_se = msm::deltamethod(~ 1 / (1 + exp(-(x1 + x2 * 24))), coef(log_fit), vcov(log_fit))) %>%
+  ungroup() %>%
+  ggplot(aes(x=half_max, y=frac_at_T24, color=amendment)) +
+  geom_linerange(aes(ymin=frac_at_T24-2*frac24_se, ymax=frac_at_T24+2*frac24_se)) +
+  geom_linerange(aes(xmin=half_max-2*half_max_se, xmax=half_max+2*half_max_se)) +
+  geom_point(aes(shape=depth, size=startime), alpha=0.5) +
+  scale_size_manual(values=c(5, 3))
+```
+
+```{r Logreg attempting error distributions via bootstrapping}
+set.seed(123)
+all_bootstraps <- peak_areas %>%
+  filter(compound_name == "Glycine betaine") %>%
+  mutate(labeled_frac = 1 - area / sum(area), .by = c("filename", "compound_name")) %>%
+  select(compound_name, iso_name, filename, labeled_frac) %>%
+  left_join(parametadata %>% distinct(filename, samp_type, amendment, depth, startime, timepoint_num)) %>%
+  filter(samp_type == "Smp") %>%
+  filter(str_detect(iso_name, "13C0, 15N0")) %>%
+  select(-iso_name, -samp_type) %>%
+  nest(data = c(filename, timepoint_num, labeled_frac)) %>%
+  mutate(log_fit = map(data, ~glm(.x$labeled_frac ~ .x$timepoint_num, family = "quasibinomial"))) %>%
+  mutate(bootstrap_results = map(data, function(data_i) {
+    boot_samples <- map(1:100, function(i) {
+      boot_data <- data_i[sample(nrow(data_i), replace = TRUE), ]
+      boot_model <- glm(labeled_frac ~ timepoint_num, data = boot_data, family = "quasibinomial")
+      half_max_boot <- -coef(boot_model)[1] / coef(boot_model)[2]
+      frac24_boot <- 1 / (1 + exp(-(coef(boot_model)[1] + coef(boot_model)[2] * 24)))
+      data.frame(half_max_boot=half_max_boot, frac24_boot=frac24_boot)
+    }) %>%
+      bind_rows()
+  }))
+# Plot raw data colored by amendment
+all_bootstraps %>%
+  unnest(bootstrap_results) %>%
+  ggplot(aes(x = half_max_boot, y = frac24_boot, color = amendment)) +
+  geom_point(alpha = 0.5) +
+  scale_size_manual(values = c(5, 3))
+# Plot summarized data as mean +/- SD
+all_bootstraps %>%
+  unnest(bootstrap_results) %>%
+  summarise(half_max_mean=mean(half_max_boot), half_max_sd=sd(half_max_boot),
+            frac24_mean=mean(frac24_boot), frac24_sd=sd(frac24_boot),
+            .by = c(amendment, depth, startime)) %>%
+  ggplot(aes(x=half_max_mean, y=frac24_mean, color=amendment, label=paste(depth, startime))) +
+  geom_point() +
+  geom_text(nudge_y = 0.02) +
+  geom_linerange(aes(ymin=frac24_mean-2*frac24_sd, ymax=frac24_mean+2*frac24_sd)) +
+  geom_linerange(aes(xmin=half_max_mean-2*half_max_sd, xmax=half_max_mean+2*half_max_sd))
+# Plot raw data faceted by amendment and colored by exp factor
+all_bootstraps %>%
+  unnest(bootstrap_results) %>%
+  ggplot(aes(x = half_max_boot, y = frac24_boot, color = interaction(depth, startime))) +
+  geom_point(alpha = 0.5) +
+  scale_size_manual(values = c(5, 3)) +
+  facet_wrap(~amendment, scales="free")
+```
+
+```{r Plotting peak areas of each isotope as a heatmap instead}
+peak_areas <- read_csv("targeted/all_peak_areas_w_isos.csv")
+peak_areas %>% 
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(samp_type=="Smp") %>%
+  filter(compound_name=="Adenine") %>%
+  left_join(iso_stans) %>%
+  arrange(depth, startime, timepoint) %>%
+  mutate(filename=fct_inorder(filename)) %>%
+  mutate(area=area/sum(area), .by=filename) %>%
+  mutate(n_N=factor(n_N, levels=5:0)) %>%
+  mutate(n_C=factor(n_C, levels=10:0)) %>%
+  filter(amendment%in%c("Amm", "Nit")) %>%
+  # filter(samp_type=="Smp") %>%
+  # filter(startime=="Morn") %>%
+  # filter(n_N==1) %>%
+  ggplot() +
+  geom_tile(aes(x=timepoint, y=tripl, fill=area)) +
+  scale_fill_viridis_c() +
+  ggh4x::facet_nested(amendment+n_C+n_N~depth+startime, 
+                      scales = "free", space = "free")
+```
+
+```{r Raw chromatogram to double check}
+v <- open_dataset("tmzMLs/pqds") %>%
+  filter(polarity=="pos") %>%
+  filter(mz%between%pmppm(174.1365, 10)) %>%
+  collect()
+
+v %>%
+  # filter(amendment=="Amm") %>% filter(int>1e6) %>% distinct(filename)
+  filter(!filename%in%c(
+    "210916_Smp_Amm-Surf-Eve-T3-A-noIS-pos.mzML",
+    "210916_Smp_Amm-Surf-Eve-T3-B-noIS-pos.mzML",
+    "210916_Smp_Amm-Surf-Morn-T26-A-noIS-pos.mzML"
+  )) %>%
+  filter(str_detect(filename, "Smp")) %>%
+  left_join(parametadata) %>%
+  qplotMS1data(color_col = "timepoint") +
+  facet_wrap(~amendment, scales = "free_y")
+```
+
+```{r}
+peak_areas %>%
+  group_by(filename, compound_name) %>%
+  mutate(area=area/sum(area)) %>%
+  mutate(label_type=ifelse(str_detect(iso_name, ", 13C0, 15N0"), "unlabeled", "labeled")) %>%
+  group_by(filename, compound_name, label_type) %>%
+  summarise(area_unlabeled=sum(area)) %>%
+  filter(label_type=="unlabeled") %>%
+  left_join(parametadata) %>%
+  filter(startime=="Morn") %>%
+  filter(depth=="Deep") %>%
+  # filter(compound_name=="L-Glutamine") %>%
+  group_by(compound_name, amendment, timepoint) %>%
+  summarise(labeled_above_thresh=median(area_unlabeled)<0.5) %>% #Less than X peak area is in unlabeled fraction
+  group_by(amendment, timepoint) %>%
+  summarise(n_labeled=sum(labeled_above_thresh), n_total=n()) %>%
+  select(amendment, timepoint, n_labeled, total=n_total) %>%
+  ungroup() %>%
+  mutate(total=median(total), .by = amendment) %>%
+  pivot_wider(names_from = timepoint, values_from = n_labeled)
+```
+
+
+## PheTau things (not currently used for anything)
+
+Just confirming that all the injections went off successfully
+
+```{r IS areas}
+IS_eics <- open_dataset("tmzMLs/pqds") %>%
+      filter(mz%between%c(128.0308598, 128.0321402) |
+               mz%between%c(130.0464498, 130.0477502) |
+               mz%between%c(174.1356293, 174.1373707)) %>%
+      collect()
+
+IS_bounds <- tribble(
+  ~amendment, ~polarity, ~compound_name, ~mz, ~rtstart, ~rtend, 
+  "Amm", "neg", "Taurine, 2H4", 128.0315, 9.8, 11.5,
+  "Arg", "neg", "Taurine, 2H4", 128.0315, 8.5, 11,
+  "GMP", "neg", "Taurine, 2H4", 128.0315, 9.5, 11.5,
+  "Nit", "neg", "Taurine, 2H4", 128.0315, 10, 10.5,
+  "Amm", "pos", "Taurine, 2H4", 130.0471, 9.8, 11.5,
+  "Arg", "pos", "Taurine, 2H4", 130.0471, 8.5, 11,
+  "GMP", "pos", "Taurine, 2H4", 130.0471, 9.5, 11.5,
+  "Nit", "pos", "Taurine, 2H4", 130.0471, 10, 10.5,
+  "Amm", "pos", "L-Phenylalanine, 2H8", 174.1365, 4, 6.5,
+  "Arg", "pos", "L-Phenylalanine, 2H8", 174.1365, 3.6, 6,
+  "GMP", "pos", "L-Phenylalanine, 2H8", 174.1365, 4, 7.2,
+  "Nit", "pos", "L-Phenylalanine, 2H8", 174.1365, 3.5, 5
+)
+
+IS_areas <- IS_bounds %>%
+  rowwise() %>%
+  mutate(mzmin = pmppm(mz, 5)[1], mzmax = pmppm(mz, 5)[2]) %>%
+  ungroup() %>%
+  select(-mz) %>%
+  left_join(IS_eics, by=join_by(
+      amendment, polarity, dplyr::between(y$rt, x$rtstart, x$rtend), 
+      dplyr::between(y$mz, x$mzmin, x$mzmax)
+    )) %>%
+  distinct() %>%
+  # qplotMS1data(color_col = "amendment") + facet_wrap(~compound_name+polarity, ncol = 1, scales = "free")
+  group_by(compound_name, amendment, filename, rt) %>%
+  slice_max(int) %>%
+  group_by(amendment, filename, compound_name, polarity) %>%
+  arrange(rt) %>%
+  summarise(area=trapz(rt, int), .groups="drop")
+
+bad_IS_files <- c(
+  "210916_Smp_Amm-Deep-Eve-T1-C-noIS",
+  "220729_Smp_Arg-Deep-Eve-T10-A-noIS",
+  "220715_Smp_GMP-Deep-Eve-T26-B-noIS",
+  "220715_Smp_GMP-Surf-Eve-T3-C-noIS",
+  "220729_Smp_Arg-Surf-Morn-T73-C-noIS"
+) %>%
+  rep(each=2) %>%
+  paste0(c("-pos.mzML", "-neg.mzML"))
+
+fixed_IS_areas <- IS_areas %>%
+  left_join(parametadata) %>%
+  filter(samp_type=="Smp") %>%
+  arrange(compound_name, polarity, amendment, timestamp) %>%
+  group_by(compound_name, polarity, amendment) %>%
+  mutate(lag_area=lag(area), lead_area=lead(area)) %>%
+  mutate(area=ifelse(filename%in%bad_IS_files, (lag_area+lead_area)/2, area)) %>%
+  select(amendment, filename, compound_name, polarity, area)
+IS_areas <- rows_update(IS_areas, fixed_IS_areas, by = c("amendment", "filename", "compound_name", "polarity"))
+
+IS_areas %>%
+  select(amendment, filename, compound_name, polarity, area) %>%
+  filter(amendment!="Nit") %>%
+  write_csv("targeted/PheTau_peak_areas.csv")
+```
+
+```{r vis IS areas}
+IS_areas <- read_csv("targeted/PheTau_peak_areas.csv")
+IS_areas %>%
+  left_join(parametadata) %>%
+  arrange(timestamp) %>%
+  mutate(filename=str_remove(filename, "-pos|-neg")) %>%
+  mutate(filename=fct_inorder(filename)) %>%
+  filter(samp_type%in%c("Poo", "Smp")) %>%
+  ggplot() +
+  geom_col(aes(x=filename, y=area, fill=amendment), width=1) +
+  facet_grid(compound_name+polarity~samp_type, scales = "free", space = "free_x")
+
+# Check for missing samples
+# parametadata %>%
+#   filter(IS_type=="noIS") %>%
+#   anti_join(distinct(IS_areas, filename)) %>%
+#   distinct(filename) %>%
+#   print(n=Inf)
+
+# Test correlation between IS
+# IS_areas %>%
+#   filter(amendment!="Nit") %>%
+#   filter(str_detect(filename, "Poo")) %>%
+#   mutate(filename=str_remove(filename, "-pos|-neg")) %>%
+#   pivot_wider(names_from=c(compound_name, polarity), values_from = area) %>%
+#   # select(3:5) %>% cor() %>% round(3) %>% `diag<-`("")
+#   ggplot() +
+#   geom_point(aes(x=`Taurine, 2H4_neg`, y=`L-Phenylalanine, 2H8_pos`, color=amendment))
+```
+
+
+```{r}
+IS_areas <- read_csv("targeted/PheTau_peak_areas.csv")
+peak_areas <- read_csv("targeted/all_peak_areas_w_isos.csv")
+
+pooled_metadata <- parametadata %>%
+  filter(samp_type=="Poo") %>%
+  filter(IS_type=="noIS") %>%
+  filter(amendment!="Nit") %>%
+  select(filename)
+pooled_metadata %>%
+  left_join(IS_areas)
+pooled_metadata %>%
+  left_join(peak_areas)
+```
+
+## Quant (requires starting over for the wIS samples)
+
+### Get initial peak areas (for both IS and all compounds)
+
+```{r plot chroms to estimate peak bounds, eval=FALSE}
+is_chroms <- read_csv("metadata/all_stans.csv") %>%
+  filter(compound_type=="Internal Standard") %>%
+  filter(date_added<200101) %>%
+  select(compound_name, polarity, mz) %>%
+  mutate(is_name=compound_name) %>%
+  mutate(compound_name=str_remove(compound_name, ",.*")) %>%
+  rename(is_mz=mz) %>%
+  left_join(readxl::read_xlsx("targeted/peak_bounds.xlsx")) %>%
+  filter(compound_name=="L-Cysteic acid, 2H3")
+
+  drop_na("amendment") %>%
+  select(compound_name=is_name, mz=is_mz, amendment, polarity, rtstart, rtend) %>%
+  rowwise() %>%
+  mutate(mzmin=pmppm(mz, 10)[1]) %>%
+  mutate(mzmax=pmppm(mz, 10)[2]) %>%
+  ungroup() %>%
+  # slice(1) -> row_data
+  pmap(function(...){
+    row_data <- list(...)
+    open_dataset("tmzMLs/pqds_wIS") %>%
+      filter(amendment==row_data$amendment) %>%
+      filter(polarity==row_data$polarity) %>%
+      filter(mz%between%c(row_data$mzmin, row_data$mzmax)) %>%
+      filter(rt%between%c(row_data$rtstart, row_data$rtend)) %>%
+      collect() %>%
+      filter(str_detect(filename, "T0")) %>%
+      slice_max(int, by=c(filename, rt)) %>%
+      mutate(compound_name=row_data$compound_name,
+             polarity=row_data$polarity) %>%
+      select(compound_name, amendment, filename, rt, int, polarity)
+  }, .progress = TRUE) %>%
+  bind_rows()
+is_chroms %>%
+  mutate(compound_name=fct_inorder(compound_name)) %>%
+  # filter(compound_name==unique(compound_name)[3]) %>%
+  qplotMS1data(color_col="amendment") +
+  facet_wrap(~compound_name, scales = "free")
+plotly::ggplotly()
+
+read_csv("metadata/all_stans.csv") %>%
+  filter(compound_type=="Internal Standard") %>%
+  filter(date_added<200101) %>%
+  select(compound_name, polarity, mz) %>%
+  mutate(is_name=compound_name) %>%
+  mutate(compound_name=str_remove(compound_name, ",.*")) %>%
+  rename(is_mz=mz) %>%
+  left_join(readxl::read_xlsx("targeted/peak_bounds.xlsx")) %>%
+  drop_na("amendment") %>%
+  select(compound_name=is_name, mz=is_mz, amendment, polarity, rtstart, rtend) %>%
+  write_csv("targeted/IS_bounds.csv")
+```
+
+```{r integrate IS areas, eval=FALSE}
+is_chroms <- readxl::read_xlsx("targeted/IS_bounds.xlsx") %>%
+  rowwise() %>%
+  mutate(mzmin=pmppm(mz, 10)[1]) %>%
+  mutate(mzmax=pmppm(mz, 10)[2]) %>%
+  ungroup() %>%
+  # slice(1) -> row_data
+  pmap(function(...){
+    row_data <- list(...)
+    open_dataset("tmzMLs/pqds_wIS") %>%
+      filter(amendment==row_data$amendment) %>%
+      filter(polarity==row_data$polarity) %>%
+      filter(mz%between%c(row_data$mzmin, row_data$mzmax)) %>%
+      filter(rt%between%c(row_data$rtstart, row_data$rtend)) %>%
+      collect() %>%
+      # distinct(filename)
+      slice_max(int, by=c(filename, rt)) %>%
+      mutate(compound_name=row_data$compound_name, 
+             polarity=row_data$polarity) %>%
+      select(compound_name, amendment, filename, rt, int, polarity)
+  }, .progress = TRUE) %>%
+  bind_rows()
+is_chroms %>%
+  mutate(compound_name=fct_inorder(compound_name)) %>%
+  # filter(compound_name==unique(compound_name)[3]) %>%
+  qplotMS1data(color_col="amendment") +
+  facet_wrap(~compound_name, scales = "free")
+
+is_areas <- is_chroms %>%
+  arrange(rt) %>%
+  summarise(IS_area=trapz(rt, int), .by=c(amendment, filename, compound_name, polarity)) %>%
+  left_join(parametadata %>% distinct(filename, timestamp, samp_type, polarity)) %>%
+  complete(filename, compound_name) %>%
+  arrange(filename) %>%
+  group_by(filename) %>%
+  fill(timestamp, amendment, samp_type, .direction="downup") %>%
+  ungroup() %>%
+  arrange(compound_name, timestamp) %>%
+  # filter(filename=="210813_Smp_Nit-Deep-Eve-T0-A-wIS.mzML")
+  mutate(IS_area=case_when(
+    filename=="210813_Smp_Nit-Deep-Eve-T0-A-wIS.mzML"~(lag(IS_area)+lead(IS_area))/2,
+    TRUE~IS_area
+  )) %>%
+  select(amendment, filename, polarity, IS_name=compound_name, IS_area)
+write_csv(is_areas, "targeted/IS_areas.csv")
+```
+
+```{r integrate nonIS unlabeled areas from wIS files}
+wIS_bounds <- readxl::read_xlsx("targeted/peak_bounds.xlsx") %>%
+  filter(rtstart>0) %>%
+  filter(is.na(notes) | notes!="Remove") %>%
+  filter(compound_name!="Homarine") %>% # Can't separate from Adenine IS sufficiently
+  select(amendment, polarity, compound_name, mz, rtstart, rtend)
+
+wIS_eics <- wIS_bounds %>%
+  nest(amend_specs=-c(compound_name, polarity)) %>%
+  # head() %>%
+  # slice(1)  -> row_data
+  # filter(compound_name=="Theanine?") -> row_data
+  pmap(function(...){
+    row_data <- list(...)
+    # print(row_data$compound_name)
+    amend_specs <- row_data$amend_specs %>%
+      rowwise() %>%
+      mutate(mzmin=pmppm(mz, 10)[1]) %>%
+      mutate(mzmax=pmppm(mz, 10)[2]) %>%
+      ungroup()
+    mzmin <- min(amend_specs$mz)-0.5
+    mzmax <- max(amend_specs$mz)+0.5
+    rtmin <- min(amend_specs$rtstart)
+    rtmax <- max(amend_specs$rtend)
+    all_eic <- open_dataset("tmzMLs/pqds_wIS") %>%
+      filter(polarity==row_data$polarity) %>%
+      filter(mz%between%c(mzmin, mzmax)) %>%
+      filter(rt%between%c(rtmin, rtmax)) %>%
+      collect()
+    cmpd_eic <- left_join(amend_specs, all_eic, by=join_by(
+      amendment, dplyr::between(y$rt, x$rtstart, x$rtend), 
+      dplyr::between(y$mz, x$mzmin, x$mzmax)
+    )) %>%
+      distinct() %>%
+      group_by(amendment, filename, rt) %>%
+      # nest() %>% ungroup() %>% slice(1) %>% unnest(data)
+      slice_max(int) %>%
+      ungroup() %>%
+      mutate(compound_name=row_data$compound_name) %>%
+      select(amendment, compound_name, rt, mz=mz.y, int, filename, polarity)
+    cmpd_eic
+  }, .progress = TRUE) %>%
+  bind_rows() %>%
+  ungroup()
+saveRDS(wIS_eics, "targeted/wIS_eics.rds")
+
+wIS_eics <- readRDS("targeted/wIS_eics.rds")
+wIS_areas <- wIS_eics %>%
+  slice_max(int, by=c(filename, compound_name, rt)) %>%
+  arrange(rt) %>%
+  summarise(area=trapz(rt, int, baseline = "square"), 
+            .by = c(amendment, filename, polarity, compound_name)) %>%
+  mutate(compound_name=factor(compound_name, levels=unique(wIS_eics$compound_name))) %>%
+  arrange(compound_name, filename)
+wIS_areas %>%
+  write_csv("targeted/wIS_areas.csv")
+```
+
+### Refine IS peak areas due to contamination
+
+```{r Replace wonky values with average of previous and next}
+is_areas <- read_csv("targeted/IS_areas.csv")
+
+IS_mix_one <- c("Thymine, 2H4", "Uracil, 15N2, 2H2", "Adenine, 15N2",
+                "Cytosine, 13C2, 15N3", "Glycine betaine, 13C5, 15N",
+                "Guanine, 13C, 15N2", "Homarine, 2H3")
+
+fixed_IS <- parametadata %>%
+  filter(samp_type%in%c("Smp", "Poo", "Blk")) %>%
+  filter(IS_type=="wIS") %>%
+  distinct(filename, shortname, timestamp) %>%
+  left_join(is_areas %>% select(filename, amendment, IS_name, IS_area)) %>%
+  arrange(IS_name, timestamp) %>%
+  mutate(filename=fct_inorder(filename)) %>%
+  # filter(shortname=="Nit-Deep-Eve-T1-A") %>%
+  mutate(IS_area=case_when(
+    shortname=="Nit-Deep-Eve-T1-A" & IS_name%in%IS_mix_one ~ 
+      (lag(IS_area) + lead(IS_area))/2,
+    shortname=="Amm-Surf-Eve-T3-A" ~ (lag(IS_area) + lead(IS_area))/2,
+    shortname=="Arg-Deep-Eve-T10-A" ~ (lag(IS_area) + lead(IS_area))/2,
+    shortname=="GMP-Surf-Eve-T3-C" ~ (lag(IS_area) + lead(IS_area, 2))/2,
+    shortname=="GMP-Surf-Eve-T3-C" & IS_name=="L-Histidine, 15N" ~ 
+      (lag(IS_area) + lead(IS_area, 2))/2,
+    shortname=="GMP-Surf-Morn-T26-B" & IS_name=="L-Histidine, 15N" ~ 
+      (lag(IS_area, 2) + lead(IS_area))/2,
+    shortname=="Arg-Surf-Eve-T10-B" & IS_name=="Sulfoacetic acid, 13C2" ~ 
+      (lag(IS_area) + lead(IS_area, 2))/2,
+    shortname=="Arg-Deep-Eve-T3-A" & IS_name=="Sulfoacetic acid, 13C2" ~ 
+      (lag(IS_area) + lead(IS_area, 2))/2,
+    TRUE ~ IS_area
+  ))
+fixed_IS %>%
+  select(filename, amendment, IS_name, IS_area) %>%
+  write_csv("targeted/IS_areas.csv")
+```
+
+```{r double-checking that IS fixes worked via plots and PCA}
+fixed_IS %>%
+  # filter(str_detect(IS_name, "Homarine")) %>%
+  left_join(parametadata %>% distinct(filename, timestamp, amendment)) %>%
+  # filter(amendment=="Amm") %>%
+  arrange(timestamp) %>%
+  mutate(filename=fct_inorder(filename)) %>%
+  ggplot() +
+  geom_col(aes(x=filename, y=IS_area, fill=amendment), width=1) +
+  facet_wrap(~IS_name, ncol=3, scales="free_y")
+
+wide_IS <- fixed_IS %>%
+  select(shortname, IS_name, IS_area) %>%
+  # filter(!str_detect(shortname, "PooGMP")) %>%
+  pivot_wider(names_from=IS_name, values_from=IS_area) %>%
+  column_to_rownames("shortname")
+
+# wide_IS %>% write.csv("~/../Desktop/fixed_IS.csv")
+
+wide_IS %>%
+  data.matrix() %>%
+  prcomp() %>%
+  pluck("x") %>%
+  as.data.frame() %>%
+  rownames_to_column("shortname") %>%
+  left_join(parametadata %>% filter(IS_type=="wIS")) %>%
+  ggplot() +
+  geom_text(aes(x=PC1, y=PC2, label=filename, color=amendment))
+wide_IS %>%
+  data.matrix() %>%
+  t() %>%
+  prcomp() %>%
+  pluck("x") %>%
+  as.data.frame() %>%
+  rownames_to_column("IS_name") %>%
+  ggplot() +
+  geom_text(aes(x=PC1, y=PC2, label=IS_name))
+
+wide_IS %>%
+  data.matrix() %>%
+  t() %>%
+  prcomp() %>%
+  pluck("rotation") %>%
+  as.data.frame() %>%
+  rownames_to_column("shortname") %>%
+  select(shortname, PC1:PC3) %>%
+  pivot_longer(PC1:PC3) %>%
+  left_join(parametadata %>% filter(IS_type=="wIS")) %>%
+  ggplot() +
+  geom_col(aes(x=shortname, y=value, fill=amendment), width=1) +
+  facet_wrap(~name,ncol=1)
+```
+
+
+### Choose BMIS
+
+```{r identify the BMIS for each compound}
+IS_areas <- read_csv("targeted/IS_areas.csv")
+
+chosen_IS <- IS_areas %>%
+  inner_join(parametadata %>% distinct(filename, amendment, samp_type)) %>%
+  filter(samp_type=="Poo") %>%
+  select(filename, IS_name, amendment, IS_area) %>%
+  left_join(wIS_areas, relationship = "many-to-many") %>%
+  arrange(compound_name, filename) %>%
+  group_by(amendment, compound_name, IS_name) %>%
+  mutate(norm_area=area/IS_area*mean(IS_area)) %>%
+  summarise(cv=sd(norm_area)/mean(norm_area), .groups = "drop") %>%
+  slice_min(cv, by = c(compound_name, amendment)) %>%
+  # print(n=Inf)
+  # with(table(IS_name, compound_name))
+  select(amendment, compound_name, IS_name)
+count(chosen_IS, amendment, IS_name) %>%
+  pivot_wider(names_from=amendment, values_from=n) %>%
+  print(n=Inf)
+
+IS_with_unlabeled <- IS_areas %>%
+  distinct(IS_name, amendment) %>%
+  mutate(compound_name=str_remove(IS_name, ", .*"))
+chosen_IS %>%
+  filter(compound_name%in%IS_with_unlabeled$compound_name) %>%
+  count(compound_name, IS_name) %>%
+  print(n=Inf)
+
+chosen_IS <- chosen_IS %>%
+  rows_update(IS_with_unlabeled, by = c("compound_name", "amendment"), unmatched = "ignore")
+write_csv(chosen_IS, "targeted/chosen_IS.csv")
+```
+
+### Calculate RFs
+
+```{r create response factor dataframe from standards}
+wIS_areas <- read_csv("targeted/wIS_areas.csv")
+stan_patched <- all_stans %>%
+  filter(!compound_name=="beta-Glutamic acid") %>%
+  mutate(compound_name=str_replace(compound_name, "L-Glutamic acid", "L-Glutamic acid/beta-Glutamic acid")) %>%
+  filter(!compound_name=="L-Isoleucine") %>%
+  mutate(compound_name=str_replace(compound_name, "L-Leucine", "L-Leucine/L-Isoleucine")) %>%
+  filter(!compound_name=="L-Homoserine") %>%
+  mutate(compound_name=str_replace(compound_name, "L-Threonine", "L-Threonine/L-Homoserine")) %>%
+  filter(!compound_name=="Allopurinol") %>%
+  mutate(compound_name=str_replace(compound_name, "Hypoxanthine", "Hypoxanthine/Allopurinol"))
+
+  
+rf_df <- wIS_areas %>%
+  left_join(parametadata %>% select(filename, samp_type, polarity)) %>%
+  filter(samp_type=="Std") %>%
+  left_join(stan_patched %>% distinct(compound_name, mix, conc_um)) %>%
+  filter(str_detect(filename, paste0(mix, "InMatrix")) | 
+           str_detect(filename, "H2OInMatrix")) %>%
+  select(compound_name, conc_um, amendment, filename, area) %>%
+  mutate(filename=str_extract(filename, "Mix|H2O")) %>%
+  pivot_wider(names_from = filename, values_from=area, values_fn = mean) %>%
+  mutate(area_diff=Mix-H2O) %>%
+  # filter(rf<0)
+  filter(area_diff>0) %>%
+  mutate(rf=area_diff/conc_um) %>%
+  select(compound_name, amendment, rf)
+
+write_csv(rf_df, "targeted/rf_df.csv")
+rf_df %>%
+  arrange(rf) %>%
+  mutate(compound_name=fct_inorder(compound_name)) %>%
+  ggplot() +
+  geom_boxplot(aes(x=rf, y=compound_name)) +
+  scale_x_log10()
+```
+
+### Finalize concentrations and drop low-quality compounds
+
+```{r quantify}
+wIS_areas <- read_csv("targeted/wIS_areas.csv")
+chosen_IS <- read_csv("targeted/chosen_IS.csv")
+IS_areas <- read_csv("targeted/IS_areas.csv")
+rf_df <- read_csv("targeted/rf_df.csv")
+
+env_concs <- wIS_areas %>%
+  filter(!str_detect(compound_name, "\\?$")) %>%
+  filter(!compound_name%in%c("Urea", "L-Valine", "Oxalic acid", "Malic acid", 
+                             "Acetylcholine", "Homarine")) %>%
+  inner_join(parametadata %>% filter(samp_type=="Smp") %>% distinct(filename)) %>%
+  left_join(chosen_IS) %>%
+  left_join(IS_areas) %>%
+  mutate(norm_area=area/IS_area*mean(IS_area), .by = c(amendment, compound_name)) %>%
+  left_join(rf_df) %>%
+  mutate(conc_um_in_vial=norm_area/rf) %>%
+  select(compound_name, filename, conc_um_in_vial) %>%
+  mutate(conc_nm_in_env=conc_um_in_vial*400/2e6*1000)
+write_csv(env_concs, "targeted/final_env_concs.csv")
+```
+
+```{r quant plots for confirmation}
+env_concs %>%
+  filter(compound_name%in%c("Gonyol", "L-Glutamine", "Guanosine",
+                            "L-Glutamic acid/beta-Glutamic acid")) %>%
+  left_join(parametadata, relationship = "many-to-many") %>%
+  ggplot() +
+  geom_hline(yintercept = 0) +
+  geom_boxplot(aes(x=amendment, y=conc_nm_in_env, color=depth)) +
+  facet_wrap(~compound_name, scales="free_y")
+
+env_concs %>%
+  filter(conc_nm_in_env==0) %>%
+  left_join(parametadata, relationship = "many-to-many") %>%
+  count(compound_name, amendment) %>%
+  complete(compound_name, amendment, fill = list(n=0)) %>%
+  pivot_wider(names_from = amendment, values_from=n)
+
+env_concs %>%
+  mutate(avg_conc=mean(conc_nm_in_env, na.rm=TRUE), .by=compound_name) %>%
+  arrange(avg_conc) %>%
+  mutate(compound_name=fct_inorder(compound_name)) %>%
+  left_join(parametadata, relationship = "many-to-many") %>%
+  filter(conc_nm_in_env>0) %>%
+  ggplot() +
+  geom_boxplot(aes(x=conc_nm_in_env, y=compound_name, color=depth)) +
+  scale_x_log10(breaks=c(0.000001, 0.001, 1), labels=c("1 fM", "1 pM", "1 nM"))
+```
+

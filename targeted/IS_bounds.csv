@@ -1,0 +1,97 @@
+compound_name,mz,amendment,polarity,rtstart,rtend
+"L-Alanine, 2H3",93.0738,Amm,pos,10.5,11.2
+"L-Alanine, 2H3",93.0738,Arg,pos,10,11.1
+"L-Alanine, 2H3",93.0738,GMP,pos,10.5,11.3
+"L-Alanine, 2H3",93.0738,Nit,pos,10.5,11.2
+"Uracil, 15N2, 2H2",115.0261,Amm,neg,3.5,4.1
+"Uracil, 15N2, 2H2",115.0261,Arg,neg,3.5,4.2
+"Uracil, 15N2, 2H2",115.0261,GMP,neg,3.5,4.3
+"Uracil, 15N2, 2H2",115.0261,Nit,neg,3.6,4.2
+"Cytosine, 13C2, 15N3",117.0489,Amm,pos,6,7.4
+"Cytosine, 13C2, 15N3",117.0489,Arg,pos,6,7.3
+"Cytosine, 13C2, 15N3",117.0489,GMP,pos,6,7.2
+"Cytosine, 13C2, 15N3",117.0489,Nit,pos,6.2,7.4
+"Succinic acid, 2H4",121.0444,Amm,neg,12,13
+"Succinic acid, 2H4",121.0444,Arg,neg,10,12.1
+"Succinic acid, 2H4",121.0444,GMP,neg,11,13
+"Succinic acid, 2H4",121.0444,Nit,neg,11.8,13
+"L-Proline, 2H7",123.1145,Amm,pos,8.8,9.3
+"L-Proline, 2H7",123.1145,Arg,pos,8.7,9.2
+"L-Proline, 2H7",123.1145,GMP,pos,8.8,9.4
+"L-Proline, 2H7",123.1145,Nit,pos,8.8,9.5
+"Glycine betaine, 13C5, 15N",124.1006,Amm,pos,7,7.8
+"Glycine betaine, 13C5, 15N",124.1006,Arg,pos,7,7.6
+"Glycine betaine, 13C5, 15N",124.1006,GMP,pos,7,7.8
+"Glycine betaine, 13C5, 15N",124.1006,Nit,pos,7,7.8
+"L-Valine, 2H8",126.1365,Amm,pos,8,9
+"L-Valine, 2H8",126.1365,Arg,pos,8,9
+"L-Valine, 2H8",126.1365,GMP,pos,8,9
+"L-Valine, 2H8",126.1365,Nit,pos,8,9
+"Isethionic acid, 13C2",126.9981,Amm,neg,6,8.5
+"Isethionic acid, 13C2",126.9981,Arg,neg,4,7.5
+"Isethionic acid, 13C2",126.9981,GMP,neg,5.8,8.4
+"Isethionic acid, 13C2",126.9981,Nit,neg,5,8
+"Taurine, 2H4",128.0325,Amm,neg,9.8,11.2
+"Taurine, 2H4",128.0325,Arg,neg,8.5,11
+"Taurine, 2H4",128.0325,GMP,neg,9.5,11.4
+"Taurine, 2H4",128.0325,Nit,neg,9.3,11.2
+"Thymine, 2H4",129.0602,Amm,neg,2.4,3.2
+"Thymine, 2H4",129.0602,Arg,neg,2.4,3.3
+"Thymine, 2H4",129.0602,GMP,neg,2.3,3.4
+"Thymine, 2H4",129.0602,Nit,neg,2.2,3.3
+"Adenine, 15N2",138.0564,Amm,pos,4.4,5.2
+"Adenine, 15N2",138.0564,Arg,pos,4.2,5.3
+"Adenine, 15N2",138.0564,GMP,pos,4.2,5.4
+"Adenine, 15N2",138.0564,Nit,pos,4.2,5.2
+"Sulfoacetic acid, 13C2",140.9774,Amm,neg,14,15
+"Sulfoacetic acid, 13C2",140.9774,Arg,neg,13.2,14
+"Sulfoacetic acid, 13C2",140.9774,GMP,neg,13.5,14.8
+"Sulfoacetic acid, 13C2",140.9774,Nit,neg,13.8,15
+"Homarine, 2H3",141.0743,Amm,pos,5.1,6.2
+"Homarine, 2H3",141.0743,Arg,pos,5.1,6.2
+"Homarine, 2H3",141.0743,GMP,pos,5.1,6.2
+"Homarine, 2H3",141.0743,Nit,pos,5.1,6.2
+"L-Methionine, 2H3",153.0771,Amm,pos,6.8,8
+"L-Methionine, 2H3",153.0771,Arg,pos,4,8
+"L-Methionine, 2H3",153.0771,GMP,pos,6.5,8.4
+"L-Methionine, 2H3",153.0771,Nit,pos,6,8
+"Guanine, 13C, 15N2",155.0547,Amm,pos,8,8.7
+"Guanine, 13C, 15N2",155.0547,Arg,pos,8,8.6
+"Guanine, 13C, 15N2",155.0547,GMP,pos,8,8.8
+"Guanine, 13C, 15N2",155.0547,Nit,pos,8,8.7
+"L-Histidine, 15N",157.0738,Amm,pos,10,11.5
+"L-Histidine, 15N",157.0738,Arg,pos,8.4,11.5
+"L-Histidine, 15N",157.0738,GMP,pos,10,12.5
+"L-Histidine, 15N",157.0738,Nit,pos,10,12
+"L-Cysteic acid, 2H3",171.0161,Amm,neg,0,20
+"L-Cysteic acid, 2H3",171.0161,Arg,neg,0,20
+"L-Cysteic acid, 2H3",171.0161,GMP,neg,0,20
+"L-Cysteic acid, 2H3",171.0161,Nit,neg,0,20
+"3-Sulfolactate, 13C3",171.9913,Amm,neg,0,20
+"3-Sulfolactate, 13C3",171.9913,Arg,neg,0,20
+"3-Sulfolactate, 13C3",171.9913,GMP,neg,0,20
+"3-Sulfolactate, 13C3",171.9913,Nit,neg,0,20
+"Arsenobetaine, 13C2",181.0114,Amm,pos,6.8,7.5
+"Arsenobetaine, 13C2",181.0114,Arg,pos,6.9,7.9
+"Arsenobetaine, 13C2",181.0114,GMP,pos,6.8,7.9
+"Arsenobetaine, 13C2",181.0114,Nit,pos,7,7.6
+"Adenosine monophosphate, 15N5",351.0411,Amm,neg,0,20
+"Adenosine monophosphate, 15N5",351.0411,Arg,neg,0,20
+"Adenosine monophosphate, 15N5",351.0411,GMP,neg,0,20
+"Adenosine monophosphate, 15N5",351.0411,Nit,neg,0,20
+"Sucrose, 13C12",353.1497,Amm,neg,11.2,11.9
+"Sucrose, 13C12",353.1497,Arg,neg,11.2,12
+"Sucrose, 13C12",353.1497,GMP,neg,11.2,12
+"Sucrose, 13C12",353.1497,Nit,neg,11.2,12
+"Trehalose, 13C12",353.1497,Amm,neg,12.1,12.6
+"Trehalose, 13C12",353.1497,Arg,neg,12.2,13
+"Trehalose, 13C12",353.1497,GMP,neg,12.2,13
+"Trehalose, 13C12",353.1497,Nit,neg,12.2,13
+"Guanosine monophosphate, 15N5",367.0364,Amm,neg,0,20
+"Guanosine monophosphate, 15N5",367.0364,Arg,neg,0,20
+"Guanosine monophosphate, 15N5",367.0364,GMP,neg,0,20
+"Guanosine monophosphate, 15N5",367.0364,Nit,neg,0,20
+"Acetyl-CoA, 13C2",810.1252,Amm,neg,0,20
+"Acetyl-CoA, 13C2",810.1252,Arg,neg,0,20
+"Acetyl-CoA, 13C2",810.1252,GMP,neg,0,20
+"Acetyl-CoA, 13C2",810.1252,Nit,neg,0,20
