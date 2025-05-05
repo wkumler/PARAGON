@@ -184,6 +184,140 @@ labeled_fracs %>%
 ```
 
 
+```{r fig 2 MAA labeling patterns}
+chosen_maas <- c("Mycosporine-glycine?", "Shinorine?", "Palythine?",
+                 "Palythene/Usujirene?", "Also Palythene/Usujirene?", 
+                 "Also Porphyra-334?")
+labeled_fracs %>%
+  filter(compound_name%in%chosen_maas) %>%
+  mutate(compound_name=factor(compound_name, levels=chosen_maas)) %>%
+  arrange(compound_name) %>%
+  mutate(compound_name=str_remove(compound_name, "\\?$")) %>%
+  mutate(compound_name=str_replace(compound_name, "Also Palythene/Usujirene", "Palythene or\n usujirene")) %>%
+  mutate(compound_name=str_replace(compound_name, "Palythene/Usujirene", "Usujirene or\n palythene")) %>%
+  mutate(compound_name=str_remove(compound_name, "Also ")) %>%
+  mutate(compound_name=str_replace(compound_name, "-glycine", "-\nglycine")) %>%
+  mutate(compound_name=fct_inorder(compound_name)) %>%
+  left_join(parametadata, relationship = "many-to-many") %>%
+  filter(samp_type=="Smp") %>%
+  filter(IS_type=="noIS") %>%
+  filter(amendment%in%c("Amm", "Nit")) %>%
+  mutate(amendment=factor(amendment, levels=c("Amm", "Nit"), labels=c("+Ammonia", "+Nitrate"))) %>%
+  mutate(startime=factor(startime, levels=c("Morn", "Eve"), labels=c("6AM start", "6PM start"))) %>%
+  ggplot(aes(x=timepoint, y=labeled_frac, color=startime)) +
+  geom_vline(xintercept = 1:5, color="grey80") +
+  geom_boxplot(fill="grey95") +
+  geom_point(aes(fill=startime), position = position_dodge(width=0.7), color="black", pch=21) +
+  scale_color_manual(values=c("#e0670b", "#580770"), breaks=c("6AM start", "6PM start"),
+                     aesthetics = c("color", "fill")) +
+  ggpubr::stat_compare_means(label.y = 0.9, method = "t.test", 
+                             label = "p.signif", hide.ns = TRUE) +
+  facet_grid(compound_name~amendment) +
+  scale_y_continuous(limits=c(0, 1), labels=scales::label_percent()) +
+  labs(y="Fraction labeled with at least one 15N atom", x=NULL, color=NULL, fill=NULL) +
+  theme_bw()
+
+
+labeled_fracs %>%
+  filter(compound_name%in%chosen_maas) %>%
+  filter(compound_name!="Glycine") %>%
+  mutate(compound_name=factor(compound_name, levels=chosen_maas)) %>%
+  left_join(parametadata, relationship = "many-to-many") %>%
+  filter(samp_type=="Smp") %>%
+  filter(amendment=="Amm") %>%
+  ggplot(aes(x=timepoint_num, y=labeled_frac, color=startime, fill=startime)) +
+  geom_smooth(method="nlsLM", formula=y~a*x^b, method.args=list(start = c(a=1, b=1)), se=FALSE) +
+  # geom_smooth(method="nlsLM", formula=y~(a*x)/(b+x), method.args=list(start = c(a=1, b=1)), se=FALSE) +
+  # geom_smooth(method="nlsLM", formula=y~(a*x)/(b+x), method.args=list(start = c(a=1, b=1)), se=FALSE) +
+  # geom_smooth(method="glm", formula=y~x, method.args=list(family="quasibinomial")) +
+  geom_point(color="black", pch=21, size=3, alpha=0.5, stroke=1) +
+  facet_wrap(~compound_name, ncol=2) +
+  scale_y_continuous(limits=c(0, 1), labels=scales::label_percent()) +
+  scale_x_continuous(breaks = c(0, 3, 10, 26)) +
+  scale_color_manual(values=c("#e0670b", "#580770"), breaks=c("Morn", "Eve"), aesthetics = c("fill", "color")) +
+  labs(x="Hours after 15NH4 addition", y="Fraction labeled with at least one 15N atom") +
+  theme_bw()
+
+peak_areas %>%
+  filter(compound_name%in%chosen_maas) %>%
+  mutate(compound_name=factor(compound_name, levels=chosen_maas)) %>%
+  left_join(parametadata, relationship = "many-to-many") %>%
+  filter(samp_type=="Smp") %>%
+  filter(depth=="Surf") %>%
+  filter(amendment%in%c("Nit", "Amm")) %>%
+  mutate(n_N=paste0(str_extract(iso_name, "(?<=15N)\\d"), "x15N")) %>%
+  mutate(area=area/1e4) %>%
+  ggplot() +
+  geom_col(aes(x=tripl, y=area, fill=n_N), color="black", width=1) +
+  facet_nested(compound_name~amendment+startime+timepoint, scales="free_y") +
+  scale_x_discrete(expand = expansion()) +
+  scale_y_continuous(expand = expansion(mult=c(0, 0.1))) +
+  labs(x=NULL, y="Peak area (x10^4)", fill="Number of\n15N labels") +
+  theme_bw() +
+  theme(panel.spacing.y = unit(0.1, "lines"), 
+        panel.spacing.x = unit(0, "lines"),
+        strip.text.y = element_text(angle=0, hjust = 0),
+        panel.grid.major.x = element_blank(), 
+        panel.grid.minor = element_blank())
+
+
+labeled_fracs %>%
+  filter(compound_name%in%chosen_maas) %>%
+  mutate(compound_name=factor(compound_name, levels=chosen_maas)) %>%
+  arrange(compound_name) %>%
+  mutate(compound_name=str_remove(compound_name, "\\?$")) %>%
+  mutate(compound_name=str_replace(compound_name, "Also Palythene/Usujirene", "Palythene or\n usujirene")) %>%
+  mutate(compound_name=str_replace(compound_name, "Palythene/Usujirene", "Usujirene or\n palythene")) %>%
+  mutate(compound_name=str_remove(compound_name, "Also ")) %>%
+  mutate(compound_name=str_replace(compound_name, "-glycine", "-\nglycine")) %>%
+  mutate(compound_name=fct_inorder(compound_name)) %>%
+  left_join(parametadata, relationship = "many-to-many") %>%
+  filter(samp_type=="Smp") %>%
+  filter(IS_type=="noIS") %>%
+  filter(amendment%in%c("Amm", "Nit")) %>%
+  mutate(amendment=factor(amendment, levels=c("Amm", "Nit"), labels=c("+Ammonia", "+Nitrate"))) %>%
+  mutate(clock_time=ifelse(startime=="Morn", 6+timepoint_num, 18+timepoint_num)) %>%
+  mutate(startime=factor(startime, levels=c("Morn", "Eve"), labels=c("6AM start", "6PM start"))) %>%
+  ggplot() +
+  annotate("rect", xmin=-Inf, xmax = 6, ymin=-Inf, ymax=Inf, fill="grey80") +
+  # annotate("rect", xmin=6, xmax = 18, ymin=-Inf, ymax=Inf, fill="#d0bd65") +
+  annotate("rect", xmin=18, xmax = 30, ymin=-Inf, ymax=Inf, fill="grey80") +
+  # annotate("rect", xmin=30, xmax = 42, ymin=-Inf, ymax=Inf, fill="#d0bd65") +
+  annotate("rect", xmin=42, xmax = Inf, ymin=-Inf, ymax=Inf, fill="grey80") +
+  geom_hline(yintercept = c(0.25, 0.5, 0.75, 1), color="grey90") +
+  # annotate("rect", xmin=-Inf, xmax=Inf, ymin=-Inf, ymax = Inf, fill="white", alpha=0.3) +
+  geom_smooth(aes(x=clock_time, y=labeled_frac, color=startime),
+              method=nlsLM, formula="y~a*x^b+d", se = FALSE,
+              method.args=list(start=list(a=1, b=2, d=1),
+                               control=nls.lm.control(maxiter = 500))) +
+  # geom_smooth(aes(x=clock_time, y=labeled_frac, group=startime),
+  #             method=glm, formula = "y~x", method.args=list(family="quasibinomial"), 
+  #             color="grey10", se=FALSE) +
+  # geom_point(aes(x=clock_time, y=labeled_frac, shape=startime), color="black", 
+  #            fill="white", size=3) +
+  geom_point(aes(x=clock_time, y=labeled_frac, shape=startime, fill=startime),
+             color="black", size=2, alpha=0.7) +
+  facet_nested(compound_name~amendment) +
+  scale_x_continuous(breaks = c(6, 18, 30, 42), labels = c("6AM", "6PM", "6AM", "6PM")) +
+  scale_y_continuous(labels = scales::label_percent(),
+                     limits = c(0, 1), breaks = c(0, 0.5, 1)) +
+  scale_shape_manual(values=c(24, 25), breaks = c("6AM start", "6PM start")) +
+  scale_fill_manual(values=c("#f4bb23", "#0b505c"), breaks = c("6AM start", "6PM start"),
+                    aesthetics = c("color", "fill")) +
+  labs(x=NULL, color=NULL, shape=NULL, fill=NULL, y="Fraction of MAA containing at least one 15N atom") +
+  theme_bw() +
+  theme(axis.text.y = element_markdown(vjust=c(0, 0.5, 1)),
+        axis.title.x = element_blank(),
+        legend.position = "inside",
+        legend.margin = margin(0.1,0.1,0.1,0.1, unit="lines"),
+        legend.position.inside = c(0, 1),
+        legend.justification = c(0, 1), 
+        legend.background = element_rect(color="black"), 
+        legend.direction = "horizontal") +
+  guides(shape=guide_legend(override.aes = list(size=3, stroke=1.2, alpha=1, linetype=0)))
+```
+
+
 ## Discussion
 
 ## Conclusion
