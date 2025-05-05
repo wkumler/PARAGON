@@ -2,5 +2,7 @@
 !.gitignore
 !metadata/*
 !untargeted/*
+!targeted/*
+targeted/*.rds
 .Rproj.user
 !run_analysis.R

@@ -1,0 +1,1113 @@
+amendment,polarity,compound_name,mz,rt,date_added,mix,rtstart,rtend,notes
+Amm,pos,Trimethylamine,60.081324,7.2,180130,Mix1,0,20,NA
+Amm,pos,Propylamine?,60.081324,19.7,230511,NA,0,20,NA
+Amm,pos,Urea,61.040188,6.4,210415,Mix1,0,20,NA
+Amm,pos,Ethanolamine,62.060589,15.66,210615,Mix1,0,20,NA
+Amm,pos,Glycine,76.039854,11.9,160401,Mix1,0,20,NA
+Amm,pos,Trimethylamine N-oxide,76.076239,6.9,180130,Mix1,0,20,NA
+Amm,pos,Sarcosine,90.055504,10.6,160401,Mix2,0,20,NA
+Amm,pos,L-Alanine,90.055504,11.3,160401,Mix1,0,20,NA
+Amm,pos,beta-Alanine,90.055504,11.39,180701,Mix2,0,20,NA
+Amm,pos,Dimethylglycine,104.071154,8.97,160401,Mix1,0,20,NA
+Amm,pos,4-Aminobutyric acid,104.071154,11.155,160401,Mix1,0,20,NA
+Amm,pos,Choline,104.107539,15.265,160401,Mix1,0,20,NA
+Amm,pos,L-Serine,106.050419,11.86,160401,Mix1,0,20,NA
+Amm,pos,Hypotaurine,110.027576,10.7,160401,Mix2,0,20,NA
+Amm,pos,Cytosine,112.051087,6.82,160401,Mix2,0,20,NA
+Amm,pos,Creatinine,114.066737,6.09,210615,Mix1,0,20,NA
+Amm,pos,Creatinine from creatine?,114.066737,11,230101,Mix1,0,20,NA
+Amm,pos,L-Proline,116.071154,9.49,160401,Mix1,0,20,NA
+Amm,pos,Homocysteine thiolactone,118.032661,2.78,170331,Mix1,0,20,NA
+Amm,pos,Glycine betaine,118.086804,7.27,160401,Mix1,0,20,NA
+Amm,pos,L-Valine,118.086804,9.09,160401,Mix1,0,20,NA
+Amm,pos,L-Threonine,120.066069,10.92,160401,Mix1,0,20,NA
+Amm,pos,L-Homoserine,120.066069,11.32,170331,Mix1,0,20,NA
+Amm,pos,gamma-Amino-beta-hydroxybutyric acid?,120.066069,11.85,240130,NA,0,20,NA
+Amm,pos,Dimethylsulfonioacetate,121.032327,8.39,180701,Mix2,0,20,NA
+Amm,pos,L-Cysteine?,122.027576,7,230101,NA,0,20,NA
+Amm,pos,Phenylethylamine?,122.096974,7.82,230511,NA,0,20,NA
+Amm,pos,Nicotinic acid,124.039854,2.68,160401,Mix2,0,20,NA
+Amm,pos,Picolinic acid?,124.039854,4.51,230511,NA,0,20,NA
+Amm,pos,Taurine,126.022491,10,160401,Mix2,0,20,NA
+Amm,pos,5-Methylcytosine,126.066737,5.53,190514,Mix2,0,20,NA
+Amm,pos,Thymine,127.050753,3.06,160401,Mix2,0,20,NA
+Amm,pos,Melamine,127.073219,6.68,180701,Mix2,0,20,NA
+Amm,pos,5-Oxoproline,130.050419,7.97,180130,Mix1,0,20,NA
+Amm,pos,Pipecolic acid,130.086804,10.79,210415,Mix1,0,20,NA
+Amm,pos,Hydroxyproline,132.066069,10.07,160401,Mix1,0,20,NA
+Amm,pos,Creatine,132.077302,11.34,160401,Mix1,0,20,NA
+Amm,pos,L-Leucine,132.102454,6.5,160401,Mix1,0,20,NA
+Amm,pos,L-Isoleucine,132.102454,8.17,160401,Mix1,0,20,NA
+Amm,pos,beta-Alaninebetaine,132.102454,9.38,190514,Mix2,0,20,NA
+Amm,pos,L-Asparagine,133.061318,11.86,160401,Mix1,0,20,NA
+Amm,pos,L-Ornithine,133.097703,16.79,170331,Mix1,0,20,NA
+Amm,pos,L-Aspartic acid,134.045334,12.86,160401,Mix1,0,20,NA
+Amm,pos,Dimethylsulfoniopropionate,135.047977,9.325,160401,Mix2,0,20,NA
+Amm,pos,L-Homocysteine,136.043226,8.7,160401,Mix2,0,20,NA
+Amm,pos,Adenine from adenosine?,136.06232,4.46,230101,Mix2,0,20,NA
+Amm,pos,Adenine,136.06232,4.64,160401,Mix1,0,20,NA
+Amm,pos,Allopurinol,137.046336,4.16,180701,Mix2,0,20,NA
+Amm,pos,Hypoxanthine,137.046336,6.2,190514,Mix2,0,20,NA
+Amm,pos,Hypoxanthine from inosine?,137.046336,7.8,230101,Mix2,0,20,NA
+Amm,pos,Homarine,138.055503,6.19,160401,Mix2,0,20,NA
+Amm,pos,Trigonelline,138.055503,8.36,170331,Mix1,0,20,NA
+Amm,pos,Urocanic acid,139.050753,8.16,180701,Mix2,0,20,NA
+Amm,pos,N-Methyltaurine,140.038141,7.6,160401,Mix2,0,20,NA
+Amm,pos,Toxopyrimidine?,140.082386,3.41,230718,NA,0,20,NA
+Amm,pos,Ectoine,143.082053,9.25,160401,Mix2,0,20,NA
+Amm,pos,Proline betaine,144.102454,7.18,170331,Mix1,0,20,NA
+Amm,pos,(3-Carboxypropyl)trimethylammonium,146.118104,9.91,190715,Mix1,0,20,NA
+Amm,pos,Acetylcholine,146.118104,13.37,190514,Mix2,0,20,NA
+Amm,pos,L-Glutamine,147.076968,11.7,160401,Mix1,0,20,NA
+Amm,pos,L-Lysine,147.113353,17.5,160401,Mix1,0,20,NA
+Amm,pos,O-Acetyl-L-serine,148.060984,6.27,170331,Mix1,0,20,NA
+Amm,pos,beta-Glutamic acid,148.060984,11.9,190514,Mix2,0,20,NA
+Amm,pos,L-Glutamic acid,148.060984,12.41,160401,Mix1,0,20,NA
+Amm,pos,Hydroxyisoleucine,148.097369,8.34,180701,Mix2,0,20,NA
+Amm,pos,L-Methionine,150.058876,7.96,160401,Mix1,0,20,NA
+Amm,pos,N6-Methyladenine,150.07797,3.97,190514,Mix2,0,20,NA
+Amm,pos,Dimethylsulfoxonium propionate?,151.042892,9.88,230330,NA,0,20,NA
+Amm,pos,TMAO 2M+H?,151.14404,7,230101,NA,0,20,NA
+Amm,pos,Guanine,152.057235,8.18,160401,Mix2,0,20,NA
+Amm,pos,Guanine from guanosine?,152.057235,9.06,230101,Mix2,0,20,NA
+Amm,pos,Xanthine?,153.041251,7.26,240130,NA,0,20,NA
+Amm,pos,L-Cysteinesulfinic acid,154.017406,10.74,190514,Mix2,0,20,NA
+Amm,pos,L-Histidine,156.077302,11.45,160401,Mix1,0,20,NA
+Amm,pos,5-Hydroxyectoine,159.076968,11.07,160401,Mix2,0,20,NA
+Amm,pos,Betonicine,160.097369,8.45,180701,Mix2,0,20,NA
+Amm,pos,N-Methyl-L-glutamic acid?,162.076634,8.69,230718,NA,0,20,NA
+Amm,pos,(R)-2-(Methylamino)pentanedioic acid?,162.076634,9.72,230511,NA,0,20,NA
+Amm,pos,L-2-Aminoadipic acid?,162.076634,10.9,230511,NA,0,20,NA
+Amm,pos,Threonine betaine?,162.1125,5,230101,NA,0,20,NA
+Amm,pos,Homoserine betaine?,162.1125,6.7,230101,NA,0,20,NA
+Amm,pos,Carnitine,162.113019,10.21,170331,Mix1,0,20,NA
+Amm,pos,L-Hydroxylysine,163.108268,16.37,160401,Mix1,0,20,NA
+Amm,pos,Deoxynojirimycin?,164.092284,10.34,240130,NA,0,20,NA
+Amm,pos,L-Methionine S-oxide,166.053791,9.73,170331,Mix1,0,20,NA
+Amm,pos,Ethyl aminobenzoate?,166.086804,2.01,230101,NA,0,20,NA
+Amm,pos,Hordenine,166.123189,3.34,180701,Mix2,0,20,NA
+Amm,pos,"2,3-Pyridinedicarboxylic acid",168.029684,10.17,190715,Mix1,0,20,NA
+Amm,pos,Taurocyamine,168.044287,12.02,210415,Mix1,0,20,NA
+Amm,pos,Theanine?,175.10771,6.8,230101,NA,0,20,NA
+Amm,pos,L-Arginine,175.119501,18.24,160401,Mix1,0,20,NA
+Amm,pos,Succinylglycine,176.055899,12.58,190715,Mix1,0,20,NA
+Amm,pos,Citrulline,176.103517,12.21,170331,Mix1,0,20,NA
+Amm,pos,Arsenobetaine,179.005326,7.24,180701,Mix2,0,20,NA
+Amm,pos,L-Cysteinylglycine,179.04904,9.53,170331,Mix1,0,20,NA
+Amm,pos,Gonyol,179.074191,10.74,180701,Mix2,0,20,NA
+Amm,pos,Glucosamine,180.087199,9.97,180130,Mix1,0,20,NA
+Amm,pos,L-Tyrosine,182.081719,9.76,160401,Mix1,0,20,NA
+Amm,pos,Choline sulfate,184.064354,7.01,210415,Mix1,0,20,NA
+Amm,pos,Phosphocholine,184.073869,12.26,210415,Mix1,0,20,NA
+Amm,pos,N6-Acetyl-L-lysine,189.123918,9.71,170331,Mix1,0,20,NA
+Amm,pos,"N6,N6,N6-Trimethyl-L-lysine",189.160303,17.14,190514,Mix2,0,20,NA
+Amm,pos,N-Acetyl-L-glutamic acid,190.071549,11.84,190715,Mix1,0,20,NA
+Amm,pos,O-Acetylcarnitine,204.123584,7.22,180130,Mix1,0,20,NA
+Amm,pos,Dexpanthenol,206.139234,2.27,180701,Mix2,0,20,NA
+Amm,pos,L-Kynurenine,209.092618,4.345,160401,NA,0,20,NA
+Amm,pos,O-Propionylcarnitine,218.139234,5.63,180130,Mix1,0,20,NA
+Amm,pos,O-Succinylhomoserine,220.082112,9.57,210415,Mix1,0,20,NA
+Amm,pos,N-Acetyl-D-glucosamine,222.097764,8.55,190514,Mix2,0,20,NA
+Amm,pos,L-Cystathionine,223.075255,13.14,160401,Mix2,0,20,NA
+Amm,pos,Carnosine,227.114416,10.47,190514,Mix2,0,20,NA
+Amm,pos,Deoxycytidine?,228.09788,6.6,230101,NA,0,20,NA
+Amm,pos,Ergothioneine,230.096324,11.29,190715,Mix1,0,20,NA
+Amm,pos,Butyrylcarnitine,232.154884,4.47,180130,Mix1,0,20,NA
+Amm,pos,L-Cystine,241.031677,13.1,160401,Mix1,0,20,NA
+Amm,pos,Anserine,241.130066,8.55,190514,Mix2,0,20,NA
+Amm,pos,Cytidine,244.093347,8.55,160401,Mix2,0,20,NA
+Amm,pos,Palythine?,245.1132,11,230101,NA,0,20,NA
+Amm,pos,Also mycosporine-glycine?,246.0972,9.5,230101,NA,0,20,NA
+Amm,pos,Mycosporine-glycine?,246.0972,10,230101,NA,0,20,NA
+Amm,pos,Muramic acid,252.108329,11,160401,Mix1,0,20,NA
+Amm,pos,Deoxyadenosine,252.109665,3.44,180701,Mix2,0,20,NA
+Amm,pos,2-O-alpha-D-Glucosylglycerol,255.107995,10.1,160401,Mix2,0,20,NA
+Amm,pos,Glycerophosphocholine,258.110652,10.86,180130,Mix1,0,20,NA
+Amm,pos,2-Heptyl-3-hydroxy-quinolone,260.165054,2.16,160401,Mix1,0,20,NA
+Amm,pos,O-Methylmalonyl-L-carnitine,262.129063,9.67,180701,Mix2,0,20,NA
+Amm,pos,Adenosine,268.10458,4.46,160401,Mix2,0,20,NA
+Amm,pos,Deoxyguanosine?,268.10458,7.77,230511,NA,0,20,NA
+Amm,pos,L-Homocystine,269.062977,12.58,170331,Mix1,0,20,NA
+Amm,pos,Inosine,269.088596,7.57,180701,Mix2,0,20,NA
+Amm,pos,Guanosine,284.099495,9.06,160401,Mix2,0,20,NA
+Amm,pos,Also Palythene/Usujirene?,285.1445,6.9,230101,NA,0,20,NA
+Amm,pos,Palythene/Usujirene?,285.1445,8.3,230101,NA,0,20,NA
+Amm,pos,Asterina-330?,289.1393,10.5,230101,NA,0,20,NA
+Amm,pos,Ophthalmic acid,290.135212,10.73,180130,Mix1,0,20,NA
+Amm,pos,L-Arginosuccinic acid,291.13046,13.69,170331,Mix1,0,20,NA
+Amm,pos,N-Acetylmuramic acid,294.118894,3.35,190514,Mix2,0,20,NA
+Amm,pos,Glutamylphenylalanine,295.129398,9.55,190715,Mix1,0,20,NA
+Amm,pos,Mycosporine-2-glycine?,303.1186,11.3,230101,NA,0,20,NA
+Amm,pos,Glutathione,308.091634,12,160401,Mix1,0,20,NA
+Amm,pos,Shinorine?,333.1292,11.6,230101,NA,0,20,NA
+Amm,pos,S-Farnesyl-L-cysteine methyl ester,340.231026,1.58,180130,NA,0,20,NA
+Amm,pos,Lactose,343.12404,12.53,180701,Mix2,0,20,NA
+Amm,pos,Thiamine monophosphate,345.078641,11.5,160401,Mix1,0,20,NA
+Amm,pos,Porphyra-334?,347.1449,8.1,230101,NA,0,20,NA
+Amm,pos,"Cys-Gly, oxidized",355.074605,11.85,170331,Mix1,0,20,NA
+Amm,pos,S-Adenosylhomocysteine,385.129416,10.85,160401,Mix1,0,20,NA
+Amm,pos,S-Adenosylmethionine,399.145066,13.01,160401,Mix1,0,20,NA
+Amm,pos,Thiamine diphosphate,425.044974,13.765,160401,Mix1,0,20,NA
+Amm,pos,Chitobiose,425.177138,10.21,160401,Mix2,0,20,NA
+Amm,pos,Riboflavin-5-phosphate,457.112444,8.6,160401,Mix2,0,20,NA
+Amm,pos,Sodium taurocholate?,533.3256,1.45,230330,NA,0,20,NA
+Amm,pos,Glutathione disulfide,613.159793,14.98,160401,Mix2,0,20,NA
+Amm,neg,Nitrate?,61.98709,5.2,230101,NA,0,20,NA
+Amm,neg,Bromine79?,78.91768,7,230101,NA,0,20,NA
+Amm,neg,Sulfite?,79.95616,14.7,230101,NA,0,20,NA
+Amm,neg,Bromine81?,80.91563,7,230101,NA,0,20,NA
+Amm,neg,Oxalic acid,88.987485,15.11,160401,Mix1,0,20,NA
+Amm,neg,Methylphosphonic acid,94.989808,11,160401,Mix1,0,20,NA
+Amm,neg,Bisulfate?,96.95900565,13,230101,NA,0,20,NA
+Amm,neg,Succinic semialdehyde,101.02387,6.51,180701,Mix2,0,20,NA
+Amm,neg,Ethanesulfonic acid,108.995942,4.29,160401,Mix2,0,20,NA
+Amm,neg,Cytosine,110.035437,6.82,160401,Mix2,0,20,NA
+Amm,neg,Uracil,111.019453,3.73,160401,Mix2,0,20,NA
+Amm,neg,Creatinine,112.051087,6.09,210615,Mix1,0,20,NA
+Amm,neg,Fumaric acid,115.003135,12.7,160401,Mix1,0,20,NA
+Amm,neg,Acetylglycine,116.034769,7.81,190715,Mix1,0,20,NA
+Amm,neg,Succinic acid,117.018785,11.9,160401,Mix1,0,20,NA
+Amm,neg,Erythritol?,121.050085,7.97,230511,NA,0,20,NA
+Amm,neg,1-Propanesulfonate,123.011592,2.81,160401,Mix2,0,20,NA
+Amm,neg,Taurine,124.006841,10,160401,Mix2,0,20,NA
+Amm,neg,Isethionic acid,124.990857,7.2,160401,Mix2,0,20,NA
+Amm,neg,Thymine,125.035103,3.06,160401,Mix2,0,20,NA
+Amm,neg,Iodine?,126.904,5.1,230101,NA,0,20,NA
+Amm,neg,5-Oxoproline,128.034768,7.97,180130,Mix1,0,20,NA
+Amm,neg,Pipecolic acid,128.071154,10.79,210415,Mix1,0,20,NA
+Amm,neg,Itaconic acid?,129.018785,11.66,230511,NA,0,20,NA
+Amm,neg,Propionylglycine,130.050419,3.3,190715,Mix1,0,20,NA
+Amm,neg,Pyro from glutamine?,130.050419,11,230101,NA,0,20,NA
+Amm,neg,Pyro from glutamate?,130.050419,12,230101,NA,0,20,NA
+Amm,neg,Malic acid,133.0137,11.97,160401,Mix1,0,20,NA
+Amm,neg,Adenine,134.04667,4.64,160401,Mix1,0,20,NA
+Amm,neg,Threonic acid,135.02935,10.37,190715,Mix1,0,20,NA
+Amm,neg,Allopurinol,135.030686,4.16,180701,Mix2,0,20,NA
+Amm,neg,Hypoxanthine,135.030686,6.2,190514,Mix2,0,20,NA
+Amm,neg,Salicylic acid,137.02387,2.2,160401,Mix1,0,20,NA
+Amm,neg,Urocanic acid,137.035103,8.16,180701,Mix2,0,20,NA
+Amm,neg,3-Aminopropanesulfonate,138.022491,11.49,160401,Mix2,0,20,NA
+Amm,neg,Sulfoacetic acid,138.970122,13.9,160401,Mix2,0,20,NA
+Amm,neg,Sodium 2-mercaptoethanesulfonate,140.968013,2.67,160401,Mix2,0,20,NA
+Amm,neg,Ectoine,141.066403,9.25,160401,Mix2,0,20,NA
+Amm,neg,Butyrylglycine,144.066069,2.92,190715,Mix1,0,20,NA
+Amm,neg,2-Ketoglutaric acid,145.0137,10.845,160401,Mix1,0,20,NA
+Amm,neg,Indole-3-carbinol,146.060589,2.395,160401,Mix2,0,20,NA
+Amm,neg,Hydroxyisoleucine,146.081719,8.34,180701,Mix2,0,20,NA
+Amm,neg,2-keto-4-methylthiobutyric acid,147.011592,2.59,170331,Mix1,0,20,NA
+Amm,neg,2-Hydroxy-4-(methylthio)butyric acid,149.027242,2.69,170331,Mix1,0,20,NA
+Amm,neg,Guanine,150.041585,8.18,160401,Mix2,0,20,NA
+Amm,neg,Xanthine?,151.025601,7.26,240130,NA,0,20,NA
+Amm,neg,L-Cysteinesulfinic acid,152.001756,10.74,190514,Mix2,0,20,NA
+Amm,neg,"2,5-Dihydroxybenzoic acid",153.018785,4.08,160401,Mix2,0,20,NA
+Amm,neg,Cysteinolic acid?,154.017406,9.5,220111,Mix2,0,20,NA
+Amm,neg,Amino hydroxypropanesulfonate?,154.017406,11.5,220111,Mix2,0,20,NA
+Amm,neg,"(R)-2,3-Dihydroxypropane-1-sulfonate",155.001422,10.67,160401,Mix2,0,20,NA
+Amm,neg,Orotic acid,155.009283,4.195,160401,Mix1,0,20,NA
+Amm,neg,Allantoin,157.036165,9.48,210415,Mix1,0,20,NA
+Amm,neg,(R)-2-(Methylamino)pentanedioic acid?,160.060984,9.72,230511,NA,0,20,NA
+Amm,neg,L-2-Aminoadipic acid?,160.060984,10.4,230511,NA,0,20,NA
+Amm,neg,Deoxynojirimycin?,162.076634,10.34,240130,NA,0,20,NA
+Amm,neg,N-Acetyltaurine,166.017406,3.74,160401,Mix2,0,20,NA
+Amm,neg,Taurocyamine,166.028637,12.02,210415,Mix1,0,20,NA
+Amm,neg,3-Sulfopyruvic acid,166.965037,12.92,160401,Mix2,0,20,NA
+Amm,neg,Phosphoenolpyruvic acid,166.974553,13.865,160401,Mix1,0,20,NA
+Amm,neg,L-Cysteic acid,167.996671,12.15,160401,Mix2,0,20,NA
+Amm,neg,3-Sulfolactate,168.980687,13.27,160401,NA,0,20,NA
+Amm,neg,Dihydroxyacetone phosphate,168.990203,12.86,160401,Mix2,0,20,NA
+Amm,neg,Glycerophosphoric acid,171.005853,13.065,160401,Mix2,0,20,NA
+Amm,neg,Sulfanilic acid,172.006841,7.23,180701,Mix2,0,20,NA
+Amm,neg,cis-Aconitic acid,173.008615,14.21,160401,Mix1,0,20,NA
+Amm,neg,Shikimic acid,173.045,10.97,160401,Mix1,0,20,NA
+Amm,neg,Ethyl dihydroxybenzoate,181.050085,2.08,160401,Mix2,0,20,NA
+Amm,neg,Mannitol?,181.071215,10.6,230511,NA,0,20,NA
+Amm,neg,Choline sulfate,182.048706,7.01,210415,Mix1,0,20,NA
+Amm,neg,3-Phosphoglycerate,184.985118,14.755,180130,Mix1,0,20,NA
+Amm,neg,N-Acetyl-L-glutamic acid,188.055899,11.84,190715,Mix1,0,20,NA
+Amm,neg,Citric acid,191.01918,15.65,160401,Mix2,0,20,NA
+Amm,neg,Isocitric acid,191.01918,15.65,160401,Mix1,0,20,NA
+Amm,neg,D-Gluconic acid,195.05048,10.79,160401,Mix2,0,20,NA
+Amm,neg,Indolepyruvic acid,202.050419,2.375,160401,Mix2,0,20,NA
+Amm,neg,Lipoic acid,205.035699,2.42,160401,Mix1,0,20,NA
+Amm,neg,O-Succinylhomoserine,218.066462,9.57,210415,Mix1,0,20,NA
+Amm,neg,Carnosine,225.098766,10.47,190514,Mix2,0,20,NA
+Amm,neg,D-Ribose 5-phosphate,229.011333,13.29,160401,Mix2,0,20,NA
+Amm,neg,Anserine,239.114416,8.55,190514,Mix2,0,20,NA
+Amm,neg,Thymidine,241.082448,3.27,160401,Mix1,0,20,NA
+Amm,neg,Cytidine,242.077697,8.55,160401,Mix2,0,20,NA
+Amm,neg,Sulfoquinovose?,243.017467,10.31,230330,NA,0,20,NA
+Amm,neg,Uridine,243.061713,6.02,160401,Mix2,0,20,NA
+Amm,neg,D-Glucose 1-phosphate,259.021897,13.45,160401,Mix2,0,20,NA
+Amm,neg,D-Fructose 6-phosphate,259.021897,13.51,160401,Mix1,0,20,NA
+Amm,neg,D-Glucose 6-phosphate,259.021897,14.12,160401,Mix1,0,20,NA
+Amm,neg,Adenosine,266.088929,4.46,160401,Mix2,0,20,NA
+Amm,neg,Deoxyguanosine?,266.08893,7.77,230511,NA,0,20,NA
+Amm,neg,Inosine,267.072946,7.57,180701,Mix2,0,20,NA
+Amm,neg,Guanosine,282.083845,9.06,160401,Mix2,0,20,NA
+Amm,neg,N-Acetylmuramic acid,292.103244,3.35,190514,Mix2,0,20,NA
+Amm,neg,Glutamylphenylalanine,293.113748,9.55,190715,Mix1,0,20,NA
+Amm,neg,"3',5'-Cyclic AMP",328.044698,4.06,160401,Mix2,0,20,NA
+Amm,neg,Sucrose,341.10839,11.77,170331,Mix1,0,20,NA
+Amm,neg,Maltose,341.10839,12.31,180701,Mix2,0,20,NA
+Amm,neg,Lactose,341.10839,12.53,180701,Mix2,0,20,NA
+Amm,neg,Trehalose,341.10839,12.63,160401,Mix2,0,20,NA
+Amm,neg,"3',5'-Cyclic GMP",344.039613,8.8,160401,Mix2,0,20,NA
+Amm,neg,Adenosine monophosphate,346.055262,11.585,160401,Mix2,0,20,NA
+Amm,neg,Guanosine monophosphate,362.050178,13.85,160401,Mix2,0,20,NA
+Amm,neg,Adenosine diphosphate,426.021596,12.09,160401,Mix2,0,20,NA
+Amm,neg,Riboflavin-5-phosphate,455.096794,8.6,160401,Mix2,0,20,NA
+Amm,neg,Maltotriose?,503.161215,13.03,230101,NA,0,20,NA
+Amm,neg,Adenosine triphosphate,505.987929,15.35,160401,Mix2,0,20,NA
+Amm,neg,Sodium taurocholate?,514.283851,1.45,230330,NA,0,20,NA
+Amm,neg,Guanosine triphosphate,521.982844,16.58,160401,Mix2,0,20,NA
+Amm,neg,UDP-glucose,565.047204,13.59,160401,Mix2,0,20,NA
+Amm,neg,UDP-N-acetylglucosamine,606.073753,12.75,160401,Mix2,0,20,NA
+Amm,neg,NAD,662.101304,10.6,160401,Mix2,0,20,NA
+Amm,neg,NADH,664.116954,11.26,160401,Mix2,0,20,NA
+Amm,neg,Maltotetraose?,665.21404,13.78,230101,NA,0,20,NA
+Amm,neg,"3',5'-Cyclic diGMP",689.087051,13.74,160401,Mix2,0,20,NA
+Amm,neg,NADP,742.067637,12.74,160401,Mix2,0,20,NA
+Amm,neg,NADPH,744.083287,13.345,160401,Mix2,0,20,NA
+Amm,neg,Flavin adenine dinucleotide,784.149317,7.585,160401,Mix2,0,20,NA
+Amm,neg,Acetyl-CoA,808.117959,10.84,160401,Mix1,0,20,NA
+Amm,neg,Propionyl-CoA,822.133609,8.83,160401,Mix1,0,20,NA
+Amm,neg,Crotonoyl-CoA,834.133609,8.45,160401,Mix1,0,20,NA
+Amm,neg,Acetoacetyl-CoA,850.128524,10.6,160401,Mix1,0,20,NA
+Amm,neg,Malonyl-CoA,852.107789,13.525,160401,Mix1,0,20,NA
+Amm,neg,(S)-3-Hydroxybutyryl-CoA,852.144174,11.545,160401,Mix1,0,20,NA
+Amm,neg,Succinyl-CoA,866.123439,12.965,160401,Mix1,0,20,NA
+Amm,neg,D-Methylmalonyl-CoA,866.123439,13.18,160401,Mix1,0,20,NA
+Nit,pos,Trimethylamine,60.081324,7.2,180130,Mix1,0,20,NA
+Nit,pos,Propylamine?,60.081324,19.7,230511,NA,0,20,NA
+Nit,pos,Urea,61.040188,6.4,210415,Mix1,0,20,NA
+Nit,pos,Ethanolamine,62.060589,15.66,210615,Mix1,0,20,NA
+Nit,pos,Glycine,76.039854,11.9,160401,Mix1,0,20,NA
+Nit,pos,Trimethylamine N-oxide,76.076239,6.9,180130,Mix1,0,20,NA
+Nit,pos,Sarcosine,90.055504,10.6,160401,Mix2,0,20,NA
+Nit,pos,L-Alanine,90.055504,11.3,160401,Mix1,0,20,NA
+Nit,pos,beta-Alanine,90.055504,11.39,180701,Mix2,0,20,NA
+Nit,pos,Dimethylglycine,104.071154,8.97,160401,Mix1,0,20,NA
+Nit,pos,4-Aminobutyric acid,104.071154,11.155,160401,Mix1,0,20,NA
+Nit,pos,Choline,104.107539,15.265,160401,Mix1,0,20,NA
+Nit,pos,L-Serine,106.050419,11.86,160401,Mix1,0,20,NA
+Nit,pos,Hypotaurine,110.027576,10.7,160401,Mix2,0,20,NA
+Nit,pos,Cytosine,112.051087,6.82,160401,Mix2,0,20,NA
+Nit,pos,Creatinine,114.066737,6.09,210615,Mix1,0,20,NA
+Nit,pos,Creatinine from creatine?,114.066737,11,230101,Mix1,0,20,NA
+Nit,pos,L-Proline,116.071154,9.49,160401,Mix1,0,20,NA
+Nit,pos,Homocysteine thiolactone,118.032661,2.78,170331,Mix1,0,20,NA
+Nit,pos,Glycine betaine,118.086804,7.27,160401,Mix1,0,20,NA
+Nit,pos,L-Valine,118.086804,9.09,160401,Mix1,0,20,NA
+Nit,pos,L-Threonine,120.066069,10.92,160401,Mix1,0,20,NA
+Nit,pos,L-Homoserine,120.066069,11.32,170331,Mix1,0,20,NA
+Nit,pos,gamma-Amino-beta-hydroxybutyric acid?,120.066069,11.85,240130,NA,0,20,NA
+Nit,pos,Dimethylsulfonioacetate,121.032327,8.39,180701,Mix2,0,20,NA
+Nit,pos,L-Cysteine?,122.027576,7,230101,NA,0,20,NA
+Nit,pos,Phenylethylamine?,122.096974,7.82,230511,NA,0,20,NA
+Nit,pos,Nicotinic acid,124.039854,2.68,160401,Mix2,0,20,NA
+Nit,pos,Picolinic acid?,124.039854,4.51,230511,NA,0,20,NA
+Nit,pos,Taurine,126.022491,10,160401,Mix2,0,20,NA
+Nit,pos,5-Methylcytosine,126.066737,5.53,190514,Mix2,0,20,NA
+Nit,pos,Thymine,127.050753,3.06,160401,Mix2,0,20,NA
+Nit,pos,Melamine,127.073219,6.68,180701,Mix2,0,20,NA
+Nit,pos,5-Oxoproline,130.050419,7.97,180130,Mix1,0,20,NA
+Nit,pos,Pipecolic acid,130.086804,10.79,210415,Mix1,0,20,NA
+Nit,pos,Hydroxyproline,132.066069,10.07,160401,Mix1,0,20,NA
+Nit,pos,Creatine,132.077302,11.34,160401,Mix1,0,20,NA
+Nit,pos,L-Leucine,132.102454,6.5,160401,Mix1,0,20,NA
+Nit,pos,L-Isoleucine,132.102454,8.17,160401,Mix1,0,20,NA
+Nit,pos,beta-Alaninebetaine,132.102454,9.38,190514,Mix2,0,20,NA
+Nit,pos,L-Asparagine,133.061318,11.86,160401,Mix1,0,20,NA
+Nit,pos,L-Ornithine,133.097703,16.79,170331,Mix1,0,20,NA
+Nit,pos,L-Aspartic acid,134.045334,12.86,160401,Mix1,0,20,NA
+Nit,pos,Dimethylsulfoniopropionate,135.047977,9.325,160401,Mix2,0,20,NA
+Nit,pos,L-Homocysteine,136.043226,8.7,160401,Mix2,0,20,NA
+Nit,pos,Adenine from adenosine?,136.06232,4.46,230101,Mix2,0,20,NA
+Nit,pos,Adenine,136.06232,4.64,160401,Mix1,0,20,NA
+Nit,pos,Allopurinol,137.046336,4.16,180701,Mix2,0,20,NA
+Nit,pos,Hypoxanthine,137.046336,6.2,190514,Mix2,0,20,NA
+Nit,pos,Hypoxanthine from inosine?,137.046336,7.8,230101,Mix2,0,20,NA
+Nit,pos,Homarine,138.055503,6.19,160401,Mix2,0,20,NA
+Nit,pos,Trigonelline,138.055503,8.36,170331,Mix1,0,20,NA
+Nit,pos,Urocanic acid,139.050753,8.16,180701,Mix2,0,20,NA
+Nit,pos,N-Methyltaurine,140.038141,7.6,160401,Mix2,0,20,NA
+Nit,pos,Toxopyrimidine?,140.082386,3.41,230718,NA,0,20,NA
+Nit,pos,Ectoine,143.082053,9.25,160401,Mix2,0,20,NA
+Nit,pos,Proline betaine,144.102454,7.18,170331,Mix1,0,20,NA
+Nit,pos,(3-Carboxypropyl)trimethylammonium,146.118104,9.91,190715,Mix1,0,20,NA
+Nit,pos,Acetylcholine,146.118104,13.37,190514,Mix2,0,20,NA
+Nit,pos,L-Glutamine,147.076968,11.7,160401,Mix1,0,20,NA
+Nit,pos,L-Lysine,147.113353,17.5,160401,Mix1,0,20,NA
+Nit,pos,O-Acetyl-L-serine,148.060984,6.27,170331,Mix1,0,20,NA
+Nit,pos,beta-Glutamic acid,148.060984,11.9,190514,Mix2,0,20,NA
+Nit,pos,L-Glutamic acid,148.060984,12.41,160401,Mix1,0,20,NA
+Nit,pos,Hydroxyisoleucine,148.097369,8.34,180701,Mix2,0,20,NA
+Nit,pos,L-Methionine,150.058876,7.96,160401,Mix1,0,20,NA
+Nit,pos,N6-Methyladenine,150.07797,3.97,190514,Mix2,0,20,NA
+Nit,pos,Dimethylsulfoxonium propionate?,151.042892,9.88,230330,NA,0,20,NA
+Nit,pos,TMAO 2M+H?,151.14404,7,230101,NA,0,20,NA
+Nit,pos,Guanine,152.057235,8.18,160401,Mix2,0,20,NA
+Nit,pos,Guanine from guanosine?,152.057235,9.06,230101,Mix2,0,20,NA
+Nit,pos,Xanthine?,153.041251,7.26,240130,NA,0,20,NA
+Nit,pos,L-Cysteinesulfinic acid,154.017406,10.74,190514,Mix2,0,20,NA
+Nit,pos,L-Histidine,156.077302,11.45,160401,Mix1,0,20,NA
+Nit,pos,5-Hydroxyectoine,159.076968,11.07,160401,Mix2,0,20,NA
+Nit,pos,Betonicine,160.097369,8.45,180701,Mix2,0,20,NA
+Nit,pos,N-Methyl-L-glutamic acid?,162.076634,8.69,230718,NA,0,20,NA
+Nit,pos,(R)-2-(Methylamino)pentanedioic acid?,162.076634,9.72,230511,NA,0,20,NA
+Nit,pos,L-2-Aminoadipic acid?,162.076634,10.9,230511,NA,0,20,NA
+Nit,pos,Threonine betaine?,162.1125,5,230101,NA,0,20,NA
+Nit,pos,Homoserine betaine?,162.1125,6.7,230101,NA,0,20,NA
+Nit,pos,Carnitine,162.113019,10.21,170331,Mix1,0,20,NA
+Nit,pos,L-Hydroxylysine,163.108268,16.37,160401,Mix1,0,20,NA
+Nit,pos,Deoxynojirimycin?,164.092284,10.34,240130,NA,0,20,NA
+Nit,pos,L-Methionine S-oxide,166.053791,9.73,170331,Mix1,0,20,NA
+Nit,pos,Ethyl aminobenzoate?,166.086804,2.01,230101,NA,0,20,NA
+Nit,pos,Hordenine,166.123189,3.34,180701,Mix2,0,20,NA
+Nit,pos,"2,3-Pyridinedicarboxylic acid",168.029684,10.17,190715,Mix1,0,20,NA
+Nit,pos,Taurocyamine,168.044287,12.02,210415,Mix1,0,20,NA
+Nit,pos,Theanine?,175.10771,6.8,230101,NA,0,20,NA
+Nit,pos,L-Arginine,175.119501,18.24,160401,Mix1,0,20,NA
+Nit,pos,Succinylglycine,176.055899,12.58,190715,Mix1,0,20,NA
+Nit,pos,Citrulline,176.103517,12.21,170331,Mix1,0,20,NA
+Nit,pos,Arsenobetaine,179.005326,7.24,180701,Mix2,0,20,NA
+Nit,pos,L-Cysteinylglycine,179.04904,9.53,170331,Mix1,0,20,NA
+Nit,pos,Gonyol,179.074191,10.74,180701,Mix2,0,20,NA
+Nit,pos,Glucosamine,180.087199,9.97,180130,Mix1,0,20,NA
+Nit,pos,L-Tyrosine,182.081719,9.76,160401,Mix1,0,20,NA
+Nit,pos,Choline sulfate,184.064354,7.01,210415,Mix1,0,20,NA
+Nit,pos,Phosphocholine,184.073869,12.26,210415,Mix1,0,20,NA
+Nit,pos,N6-Acetyl-L-lysine,189.123918,9.71,170331,Mix1,0,20,NA
+Nit,pos,"N6,N6,N6-Trimethyl-L-lysine",189.160303,17.14,190514,Mix2,0,20,NA
+Nit,pos,N-Acetyl-L-glutamic acid,190.071549,11.84,190715,Mix1,0,20,NA
+Nit,pos,O-Acetylcarnitine,204.123584,7.22,180130,Mix1,0,20,NA
+Nit,pos,Dexpanthenol,206.139234,2.27,180701,Mix2,0,20,NA
+Nit,pos,L-Kynurenine,209.092618,4.345,160401,NA,0,20,NA
+Nit,pos,O-Propionylcarnitine,218.139234,5.63,180130,Mix1,0,20,NA
+Nit,pos,O-Succinylhomoserine,220.082112,9.57,210415,Mix1,0,20,NA
+Nit,pos,N-Acetyl-D-glucosamine,222.097764,8.55,190514,Mix2,0,20,NA
+Nit,pos,L-Cystathionine,223.075255,13.14,160401,Mix2,0,20,NA
+Nit,pos,Carnosine,227.114416,10.47,190514,Mix2,0,20,NA
+Nit,pos,Deoxycytidine?,228.09788,6.6,230101,NA,0,20,NA
+Nit,pos,Ergothioneine,230.096324,11.29,190715,Mix1,0,20,NA
+Nit,pos,Butyrylcarnitine,232.154884,4.47,180130,Mix1,0,20,NA
+Nit,pos,L-Cystine,241.031677,13.1,160401,Mix1,0,20,NA
+Nit,pos,Anserine,241.130066,8.55,190514,Mix2,0,20,NA
+Nit,pos,Cytidine,244.093347,8.55,160401,Mix2,0,20,NA
+Nit,pos,Palythine?,245.1132,11,230101,NA,0,20,NA
+Nit,pos,Also mycosporine-glycine?,246.0972,9.5,230101,NA,0,20,NA
+Nit,pos,Mycosporine-glycine?,246.0972,10,230101,NA,0,20,NA
+Nit,pos,Muramic acid,252.108329,11,160401,Mix1,0,20,NA
+Nit,pos,Deoxyadenosine,252.109665,3.44,180701,Mix2,0,20,NA
+Nit,pos,2-O-alpha-D-Glucosylglycerol,255.107995,10.1,160401,Mix2,0,20,NA
+Nit,pos,Glycerophosphocholine,258.110652,10.86,180130,Mix1,0,20,NA
+Nit,pos,2-Heptyl-3-hydroxy-quinolone,260.165054,2.16,160401,Mix1,0,20,NA
+Nit,pos,O-Methylmalonyl-L-carnitine,262.129063,9.67,180701,Mix2,0,20,NA
+Nit,pos,Adenosine,268.10458,4.46,160401,Mix2,0,20,NA
+Nit,pos,Deoxyguanosine?,268.10458,7.77,230511,NA,0,20,NA
+Nit,pos,L-Homocystine,269.062977,12.58,170331,Mix1,0,20,NA
+Nit,pos,Inosine,269.088596,7.57,180701,Mix2,0,20,NA
+Nit,pos,Guanosine,284.099495,9.06,160401,Mix2,0,20,NA
+Nit,pos,Also Palythene/Usujirene?,285.1445,6.9,230101,NA,0,20,NA
+Nit,pos,Palythene/Usujirene?,285.1445,8.3,230101,NA,0,20,NA
+Nit,pos,Asterina-330?,289.1393,10.5,230101,NA,0,20,NA
+Nit,pos,Ophthalmic acid,290.135212,10.73,180130,Mix1,0,20,NA
+Nit,pos,L-Arginosuccinic acid,291.13046,13.69,170331,Mix1,0,20,NA
+Nit,pos,N-Acetylmuramic acid,294.118894,3.35,190514,Mix2,0,20,NA
+Nit,pos,Glutamylphenylalanine,295.129398,9.55,190715,Mix1,0,20,NA
+Nit,pos,Mycosporine-2-glycine?,303.1186,11.3,230101,NA,0,20,NA
+Nit,pos,Glutathione,308.091634,12,160401,Mix1,0,20,NA
+Nit,pos,Shinorine?,333.1292,11.6,230101,NA,0,20,NA
+Nit,pos,S-Farnesyl-L-cysteine methyl ester,340.231026,1.58,180130,NA,0,20,NA
+Nit,pos,Lactose,343.12404,12.53,180701,Mix2,0,20,NA
+Nit,pos,Thiamine monophosphate,345.078641,11.5,160401,Mix1,0,20,NA
+Nit,pos,Porphyra-334?,347.1449,8.1,230101,NA,0,20,NA
+Nit,pos,"Cys-Gly, oxidized",355.074605,11.85,170331,Mix1,0,20,NA
+Nit,pos,S-Adenosylhomocysteine,385.129416,10.85,160401,Mix1,0,20,NA
+Nit,pos,S-Adenosylmethionine,399.145066,13.01,160401,Mix1,0,20,NA
+Nit,pos,Thiamine diphosphate,425.044974,13.765,160401,Mix1,0,20,NA
+Nit,pos,Chitobiose,425.177138,10.21,160401,Mix2,0,20,NA
+Nit,pos,Riboflavin-5-phosphate,457.112444,8.6,160401,Mix2,0,20,NA
+Nit,pos,Sodium taurocholate?,533.3256,1.45,230330,NA,0,20,NA
+Nit,pos,Glutathione disulfide,613.159793,14.98,160401,Mix2,0,20,NA
+Nit,neg,Nitrate?,61.98709,5.2,230101,NA,0,20,NA
+Nit,neg,Bromine79?,78.91768,7,230101,NA,0,20,NA
+Nit,neg,Sulfite?,79.95616,14.7,230101,NA,0,20,NA
+Nit,neg,Bromine81?,80.91563,7,230101,NA,0,20,NA
+Nit,neg,Oxalic acid,88.987485,15.11,160401,Mix1,0,20,NA
+Nit,neg,Methylphosphonic acid,94.989808,11,160401,Mix1,0,20,NA
+Nit,neg,Bisulfate?,96.95900565,13,230101,NA,0,20,NA
+Nit,neg,Succinic semialdehyde,101.02387,6.51,180701,Mix2,0,20,NA
+Nit,neg,Ethanesulfonic acid,108.995942,4.29,160401,Mix2,0,20,NA
+Nit,neg,Cytosine,110.035437,6.82,160401,Mix2,0,20,NA
+Nit,neg,Uracil,111.019453,3.73,160401,Mix2,0,20,NA
+Nit,neg,Creatinine,112.051087,6.09,210615,Mix1,0,20,NA
+Nit,neg,Fumaric acid,115.003135,12.7,160401,Mix1,0,20,NA
+Nit,neg,Acetylglycine,116.034769,7.81,190715,Mix1,0,20,NA
+Nit,neg,Succinic acid,117.018785,11.9,160401,Mix1,0,20,NA
+Nit,neg,Erythritol?,121.050085,7.97,230511,NA,0,20,NA
+Nit,neg,1-Propanesulfonate,123.011592,2.81,160401,Mix2,0,20,NA
+Nit,neg,Taurine,124.006841,10,160401,Mix2,0,20,NA
+Nit,neg,Isethionic acid,124.990857,7.2,160401,Mix2,0,20,NA
+Nit,neg,Thymine,125.035103,3.06,160401,Mix2,0,20,NA
+Nit,neg,Iodine?,126.904,5.1,230101,NA,0,20,NA
+Nit,neg,5-Oxoproline,128.034768,7.97,180130,Mix1,0,20,NA
+Nit,neg,Pipecolic acid,128.071154,10.79,210415,Mix1,0,20,NA
+Nit,neg,Itaconic acid?,129.018785,11.66,230511,NA,0,20,NA
+Nit,neg,Propionylglycine,130.050419,3.3,190715,Mix1,0,20,NA
+Nit,neg,Pyro from glutamine?,130.050419,11,230101,NA,0,20,NA
+Nit,neg,Pyro from glutamate?,130.050419,12,230101,NA,0,20,NA
+Nit,neg,Malic acid,133.0137,11.97,160401,Mix1,0,20,NA
+Nit,neg,Adenine,134.04667,4.64,160401,Mix1,0,20,NA
+Nit,neg,Threonic acid,135.02935,10.37,190715,Mix1,0,20,NA
+Nit,neg,Allopurinol,135.030686,4.16,180701,Mix2,0,20,NA
+Nit,neg,Hypoxanthine,135.030686,6.2,190514,Mix2,0,20,NA
+Nit,neg,Salicylic acid,137.02387,2.2,160401,Mix1,0,20,NA
+Nit,neg,Urocanic acid,137.035103,8.16,180701,Mix2,0,20,NA
+Nit,neg,3-Aminopropanesulfonate,138.022491,11.49,160401,Mix2,0,20,NA
+Nit,neg,Sulfoacetic acid,138.970122,13.9,160401,Mix2,0,20,NA
+Nit,neg,Sodium 2-mercaptoethanesulfonate,140.968013,2.67,160401,Mix2,0,20,NA
+Nit,neg,Ectoine,141.066403,9.25,160401,Mix2,0,20,NA
+Nit,neg,Butyrylglycine,144.066069,2.92,190715,Mix1,0,20,NA
+Nit,neg,2-Ketoglutaric acid,145.0137,10.845,160401,Mix1,0,20,NA
+Nit,neg,Indole-3-carbinol,146.060589,2.395,160401,Mix2,0,20,NA
+Nit,neg,Hydroxyisoleucine,146.081719,8.34,180701,Mix2,0,20,NA
+Nit,neg,2-keto-4-methylthiobutyric acid,147.011592,2.59,170331,Mix1,0,20,NA
+Nit,neg,2-Hydroxy-4-(methylthio)butyric acid,149.027242,2.69,170331,Mix1,0,20,NA
+Nit,neg,Guanine,150.041585,8.18,160401,Mix2,0,20,NA
+Nit,neg,Xanthine?,151.025601,7.26,240130,NA,0,20,NA
+Nit,neg,L-Cysteinesulfinic acid,152.001756,10.74,190514,Mix2,0,20,NA
+Nit,neg,"2,5-Dihydroxybenzoic acid",153.018785,4.08,160401,Mix2,0,20,NA
+Nit,neg,Cysteinolic acid?,154.017406,9.5,220111,Mix2,0,20,NA
+Nit,neg,Amino hydroxypropanesulfonate?,154.017406,11.5,220111,Mix2,0,20,NA
+Nit,neg,"(R)-2,3-Dihydroxypropane-1-sulfonate",155.001422,10.67,160401,Mix2,0,20,NA
+Nit,neg,Orotic acid,155.009283,4.195,160401,Mix1,0,20,NA
+Nit,neg,Allantoin,157.036165,9.48,210415,Mix1,0,20,NA
+Nit,neg,(R)-2-(Methylamino)pentanedioic acid?,160.060984,9.72,230511,NA,0,20,NA
+Nit,neg,L-2-Aminoadipic acid?,160.060984,10.4,230511,NA,0,20,NA
+Nit,neg,Deoxynojirimycin?,162.076634,10.34,240130,NA,0,20,NA
+Nit,neg,N-Acetyltaurine,166.017406,3.74,160401,Mix2,0,20,NA
+Nit,neg,Taurocyamine,166.028637,12.02,210415,Mix1,0,20,NA
+Nit,neg,3-Sulfopyruvic acid,166.965037,12.92,160401,Mix2,0,20,NA
+Nit,neg,Phosphoenolpyruvic acid,166.974553,13.865,160401,Mix1,0,20,NA
+Nit,neg,L-Cysteic acid,167.996671,12.15,160401,Mix2,0,20,NA
+Nit,neg,3-Sulfolactate,168.980687,13.27,160401,NA,0,20,NA
+Nit,neg,Dihydroxyacetone phosphate,168.990203,12.86,160401,Mix2,0,20,NA
+Nit,neg,Glycerophosphoric acid,171.005853,13.065,160401,Mix2,0,20,NA
+Nit,neg,Sulfanilic acid,172.006841,7.23,180701,Mix2,0,20,NA
+Nit,neg,cis-Aconitic acid,173.008615,14.21,160401,Mix1,0,20,NA
+Nit,neg,Shikimic acid,173.045,10.97,160401,Mix1,0,20,NA
+Nit,neg,Ethyl dihydroxybenzoate,181.050085,2.08,160401,Mix2,0,20,NA
+Nit,neg,Mannitol?,181.071215,10.6,230511,NA,0,20,NA
+Nit,neg,Choline sulfate,182.048706,7.01,210415,Mix1,0,20,NA
+Nit,neg,3-Phosphoglycerate,184.985118,14.755,180130,Mix1,0,20,NA
+Nit,neg,N-Acetyl-L-glutamic acid,188.055899,11.84,190715,Mix1,0,20,NA
+Nit,neg,Citric acid,191.01918,15.65,160401,Mix2,0,20,NA
+Nit,neg,Isocitric acid,191.01918,15.65,160401,Mix1,0,20,NA
+Nit,neg,D-Gluconic acid,195.05048,10.79,160401,Mix2,0,20,NA
+Nit,neg,Indolepyruvic acid,202.050419,2.375,160401,Mix2,0,20,NA
+Nit,neg,Lipoic acid,205.035699,2.42,160401,Mix1,0,20,NA
+Nit,neg,O-Succinylhomoserine,218.066462,9.57,210415,Mix1,0,20,NA
+Nit,neg,Carnosine,225.098766,10.47,190514,Mix2,0,20,NA
+Nit,neg,D-Ribose 5-phosphate,229.011333,13.29,160401,Mix2,0,20,NA
+Nit,neg,Anserine,239.114416,8.55,190514,Mix2,0,20,NA
+Nit,neg,Thymidine,241.082448,3.27,160401,Mix1,0,20,NA
+Nit,neg,Cytidine,242.077697,8.55,160401,Mix2,0,20,NA
+Nit,neg,Sulfoquinovose?,243.017467,10.31,230330,NA,0,20,NA
+Nit,neg,Uridine,243.061713,6.02,160401,Mix2,0,20,NA
+Nit,neg,D-Glucose 1-phosphate,259.021897,13.45,160401,Mix2,0,20,NA
+Nit,neg,D-Fructose 6-phosphate,259.021897,13.51,160401,Mix1,0,20,NA
+Nit,neg,D-Glucose 6-phosphate,259.021897,14.12,160401,Mix1,0,20,NA
+Nit,neg,Adenosine,266.088929,4.46,160401,Mix2,0,20,NA
+Nit,neg,Deoxyguanosine?,266.08893,7.77,230511,NA,0,20,NA
+Nit,neg,Inosine,267.072946,7.57,180701,Mix2,0,20,NA
+Nit,neg,Guanosine,282.083845,9.06,160401,Mix2,0,20,NA
+Nit,neg,N-Acetylmuramic acid,292.103244,3.35,190514,Mix2,0,20,NA
+Nit,neg,Glutamylphenylalanine,293.113748,9.55,190715,Mix1,0,20,NA
+Nit,neg,"3',5'-Cyclic AMP",328.044698,4.06,160401,Mix2,0,20,NA
+Nit,neg,Sucrose,341.10839,11.77,170331,Mix1,0,20,NA
+Nit,neg,Maltose,341.10839,12.31,180701,Mix2,0,20,NA
+Nit,neg,Lactose,341.10839,12.53,180701,Mix2,0,20,NA
+Nit,neg,Trehalose,341.10839,12.63,160401,Mix2,0,20,NA
+Nit,neg,"3',5'-Cyclic GMP",344.039613,8.8,160401,Mix2,0,20,NA
+Nit,neg,Adenosine monophosphate,346.055262,11.585,160401,Mix2,0,20,NA
+Nit,neg,Guanosine monophosphate,362.050178,13.85,160401,Mix2,0,20,NA
+Nit,neg,Adenosine diphosphate,426.021596,12.09,160401,Mix2,0,20,NA
+Nit,neg,Riboflavin-5-phosphate,455.096794,8.6,160401,Mix2,0,20,NA
+Nit,neg,Maltotriose?,503.161215,13.03,230101,NA,0,20,NA
+Nit,neg,Adenosine triphosphate,505.987929,15.35,160401,Mix2,0,20,NA
+Nit,neg,Sodium taurocholate?,514.283851,1.45,230330,NA,0,20,NA
+Nit,neg,Guanosine triphosphate,521.982844,16.58,160401,Mix2,0,20,NA
+Nit,neg,UDP-glucose,565.047204,13.59,160401,Mix2,0,20,NA
+Nit,neg,UDP-N-acetylglucosamine,606.073753,12.75,160401,Mix2,0,20,NA
+Nit,neg,NAD,662.101304,10.6,160401,Mix2,0,20,NA
+Nit,neg,NADH,664.116954,11.26,160401,Mix2,0,20,NA
+Nit,neg,Maltotetraose?,665.21404,13.78,230101,NA,0,20,NA
+Nit,neg,"3',5'-Cyclic diGMP",689.087051,13.74,160401,Mix2,0,20,NA
+Nit,neg,NADP,742.067637,12.74,160401,Mix2,0,20,NA
+Nit,neg,NADPH,744.083287,13.345,160401,Mix2,0,20,NA
+Nit,neg,Flavin adenine dinucleotide,784.149317,7.585,160401,Mix2,0,20,NA
+Nit,neg,Acetyl-CoA,808.117959,10.84,160401,Mix1,0,20,NA
+Nit,neg,Propionyl-CoA,822.133609,8.83,160401,Mix1,0,20,NA
+Nit,neg,Crotonoyl-CoA,834.133609,8.45,160401,Mix1,0,20,NA
+Nit,neg,Acetoacetyl-CoA,850.128524,10.6,160401,Mix1,0,20,NA
+Nit,neg,Malonyl-CoA,852.107789,13.525,160401,Mix1,0,20,NA
+Nit,neg,(S)-3-Hydroxybutyryl-CoA,852.144174,11.545,160401,Mix1,0,20,NA
+Nit,neg,Succinyl-CoA,866.123439,12.965,160401,Mix1,0,20,NA
+Nit,neg,D-Methylmalonyl-CoA,866.123439,13.18,160401,Mix1,0,20,NA
+GMP,pos,Trimethylamine,60.081324,7.2,180130,Mix1,0,20,NA
+GMP,pos,Propylamine?,60.081324,19.7,230511,NA,0,20,NA
+GMP,pos,Urea,61.040188,6.4,210415,Mix1,0,20,NA
+GMP,pos,Ethanolamine,62.060589,15.66,210615,Mix1,0,20,NA
+GMP,pos,Glycine,76.039854,11.9,160401,Mix1,0,20,NA
+GMP,pos,Trimethylamine N-oxide,76.076239,6.9,180130,Mix1,0,20,NA
+GMP,pos,Sarcosine,90.055504,10.6,160401,Mix2,0,20,NA
+GMP,pos,L-Alanine,90.055504,11.3,160401,Mix1,0,20,NA
+GMP,pos,beta-Alanine,90.055504,11.39,180701,Mix2,0,20,NA
+GMP,pos,Dimethylglycine,104.071154,8.97,160401,Mix1,0,20,NA
+GMP,pos,4-Aminobutyric acid,104.071154,11.155,160401,Mix1,0,20,NA
+GMP,pos,Choline,104.107539,15.265,160401,Mix1,0,20,NA
+GMP,pos,L-Serine,106.050419,11.86,160401,Mix1,0,20,NA
+GMP,pos,Hypotaurine,110.027576,10.7,160401,Mix2,0,20,NA
+GMP,pos,Cytosine,112.051087,6.82,160401,Mix2,0,20,NA
+GMP,pos,Creatinine,114.066737,6.09,210615,Mix1,0,20,NA
+GMP,pos,Creatinine from creatine?,114.066737,11,230101,Mix1,0,20,NA
+GMP,pos,L-Proline,116.071154,9.49,160401,Mix1,0,20,NA
+GMP,pos,Homocysteine thiolactone,118.032661,2.78,170331,Mix1,0,20,NA
+GMP,pos,Glycine betaine,118.086804,7.27,160401,Mix1,0,20,NA
+GMP,pos,L-Valine,118.086804,9.09,160401,Mix1,0,20,NA
+GMP,pos,L-Threonine,120.066069,10.92,160401,Mix1,0,20,NA
+GMP,pos,L-Homoserine,120.066069,11.32,170331,Mix1,0,20,NA
+GMP,pos,gamma-Amino-beta-hydroxybutyric acid?,120.066069,11.85,240130,NA,0,20,NA
+GMP,pos,Dimethylsulfonioacetate,121.032327,8.39,180701,Mix2,0,20,NA
+GMP,pos,L-Cysteine?,122.027576,7,230101,NA,0,20,NA
+GMP,pos,Phenylethylamine?,122.096974,7.82,230511,NA,0,20,NA
+GMP,pos,Nicotinic acid,124.039854,2.68,160401,Mix2,0,20,NA
+GMP,pos,Picolinic acid?,124.039854,4.51,230511,NA,0,20,NA
+GMP,pos,Taurine,126.022491,10,160401,Mix2,0,20,NA
+GMP,pos,5-Methylcytosine,126.066737,5.53,190514,Mix2,0,20,NA
+GMP,pos,Thymine,127.050753,3.06,160401,Mix2,0,20,NA
+GMP,pos,Melamine,127.073219,6.68,180701,Mix2,0,20,NA
+GMP,pos,5-Oxoproline,130.050419,7.97,180130,Mix1,0,20,NA
+GMP,pos,Pipecolic acid,130.086804,10.79,210415,Mix1,0,20,NA
+GMP,pos,Hydroxyproline,132.066069,10.07,160401,Mix1,0,20,NA
+GMP,pos,Creatine,132.077302,11.34,160401,Mix1,0,20,NA
+GMP,pos,L-Leucine,132.102454,6.5,160401,Mix1,0,20,NA
+GMP,pos,L-Isoleucine,132.102454,8.17,160401,Mix1,0,20,NA
+GMP,pos,beta-Alaninebetaine,132.102454,9.38,190514,Mix2,0,20,NA
+GMP,pos,L-Asparagine,133.061318,11.86,160401,Mix1,0,20,NA
+GMP,pos,L-Ornithine,133.097703,16.79,170331,Mix1,0,20,NA
+GMP,pos,L-Aspartic acid,134.045334,12.86,160401,Mix1,0,20,NA
+GMP,pos,Dimethylsulfoniopropionate,135.047977,9.325,160401,Mix2,0,20,NA
+GMP,pos,L-Homocysteine,136.043226,8.7,160401,Mix2,0,20,NA
+GMP,pos,Adenine from adenosine?,136.06232,4.46,230101,Mix2,0,20,NA
+GMP,pos,Adenine,136.06232,4.64,160401,Mix1,0,20,NA
+GMP,pos,Allopurinol,137.046336,4.16,180701,Mix2,0,20,NA
+GMP,pos,Hypoxanthine,137.046336,6.2,190514,Mix2,0,20,NA
+GMP,pos,Hypoxanthine from inosine?,137.046336,7.8,230101,Mix2,0,20,NA
+GMP,pos,Homarine,138.055503,6.19,160401,Mix2,0,20,NA
+GMP,pos,Trigonelline,138.055503,8.36,170331,Mix1,0,20,NA
+GMP,pos,Urocanic acid,139.050753,8.16,180701,Mix2,0,20,NA
+GMP,pos,N-Methyltaurine,140.038141,7.6,160401,Mix2,0,20,NA
+GMP,pos,Toxopyrimidine?,140.082386,3.41,230718,NA,0,20,NA
+GMP,pos,Ectoine,143.082053,9.25,160401,Mix2,0,20,NA
+GMP,pos,Proline betaine,144.102454,7.18,170331,Mix1,0,20,NA
+GMP,pos,(3-Carboxypropyl)trimethylammonium,146.118104,9.91,190715,Mix1,0,20,NA
+GMP,pos,Acetylcholine,146.118104,13.37,190514,Mix2,0,20,NA
+GMP,pos,L-Glutamine,147.076968,11.7,160401,Mix1,0,20,NA
+GMP,pos,L-Lysine,147.113353,17.5,160401,Mix1,0,20,NA
+GMP,pos,O-Acetyl-L-serine,148.060984,6.27,170331,Mix1,0,20,NA
+GMP,pos,beta-Glutamic acid,148.060984,11.9,190514,Mix2,0,20,NA
+GMP,pos,L-Glutamic acid,148.060984,12.41,160401,Mix1,0,20,NA
+GMP,pos,Hydroxyisoleucine,148.097369,8.34,180701,Mix2,0,20,NA
+GMP,pos,L-Methionine,150.058876,7.96,160401,Mix1,0,20,NA
+GMP,pos,N6-Methyladenine,150.07797,3.97,190514,Mix2,0,20,NA
+GMP,pos,Dimethylsulfoxonium propionate?,151.042892,9.88,230330,NA,0,20,NA
+GMP,pos,TMAO 2M+H?,151.14404,7,230101,NA,0,20,NA
+GMP,pos,Guanine,152.057235,8.18,160401,Mix2,0,20,NA
+GMP,pos,Guanine from guanosine?,152.057235,9.06,230101,Mix2,0,20,NA
+GMP,pos,Xanthine?,153.041251,7.26,240130,NA,0,20,NA
+GMP,pos,L-Cysteinesulfinic acid,154.017406,10.74,190514,Mix2,0,20,NA
+GMP,pos,L-Histidine,156.077302,11.45,160401,Mix1,0,20,NA
+GMP,pos,5-Hydroxyectoine,159.076968,11.07,160401,Mix2,0,20,NA
+GMP,pos,Betonicine,160.097369,8.45,180701,Mix2,0,20,NA
+GMP,pos,N-Methyl-L-glutamic acid?,162.076634,8.69,230718,NA,0,20,NA
+GMP,pos,(R)-2-(Methylamino)pentanedioic acid?,162.076634,9.72,230511,NA,0,20,NA
+GMP,pos,L-2-Aminoadipic acid?,162.076634,10.9,230511,NA,0,20,NA
+GMP,pos,Threonine betaine?,162.1125,5,230101,NA,0,20,NA
+GMP,pos,Homoserine betaine?,162.1125,6.7,230101,NA,0,20,NA
+GMP,pos,Carnitine,162.113019,10.21,170331,Mix1,0,20,NA
+GMP,pos,L-Hydroxylysine,163.108268,16.37,160401,Mix1,0,20,NA
+GMP,pos,Deoxynojirimycin?,164.092284,10.34,240130,NA,0,20,NA
+GMP,pos,L-Methionine S-oxide,166.053791,9.73,170331,Mix1,0,20,NA
+GMP,pos,Ethyl aminobenzoate?,166.086804,2.01,230101,NA,0,20,NA
+GMP,pos,Hordenine,166.123189,3.34,180701,Mix2,0,20,NA
+GMP,pos,"2,3-Pyridinedicarboxylic acid",168.029684,10.17,190715,Mix1,0,20,NA
+GMP,pos,Taurocyamine,168.044287,12.02,210415,Mix1,0,20,NA
+GMP,pos,Theanine?,175.10771,6.8,230101,NA,0,20,NA
+GMP,pos,L-Arginine,175.119501,18.24,160401,Mix1,0,20,NA
+GMP,pos,Succinylglycine,176.055899,12.58,190715,Mix1,0,20,NA
+GMP,pos,Citrulline,176.103517,12.21,170331,Mix1,0,20,NA
+GMP,pos,Arsenobetaine,179.005326,7.24,180701,Mix2,0,20,NA
+GMP,pos,L-Cysteinylglycine,179.04904,9.53,170331,Mix1,0,20,NA
+GMP,pos,Gonyol,179.074191,10.74,180701,Mix2,0,20,NA
+GMP,pos,Glucosamine,180.087199,9.97,180130,Mix1,0,20,NA
+GMP,pos,L-Tyrosine,182.081719,9.76,160401,Mix1,0,20,NA
+GMP,pos,Choline sulfate,184.064354,7.01,210415,Mix1,0,20,NA
+GMP,pos,Phosphocholine,184.073869,12.26,210415,Mix1,0,20,NA
+GMP,pos,N6-Acetyl-L-lysine,189.123918,9.71,170331,Mix1,0,20,NA
+GMP,pos,"N6,N6,N6-Trimethyl-L-lysine",189.160303,17.14,190514,Mix2,0,20,NA
+GMP,pos,N-Acetyl-L-glutamic acid,190.071549,11.84,190715,Mix1,0,20,NA
+GMP,pos,O-Acetylcarnitine,204.123584,7.22,180130,Mix1,0,20,NA
+GMP,pos,Dexpanthenol,206.139234,2.27,180701,Mix2,0,20,NA
+GMP,pos,L-Kynurenine,209.092618,4.345,160401,NA,0,20,NA
+GMP,pos,O-Propionylcarnitine,218.139234,5.63,180130,Mix1,0,20,NA
+GMP,pos,O-Succinylhomoserine,220.082112,9.57,210415,Mix1,0,20,NA
+GMP,pos,N-Acetyl-D-glucosamine,222.097764,8.55,190514,Mix2,0,20,NA
+GMP,pos,L-Cystathionine,223.075255,13.14,160401,Mix2,0,20,NA
+GMP,pos,Carnosine,227.114416,10.47,190514,Mix2,0,20,NA
+GMP,pos,Deoxycytidine?,228.09788,6.6,230101,NA,0,20,NA
+GMP,pos,Ergothioneine,230.096324,11.29,190715,Mix1,0,20,NA
+GMP,pos,Butyrylcarnitine,232.154884,4.47,180130,Mix1,0,20,NA
+GMP,pos,L-Cystine,241.031677,13.1,160401,Mix1,0,20,NA
+GMP,pos,Anserine,241.130066,8.55,190514,Mix2,0,20,NA
+GMP,pos,Cytidine,244.093347,8.55,160401,Mix2,0,20,NA
+GMP,pos,Palythine?,245.1132,11,230101,NA,0,20,NA
+GMP,pos,Also mycosporine-glycine?,246.0972,9.5,230101,NA,0,20,NA
+GMP,pos,Mycosporine-glycine?,246.0972,10,230101,NA,0,20,NA
+GMP,pos,Muramic acid,252.108329,11,160401,Mix1,0,20,NA
+GMP,pos,Deoxyadenosine,252.109665,3.44,180701,Mix2,0,20,NA
+GMP,pos,2-O-alpha-D-Glucosylglycerol,255.107995,10.1,160401,Mix2,0,20,NA
+GMP,pos,Glycerophosphocholine,258.110652,10.86,180130,Mix1,0,20,NA
+GMP,pos,2-Heptyl-3-hydroxy-quinolone,260.165054,2.16,160401,Mix1,0,20,NA
+GMP,pos,O-Methylmalonyl-L-carnitine,262.129063,9.67,180701,Mix2,0,20,NA
+GMP,pos,Adenosine,268.10458,4.46,160401,Mix2,0,20,NA
+GMP,pos,Deoxyguanosine?,268.10458,7.77,230511,NA,0,20,NA
+GMP,pos,L-Homocystine,269.062977,12.58,170331,Mix1,0,20,NA
+GMP,pos,Inosine,269.088596,7.57,180701,Mix2,0,20,NA
+GMP,pos,Guanosine,284.099495,9.06,160401,Mix2,0,20,NA
+GMP,pos,Also Palythene/Usujirene?,285.1445,6.9,230101,NA,0,20,NA
+GMP,pos,Palythene/Usujirene?,285.1445,8.3,230101,NA,0,20,NA
+GMP,pos,Asterina-330?,289.1393,10.5,230101,NA,0,20,NA
+GMP,pos,Ophthalmic acid,290.135212,10.73,180130,Mix1,0,20,NA
+GMP,pos,L-Arginosuccinic acid,291.13046,13.69,170331,Mix1,0,20,NA
+GMP,pos,N-Acetylmuramic acid,294.118894,3.35,190514,Mix2,0,20,NA
+GMP,pos,Glutamylphenylalanine,295.129398,9.55,190715,Mix1,0,20,NA
+GMP,pos,Mycosporine-2-glycine?,303.1186,11.3,230101,NA,0,20,NA
+GMP,pos,Glutathione,308.091634,12,160401,Mix1,0,20,NA
+GMP,pos,Shinorine?,333.1292,11.6,230101,NA,0,20,NA
+GMP,pos,S-Farnesyl-L-cysteine methyl ester,340.231026,1.58,180130,NA,0,20,NA
+GMP,pos,Lactose,343.12404,12.53,180701,Mix2,0,20,NA
+GMP,pos,Thiamine monophosphate,345.078641,11.5,160401,Mix1,0,20,NA
+GMP,pos,Porphyra-334?,347.1449,8.1,230101,NA,0,20,NA
+GMP,pos,"Cys-Gly, oxidized",355.074605,11.85,170331,Mix1,0,20,NA
+GMP,pos,S-Adenosylhomocysteine,385.129416,10.85,160401,Mix1,0,20,NA
+GMP,pos,S-Adenosylmethionine,399.145066,13.01,160401,Mix1,0,20,NA
+GMP,pos,Thiamine diphosphate,425.044974,13.765,160401,Mix1,0,20,NA
+GMP,pos,Chitobiose,425.177138,10.21,160401,Mix2,0,20,NA
+GMP,pos,Riboflavin-5-phosphate,457.112444,8.6,160401,Mix2,0,20,NA
+GMP,pos,Sodium taurocholate?,533.3256,1.45,230330,NA,0,20,NA
+GMP,pos,Glutathione disulfide,613.159793,14.98,160401,Mix2,0,20,NA
+GMP,neg,Nitrate?,61.98709,5.2,230101,NA,0,20,NA
+GMP,neg,Bromine79?,78.91768,7,230101,NA,0,20,NA
+GMP,neg,Sulfite?,79.95616,14.7,230101,NA,0,20,NA
+GMP,neg,Bromine81?,80.91563,7,230101,NA,0,20,NA
+GMP,neg,Oxalic acid,88.987485,15.11,160401,Mix1,0,20,NA
+GMP,neg,Methylphosphonic acid,94.989808,11,160401,Mix1,0,20,NA
+GMP,neg,Bisulfate?,96.95900565,13,230101,NA,0,20,NA
+GMP,neg,Succinic semialdehyde,101.02387,6.51,180701,Mix2,0,20,NA
+GMP,neg,Ethanesulfonic acid,108.995942,4.29,160401,Mix2,0,20,NA
+GMP,neg,Cytosine,110.035437,6.82,160401,Mix2,0,20,NA
+GMP,neg,Uracil,111.019453,3.73,160401,Mix2,0,20,NA
+GMP,neg,Creatinine,112.051087,6.09,210615,Mix1,0,20,NA
+GMP,neg,Fumaric acid,115.003135,12.7,160401,Mix1,0,20,NA
+GMP,neg,Acetylglycine,116.034769,7.81,190715,Mix1,0,20,NA
+GMP,neg,Succinic acid,117.018785,11.9,160401,Mix1,0,20,NA
+GMP,neg,Erythritol?,121.050085,7.97,230511,NA,0,20,NA
+GMP,neg,1-Propanesulfonate,123.011592,2.81,160401,Mix2,0,20,NA
+GMP,neg,Taurine,124.006841,10,160401,Mix2,0,20,NA
+GMP,neg,Isethionic acid,124.990857,7.2,160401,Mix2,0,20,NA
+GMP,neg,Thymine,125.035103,3.06,160401,Mix2,0,20,NA
+GMP,neg,Iodine?,126.904,5.1,230101,NA,0,20,NA
+GMP,neg,5-Oxoproline,128.034768,7.97,180130,Mix1,0,20,NA
+GMP,neg,Pipecolic acid,128.071154,10.79,210415,Mix1,0,20,NA
+GMP,neg,Itaconic acid?,129.018785,11.66,230511,NA,0,20,NA
+GMP,neg,Propionylglycine,130.050419,3.3,190715,Mix1,0,20,NA
+GMP,neg,Pyro from glutamine?,130.050419,11,230101,NA,0,20,NA
+GMP,neg,Pyro from glutamate?,130.050419,12,230101,NA,0,20,NA
+GMP,neg,Malic acid,133.0137,11.97,160401,Mix1,0,20,NA
+GMP,neg,Adenine,134.04667,4.64,160401,Mix1,0,20,NA
+GMP,neg,Threonic acid,135.02935,10.37,190715,Mix1,0,20,NA
+GMP,neg,Allopurinol,135.030686,4.16,180701,Mix2,0,20,NA
+GMP,neg,Hypoxanthine,135.030686,6.2,190514,Mix2,0,20,NA
+GMP,neg,Salicylic acid,137.02387,2.2,160401,Mix1,0,20,NA
+GMP,neg,Urocanic acid,137.035103,8.16,180701,Mix2,0,20,NA
+GMP,neg,3-Aminopropanesulfonate,138.022491,11.49,160401,Mix2,0,20,NA
+GMP,neg,Sulfoacetic acid,138.970122,13.9,160401,Mix2,0,20,NA
+GMP,neg,Sodium 2-mercaptoethanesulfonate,140.968013,2.67,160401,Mix2,0,20,NA
+GMP,neg,Ectoine,141.066403,9.25,160401,Mix2,0,20,NA
+GMP,neg,Butyrylglycine,144.066069,2.92,190715,Mix1,0,20,NA
+GMP,neg,2-Ketoglutaric acid,145.0137,10.845,160401,Mix1,0,20,NA
+GMP,neg,Indole-3-carbinol,146.060589,2.395,160401,Mix2,0,20,NA
+GMP,neg,Hydroxyisoleucine,146.081719,8.34,180701,Mix2,0,20,NA
+GMP,neg,2-keto-4-methylthiobutyric acid,147.011592,2.59,170331,Mix1,0,20,NA
+GMP,neg,2-Hydroxy-4-(methylthio)butyric acid,149.027242,2.69,170331,Mix1,0,20,NA
+GMP,neg,Guanine,150.041585,8.18,160401,Mix2,0,20,NA
+GMP,neg,Xanthine?,151.025601,7.26,240130,NA,0,20,NA
+GMP,neg,L-Cysteinesulfinic acid,152.001756,10.74,190514,Mix2,0,20,NA
+GMP,neg,"2,5-Dihydroxybenzoic acid",153.018785,4.08,160401,Mix2,0,20,NA
+GMP,neg,Cysteinolic acid?,154.017406,9.5,220111,Mix2,0,20,NA
+GMP,neg,Amino hydroxypropanesulfonate?,154.017406,11.5,220111,Mix2,0,20,NA
+GMP,neg,"(R)-2,3-Dihydroxypropane-1-sulfonate",155.001422,10.67,160401,Mix2,0,20,NA
+GMP,neg,Orotic acid,155.009283,4.195,160401,Mix1,0,20,NA
+GMP,neg,Allantoin,157.036165,9.48,210415,Mix1,0,20,NA
+GMP,neg,(R)-2-(Methylamino)pentanedioic acid?,160.060984,9.72,230511,NA,0,20,NA
+GMP,neg,L-2-Aminoadipic acid?,160.060984,10.4,230511,NA,0,20,NA
+GMP,neg,Deoxynojirimycin?,162.076634,10.34,240130,NA,0,20,NA
+GMP,neg,N-Acetyltaurine,166.017406,3.74,160401,Mix2,0,20,NA
+GMP,neg,Taurocyamine,166.028637,12.02,210415,Mix1,0,20,NA
+GMP,neg,3-Sulfopyruvic acid,166.965037,12.92,160401,Mix2,0,20,NA
+GMP,neg,Phosphoenolpyruvic acid,166.974553,13.865,160401,Mix1,0,20,NA
+GMP,neg,L-Cysteic acid,167.996671,12.15,160401,Mix2,0,20,NA
+GMP,neg,3-Sulfolactate,168.980687,13.27,160401,NA,0,20,NA
+GMP,neg,Dihydroxyacetone phosphate,168.990203,12.86,160401,Mix2,0,20,NA
+GMP,neg,Glycerophosphoric acid,171.005853,13.065,160401,Mix2,0,20,NA
+GMP,neg,Sulfanilic acid,172.006841,7.23,180701,Mix2,0,20,NA
+GMP,neg,cis-Aconitic acid,173.008615,14.21,160401,Mix1,0,20,NA
+GMP,neg,Shikimic acid,173.045,10.97,160401,Mix1,0,20,NA
+GMP,neg,Ethyl dihydroxybenzoate,181.050085,2.08,160401,Mix2,0,20,NA
+GMP,neg,Mannitol?,181.071215,10.6,230511,NA,0,20,NA
+GMP,neg,Choline sulfate,182.048706,7.01,210415,Mix1,0,20,NA
+GMP,neg,3-Phosphoglycerate,184.985118,14.755,180130,Mix1,0,20,NA
+GMP,neg,N-Acetyl-L-glutamic acid,188.055899,11.84,190715,Mix1,0,20,NA
+GMP,neg,Citric acid,191.01918,15.65,160401,Mix2,0,20,NA
+GMP,neg,Isocitric acid,191.01918,15.65,160401,Mix1,0,20,NA
+GMP,neg,D-Gluconic acid,195.05048,10.79,160401,Mix2,0,20,NA
+GMP,neg,Indolepyruvic acid,202.050419,2.375,160401,Mix2,0,20,NA
+GMP,neg,Lipoic acid,205.035699,2.42,160401,Mix1,0,20,NA
+GMP,neg,O-Succinylhomoserine,218.066462,9.57,210415,Mix1,0,20,NA
+GMP,neg,Carnosine,225.098766,10.47,190514,Mix2,0,20,NA
+GMP,neg,D-Ribose 5-phosphate,229.011333,13.29,160401,Mix2,0,20,NA
+GMP,neg,Anserine,239.114416,8.55,190514,Mix2,0,20,NA
+GMP,neg,Thymidine,241.082448,3.27,160401,Mix1,0,20,NA
+GMP,neg,Cytidine,242.077697,8.55,160401,Mix2,0,20,NA
+GMP,neg,Sulfoquinovose?,243.017467,10.31,230330,NA,0,20,NA
+GMP,neg,Uridine,243.061713,6.02,160401,Mix2,0,20,NA
+GMP,neg,D-Glucose 1-phosphate,259.021897,13.45,160401,Mix2,0,20,NA
+GMP,neg,D-Fructose 6-phosphate,259.021897,13.51,160401,Mix1,0,20,NA
+GMP,neg,D-Glucose 6-phosphate,259.021897,14.12,160401,Mix1,0,20,NA
+GMP,neg,Adenosine,266.088929,4.46,160401,Mix2,0,20,NA
+GMP,neg,Deoxyguanosine?,266.08893,7.77,230511,NA,0,20,NA
+GMP,neg,Inosine,267.072946,7.57,180701,Mix2,0,20,NA
+GMP,neg,Guanosine,282.083845,9.06,160401,Mix2,0,20,NA
+GMP,neg,N-Acetylmuramic acid,292.103244,3.35,190514,Mix2,0,20,NA
+GMP,neg,Glutamylphenylalanine,293.113748,9.55,190715,Mix1,0,20,NA
+GMP,neg,"3',5'-Cyclic AMP",328.044698,4.06,160401,Mix2,0,20,NA
+GMP,neg,Sucrose,341.10839,11.77,170331,Mix1,0,20,NA
+GMP,neg,Maltose,341.10839,12.31,180701,Mix2,0,20,NA
+GMP,neg,Lactose,341.10839,12.53,180701,Mix2,0,20,NA
+GMP,neg,Trehalose,341.10839,12.63,160401,Mix2,0,20,NA
+GMP,neg,"3',5'-Cyclic GMP",344.039613,8.8,160401,Mix2,0,20,NA
+GMP,neg,Adenosine monophosphate,346.055262,11.585,160401,Mix2,0,20,NA
+GMP,neg,Guanosine monophosphate,362.050178,13.85,160401,Mix2,0,20,NA
+GMP,neg,Adenosine diphosphate,426.021596,12.09,160401,Mix2,0,20,NA
+GMP,neg,Riboflavin-5-phosphate,455.096794,8.6,160401,Mix2,0,20,NA
+GMP,neg,Maltotriose?,503.161215,13.03,230101,NA,0,20,NA
+GMP,neg,Adenosine triphosphate,505.987929,15.35,160401,Mix2,0,20,NA
+GMP,neg,Sodium taurocholate?,514.283851,1.45,230330,NA,0,20,NA
+GMP,neg,Guanosine triphosphate,521.982844,16.58,160401,Mix2,0,20,NA
+GMP,neg,UDP-glucose,565.047204,13.59,160401,Mix2,0,20,NA
+GMP,neg,UDP-N-acetylglucosamine,606.073753,12.75,160401,Mix2,0,20,NA
+GMP,neg,NAD,662.101304,10.6,160401,Mix2,0,20,NA
+GMP,neg,NADH,664.116954,11.26,160401,Mix2,0,20,NA
+GMP,neg,Maltotetraose?,665.21404,13.78,230101,NA,0,20,NA
+GMP,neg,"3',5'-Cyclic diGMP",689.087051,13.74,160401,Mix2,0,20,NA
+GMP,neg,NADP,742.067637,12.74,160401,Mix2,0,20,NA
+GMP,neg,NADPH,744.083287,13.345,160401,Mix2,0,20,NA
+GMP,neg,Flavin adenine dinucleotide,784.149317,7.585,160401,Mix2,0,20,NA
+GMP,neg,Acetyl-CoA,808.117959,10.84,160401,Mix1,0,20,NA
+GMP,neg,Propionyl-CoA,822.133609,8.83,160401,Mix1,0,20,NA
+GMP,neg,Crotonoyl-CoA,834.133609,8.45,160401,Mix1,0,20,NA
+GMP,neg,Acetoacetyl-CoA,850.128524,10.6,160401,Mix1,0,20,NA
+GMP,neg,Malonyl-CoA,852.107789,13.525,160401,Mix1,0,20,NA
+GMP,neg,(S)-3-Hydroxybutyryl-CoA,852.144174,11.545,160401,Mix1,0,20,NA
+GMP,neg,Succinyl-CoA,866.123439,12.965,160401,Mix1,0,20,NA
+GMP,neg,D-Methylmalonyl-CoA,866.123439,13.18,160401,Mix1,0,20,NA
+Arg,pos,Trimethylamine,60.081324,7.2,180130,Mix1,0,20,NA
+Arg,pos,Propylamine?,60.081324,19.7,230511,NA,0,20,NA
+Arg,pos,Urea,61.040188,6.4,210415,Mix1,0,20,NA
+Arg,pos,Ethanolamine,62.060589,15.66,210615,Mix1,0,20,NA
+Arg,pos,Glycine,76.039854,11.9,160401,Mix1,0,20,NA
+Arg,pos,Trimethylamine N-oxide,76.076239,6.9,180130,Mix1,0,20,NA
+Arg,pos,Sarcosine,90.055504,10.6,160401,Mix2,0,20,NA
+Arg,pos,L-Alanine,90.055504,11.3,160401,Mix1,0,20,NA
+Arg,pos,beta-Alanine,90.055504,11.39,180701,Mix2,0,20,NA
+Arg,pos,Dimethylglycine,104.071154,8.97,160401,Mix1,0,20,NA
+Arg,pos,4-Aminobutyric acid,104.071154,11.155,160401,Mix1,0,20,NA
+Arg,pos,Choline,104.107539,15.265,160401,Mix1,0,20,NA
+Arg,pos,L-Serine,106.050419,11.86,160401,Mix1,0,20,NA
+Arg,pos,Hypotaurine,110.027576,10.7,160401,Mix2,0,20,NA
+Arg,pos,Cytosine,112.051087,6.82,160401,Mix2,0,20,NA
+Arg,pos,Creatinine,114.066737,6.09,210615,Mix1,0,20,NA
+Arg,pos,Creatinine from creatine?,114.066737,11,230101,Mix1,0,20,NA
+Arg,pos,L-Proline,116.071154,9.49,160401,Mix1,0,20,NA
+Arg,pos,Homocysteine thiolactone,118.032661,2.78,170331,Mix1,0,20,NA
+Arg,pos,Glycine betaine,118.086804,7.27,160401,Mix1,0,20,NA
+Arg,pos,L-Valine,118.086804,9.09,160401,Mix1,0,20,NA
+Arg,pos,L-Threonine,120.066069,10.92,160401,Mix1,0,20,NA
+Arg,pos,L-Homoserine,120.066069,11.32,170331,Mix1,0,20,NA
+Arg,pos,gamma-Amino-beta-hydroxybutyric acid?,120.066069,11.85,240130,NA,0,20,NA
+Arg,pos,Dimethylsulfonioacetate,121.032327,8.39,180701,Mix2,0,20,NA
+Arg,pos,L-Cysteine?,122.027576,7,230101,NA,0,20,NA
+Arg,pos,Phenylethylamine?,122.096974,7.82,230511,NA,0,20,NA
+Arg,pos,Nicotinic acid,124.039854,2.68,160401,Mix2,0,20,NA
+Arg,pos,Picolinic acid?,124.039854,4.51,230511,NA,0,20,NA
+Arg,pos,Taurine,126.022491,10,160401,Mix2,0,20,NA
+Arg,pos,5-Methylcytosine,126.066737,5.53,190514,Mix2,0,20,NA
+Arg,pos,Thymine,127.050753,3.06,160401,Mix2,0,20,NA
+Arg,pos,Melamine,127.073219,6.68,180701,Mix2,0,20,NA
+Arg,pos,5-Oxoproline,130.050419,7.97,180130,Mix1,0,20,NA
+Arg,pos,Pipecolic acid,130.086804,10.79,210415,Mix1,0,20,NA
+Arg,pos,Hydroxyproline,132.066069,10.07,160401,Mix1,0,20,NA
+Arg,pos,Creatine,132.077302,11.34,160401,Mix1,0,20,NA
+Arg,pos,L-Leucine,132.102454,6.5,160401,Mix1,0,20,NA
+Arg,pos,L-Isoleucine,132.102454,8.17,160401,Mix1,0,20,NA
+Arg,pos,beta-Alaninebetaine,132.102454,9.38,190514,Mix2,0,20,NA
+Arg,pos,L-Asparagine,133.061318,11.86,160401,Mix1,0,20,NA
+Arg,pos,L-Ornithine,133.097703,16.79,170331,Mix1,0,20,NA
+Arg,pos,L-Aspartic acid,134.045334,12.86,160401,Mix1,0,20,NA
+Arg,pos,Dimethylsulfoniopropionate,135.047977,9.325,160401,Mix2,0,20,NA
+Arg,pos,L-Homocysteine,136.043226,8.7,160401,Mix2,0,20,NA
+Arg,pos,Adenine from adenosine?,136.06232,4.46,230101,Mix2,0,20,NA
+Arg,pos,Adenine,136.06232,4.64,160401,Mix1,0,20,NA
+Arg,pos,Allopurinol,137.046336,4.16,180701,Mix2,0,20,NA
+Arg,pos,Hypoxanthine,137.046336,6.2,190514,Mix2,0,20,NA
+Arg,pos,Hypoxanthine from inosine?,137.046336,7.8,230101,Mix2,0,20,NA
+Arg,pos,Homarine,138.055503,6.19,160401,Mix2,0,20,NA
+Arg,pos,Trigonelline,138.055503,8.36,170331,Mix1,0,20,NA
+Arg,pos,Urocanic acid,139.050753,8.16,180701,Mix2,0,20,NA
+Arg,pos,N-Methyltaurine,140.038141,7.6,160401,Mix2,0,20,NA
+Arg,pos,Toxopyrimidine?,140.082386,3.41,230718,NA,0,20,NA
+Arg,pos,Ectoine,143.082053,9.25,160401,Mix2,0,20,NA
+Arg,pos,Proline betaine,144.102454,7.18,170331,Mix1,0,20,NA
+Arg,pos,(3-Carboxypropyl)trimethylammonium,146.118104,9.91,190715,Mix1,0,20,NA
+Arg,pos,Acetylcholine,146.118104,13.37,190514,Mix2,0,20,NA
+Arg,pos,L-Glutamine,147.076968,11.7,160401,Mix1,0,20,NA
+Arg,pos,L-Lysine,147.113353,17.5,160401,Mix1,0,20,NA
+Arg,pos,O-Acetyl-L-serine,148.060984,6.27,170331,Mix1,0,20,NA
+Arg,pos,beta-Glutamic acid,148.060984,11.9,190514,Mix2,0,20,NA
+Arg,pos,L-Glutamic acid,148.060984,12.41,160401,Mix1,0,20,NA
+Arg,pos,Hydroxyisoleucine,148.097369,8.34,180701,Mix2,0,20,NA
+Arg,pos,L-Methionine,150.058876,7.96,160401,Mix1,0,20,NA
+Arg,pos,N6-Methyladenine,150.07797,3.97,190514,Mix2,0,20,NA
+Arg,pos,Dimethylsulfoxonium propionate?,151.042892,9.88,230330,NA,0,20,NA
+Arg,pos,TMAO 2M+H?,151.14404,7,230101,NA,0,20,NA
+Arg,pos,Guanine,152.057235,8.18,160401,Mix2,0,20,NA
+Arg,pos,Guanine from guanosine?,152.057235,9.06,230101,Mix2,0,20,NA
+Arg,pos,Xanthine?,153.041251,7.26,240130,NA,0,20,NA
+Arg,pos,L-Cysteinesulfinic acid,154.017406,10.74,190514,Mix2,0,20,NA
+Arg,pos,L-Histidine,156.077302,11.45,160401,Mix1,0,20,NA
+Arg,pos,5-Hydroxyectoine,159.076968,11.07,160401,Mix2,0,20,NA
+Arg,pos,Betonicine,160.097369,8.45,180701,Mix2,0,20,NA
+Arg,pos,N-Methyl-L-glutamic acid?,162.076634,8.69,230718,NA,0,20,NA
+Arg,pos,(R)-2-(Methylamino)pentanedioic acid?,162.076634,9.72,230511,NA,0,20,NA
+Arg,pos,L-2-Aminoadipic acid?,162.076634,10.9,230511,NA,0,20,NA
+Arg,pos,Threonine betaine?,162.1125,5,230101,NA,0,20,NA
+Arg,pos,Homoserine betaine?,162.1125,6.7,230101,NA,0,20,NA
+Arg,pos,Carnitine,162.113019,10.21,170331,Mix1,0,20,NA
+Arg,pos,L-Hydroxylysine,163.108268,16.37,160401,Mix1,0,20,NA
+Arg,pos,Deoxynojirimycin?,164.092284,10.34,240130,NA,0,20,NA
+Arg,pos,L-Methionine S-oxide,166.053791,9.73,170331,Mix1,0,20,NA
+Arg,pos,Ethyl aminobenzoate?,166.086804,2.01,230101,NA,0,20,NA
+Arg,pos,Hordenine,166.123189,3.34,180701,Mix2,0,20,NA
+Arg,pos,"2,3-Pyridinedicarboxylic acid",168.029684,10.17,190715,Mix1,0,20,NA
+Arg,pos,Taurocyamine,168.044287,12.02,210415,Mix1,0,20,NA
+Arg,pos,Theanine?,175.10771,6.8,230101,NA,0,20,NA
+Arg,pos,L-Arginine,175.119501,18.24,160401,Mix1,0,20,NA
+Arg,pos,Succinylglycine,176.055899,12.58,190715,Mix1,0,20,NA
+Arg,pos,Citrulline,176.103517,12.21,170331,Mix1,0,20,NA
+Arg,pos,Arsenobetaine,179.005326,7.24,180701,Mix2,0,20,NA
+Arg,pos,L-Cysteinylglycine,179.04904,9.53,170331,Mix1,0,20,NA
+Arg,pos,Gonyol,179.074191,10.74,180701,Mix2,0,20,NA
+Arg,pos,Glucosamine,180.087199,9.97,180130,Mix1,0,20,NA
+Arg,pos,L-Tyrosine,182.081719,9.76,160401,Mix1,0,20,NA
+Arg,pos,Choline sulfate,184.064354,7.01,210415,Mix1,0,20,NA
+Arg,pos,Phosphocholine,184.073869,12.26,210415,Mix1,0,20,NA
+Arg,pos,N6-Acetyl-L-lysine,189.123918,9.71,170331,Mix1,0,20,NA
+Arg,pos,"N6,N6,N6-Trimethyl-L-lysine",189.160303,17.14,190514,Mix2,0,20,NA
+Arg,pos,N-Acetyl-L-glutamic acid,190.071549,11.84,190715,Mix1,0,20,NA
+Arg,pos,O-Acetylcarnitine,204.123584,7.22,180130,Mix1,0,20,NA
+Arg,pos,Dexpanthenol,206.139234,2.27,180701,Mix2,0,20,NA
+Arg,pos,L-Kynurenine,209.092618,4.345,160401,NA,0,20,NA
+Arg,pos,O-Propionylcarnitine,218.139234,5.63,180130,Mix1,0,20,NA
+Arg,pos,O-Succinylhomoserine,220.082112,9.57,210415,Mix1,0,20,NA
+Arg,pos,N-Acetyl-D-glucosamine,222.097764,8.55,190514,Mix2,0,20,NA
+Arg,pos,L-Cystathionine,223.075255,13.14,160401,Mix2,0,20,NA
+Arg,pos,Carnosine,227.114416,10.47,190514,Mix2,0,20,NA
+Arg,pos,Deoxycytidine?,228.09788,6.6,230101,NA,0,20,NA
+Arg,pos,Ergothioneine,230.096324,11.29,190715,Mix1,0,20,NA
+Arg,pos,Butyrylcarnitine,232.154884,4.47,180130,Mix1,0,20,NA
+Arg,pos,L-Cystine,241.031677,13.1,160401,Mix1,0,20,NA
+Arg,pos,Anserine,241.130066,8.55,190514,Mix2,0,20,NA
+Arg,pos,Cytidine,244.093347,8.55,160401,Mix2,0,20,NA
+Arg,pos,Palythine?,245.1132,11,230101,NA,0,20,NA
+Arg,pos,Also mycosporine-glycine?,246.0972,9.5,230101,NA,0,20,NA
+Arg,pos,Mycosporine-glycine?,246.0972,10,230101,NA,0,20,NA
+Arg,pos,Muramic acid,252.108329,11,160401,Mix1,0,20,NA
+Arg,pos,Deoxyadenosine,252.109665,3.44,180701,Mix2,0,20,NA
+Arg,pos,2-O-alpha-D-Glucosylglycerol,255.107995,10.1,160401,Mix2,0,20,NA
+Arg,pos,Glycerophosphocholine,258.110652,10.86,180130,Mix1,0,20,NA
+Arg,pos,2-Heptyl-3-hydroxy-quinolone,260.165054,2.16,160401,Mix1,0,20,NA
+Arg,pos,O-Methylmalonyl-L-carnitine,262.129063,9.67,180701,Mix2,0,20,NA
+Arg,pos,Adenosine,268.10458,4.46,160401,Mix2,0,20,NA
+Arg,pos,Deoxyguanosine?,268.10458,7.77,230511,NA,0,20,NA
+Arg,pos,L-Homocystine,269.062977,12.58,170331,Mix1,0,20,NA
+Arg,pos,Inosine,269.088596,7.57,180701,Mix2,0,20,NA
+Arg,pos,Guanosine,284.099495,9.06,160401,Mix2,0,20,NA
+Arg,pos,Also Palythene/Usujirene?,285.1445,6.9,230101,NA,0,20,NA
+Arg,pos,Palythene/Usujirene?,285.1445,8.3,230101,NA,0,20,NA
+Arg,pos,Asterina-330?,289.1393,10.5,230101,NA,0,20,NA
+Arg,pos,Ophthalmic acid,290.135212,10.73,180130,Mix1,0,20,NA
+Arg,pos,L-Arginosuccinic acid,291.13046,13.69,170331,Mix1,0,20,NA
+Arg,pos,N-Acetylmuramic acid,294.118894,3.35,190514,Mix2,0,20,NA
+Arg,pos,Glutamylphenylalanine,295.129398,9.55,190715,Mix1,0,20,NA
+Arg,pos,Mycosporine-2-glycine?,303.1186,11.3,230101,NA,0,20,NA
+Arg,pos,Glutathione,308.091634,12,160401,Mix1,0,20,NA
+Arg,pos,Shinorine?,333.1292,11.6,230101,NA,0,20,NA
+Arg,pos,S-Farnesyl-L-cysteine methyl ester,340.231026,1.58,180130,NA,0,20,NA
+Arg,pos,Lactose,343.12404,12.53,180701,Mix2,0,20,NA
+Arg,pos,Thiamine monophosphate,345.078641,11.5,160401,Mix1,0,20,NA
+Arg,pos,Porphyra-334?,347.1449,8.1,230101,NA,0,20,NA
+Arg,pos,"Cys-Gly, oxidized",355.074605,11.85,170331,Mix1,0,20,NA
+Arg,pos,S-Adenosylhomocysteine,385.129416,10.85,160401,Mix1,0,20,NA
+Arg,pos,S-Adenosylmethionine,399.145066,13.01,160401,Mix1,0,20,NA
+Arg,pos,Thiamine diphosphate,425.044974,13.765,160401,Mix1,0,20,NA
+Arg,pos,Chitobiose,425.177138,10.21,160401,Mix2,0,20,NA
+Arg,pos,Riboflavin-5-phosphate,457.112444,8.6,160401,Mix2,0,20,NA
+Arg,pos,Sodium taurocholate?,533.3256,1.45,230330,NA,0,20,NA
+Arg,pos,Glutathione disulfide,613.159793,14.98,160401,Mix2,0,20,NA
+Arg,neg,Nitrate?,61.98709,5.2,230101,NA,0,20,NA
+Arg,neg,Bromine79?,78.91768,7,230101,NA,0,20,NA
+Arg,neg,Sulfite?,79.95616,14.7,230101,NA,0,20,NA
+Arg,neg,Bromine81?,80.91563,7,230101,NA,0,20,NA
+Arg,neg,Oxalic acid,88.987485,15.11,160401,Mix1,0,20,NA
+Arg,neg,Methylphosphonic acid,94.989808,11,160401,Mix1,0,20,NA
+Arg,neg,Bisulfate?,96.95900565,13,230101,NA,0,20,NA
+Arg,neg,Succinic semialdehyde,101.02387,6.51,180701,Mix2,0,20,NA
+Arg,neg,Ethanesulfonic acid,108.995942,4.29,160401,Mix2,0,20,NA
+Arg,neg,Cytosine,110.035437,6.82,160401,Mix2,0,20,NA
+Arg,neg,Uracil,111.019453,3.73,160401,Mix2,0,20,NA
+Arg,neg,Creatinine,112.051087,6.09,210615,Mix1,0,20,NA
+Arg,neg,Fumaric acid,115.003135,12.7,160401,Mix1,0,20,NA
+Arg,neg,Acetylglycine,116.034769,7.81,190715,Mix1,0,20,NA
+Arg,neg,Succinic acid,117.018785,11.9,160401,Mix1,0,20,NA
+Arg,neg,Erythritol?,121.050085,7.97,230511,NA,0,20,NA
+Arg,neg,1-Propanesulfonate,123.011592,2.81,160401,Mix2,0,20,NA
+Arg,neg,Taurine,124.006841,10,160401,Mix2,0,20,NA
+Arg,neg,Isethionic acid,124.990857,7.2,160401,Mix2,0,20,NA
+Arg,neg,Thymine,125.035103,3.06,160401,Mix2,0,20,NA
+Arg,neg,Iodine?,126.904,5.1,230101,NA,0,20,NA
+Arg,neg,5-Oxoproline,128.034768,7.97,180130,Mix1,0,20,NA
+Arg,neg,Pipecolic acid,128.071154,10.79,210415,Mix1,0,20,NA
+Arg,neg,Itaconic acid?,129.018785,11.66,230511,NA,0,20,NA
+Arg,neg,Propionylglycine,130.050419,3.3,190715,Mix1,0,20,NA
+Arg,neg,Pyro from glutamine?,130.050419,11,230101,NA,0,20,NA
+Arg,neg,Pyro from glutamate?,130.050419,12,230101,NA,0,20,NA
+Arg,neg,Malic acid,133.0137,11.97,160401,Mix1,0,20,NA
+Arg,neg,Adenine,134.04667,4.64,160401,Mix1,0,20,NA
+Arg,neg,Threonic acid,135.02935,10.37,190715,Mix1,0,20,NA
+Arg,neg,Allopurinol,135.030686,4.16,180701,Mix2,0,20,NA
+Arg,neg,Hypoxanthine,135.030686,6.2,190514,Mix2,0,20,NA
+Arg,neg,Salicylic acid,137.02387,2.2,160401,Mix1,0,20,NA
+Arg,neg,Urocanic acid,137.035103,8.16,180701,Mix2,0,20,NA
+Arg,neg,3-Aminopropanesulfonate,138.022491,11.49,160401,Mix2,0,20,NA
+Arg,neg,Sulfoacetic acid,138.970122,13.9,160401,Mix2,0,20,NA
+Arg,neg,Sodium 2-mercaptoethanesulfonate,140.968013,2.67,160401,Mix2,0,20,NA
+Arg,neg,Ectoine,141.066403,9.25,160401,Mix2,0,20,NA
+Arg,neg,Butyrylglycine,144.066069,2.92,190715,Mix1,0,20,NA
+Arg,neg,2-Ketoglutaric acid,145.0137,10.845,160401,Mix1,0,20,NA
+Arg,neg,Indole-3-carbinol,146.060589,2.395,160401,Mix2,0,20,NA
+Arg,neg,Hydroxyisoleucine,146.081719,8.34,180701,Mix2,0,20,NA
+Arg,neg,2-keto-4-methylthiobutyric acid,147.011592,2.59,170331,Mix1,0,20,NA
+Arg,neg,2-Hydroxy-4-(methylthio)butyric acid,149.027242,2.69,170331,Mix1,0,20,NA
+Arg,neg,Guanine,150.041585,8.18,160401,Mix2,0,20,NA
+Arg,neg,Xanthine?,151.025601,7.26,240130,NA,0,20,NA
+Arg,neg,L-Cysteinesulfinic acid,152.001756,10.74,190514,Mix2,0,20,NA
+Arg,neg,"2,5-Dihydroxybenzoic acid",153.018785,4.08,160401,Mix2,0,20,NA
+Arg,neg,Cysteinolic acid?,154.017406,9.5,220111,Mix2,0,20,NA
+Arg,neg,Amino hydroxypropanesulfonate?,154.017406,11.5,220111,Mix2,0,20,NA
+Arg,neg,"(R)-2,3-Dihydroxypropane-1-sulfonate",155.001422,10.67,160401,Mix2,0,20,NA
+Arg,neg,Orotic acid,155.009283,4.195,160401,Mix1,0,20,NA
+Arg,neg,Allantoin,157.036165,9.48,210415,Mix1,0,20,NA
+Arg,neg,(R)-2-(Methylamino)pentanedioic acid?,160.060984,9.72,230511,NA,0,20,NA
+Arg,neg,L-2-Aminoadipic acid?,160.060984,10.4,230511,NA,0,20,NA
+Arg,neg,Deoxynojirimycin?,162.076634,10.34,240130,NA,0,20,NA
+Arg,neg,N-Acetyltaurine,166.017406,3.74,160401,Mix2,0,20,NA
+Arg,neg,Taurocyamine,166.028637,12.02,210415,Mix1,0,20,NA
+Arg,neg,3-Sulfopyruvic acid,166.965037,12.92,160401,Mix2,0,20,NA
+Arg,neg,Phosphoenolpyruvic acid,166.974553,13.865,160401,Mix1,0,20,NA
+Arg,neg,L-Cysteic acid,167.996671,12.15,160401,Mix2,0,20,NA
+Arg,neg,3-Sulfolactate,168.980687,13.27,160401,NA,0,20,NA
+Arg,neg,Dihydroxyacetone phosphate,168.990203,12.86,160401,Mix2,0,20,NA
+Arg,neg,Glycerophosphoric acid,171.005853,13.065,160401,Mix2,0,20,NA
+Arg,neg,Sulfanilic acid,172.006841,7.23,180701,Mix2,0,20,NA
+Arg,neg,cis-Aconitic acid,173.008615,14.21,160401,Mix1,0,20,NA
+Arg,neg,Shikimic acid,173.045,10.97,160401,Mix1,0,20,NA
+Arg,neg,Ethyl dihydroxybenzoate,181.050085,2.08,160401,Mix2,0,20,NA
+Arg,neg,Mannitol?,181.071215,10.6,230511,NA,0,20,NA
+Arg,neg,Choline sulfate,182.048706,7.01,210415,Mix1,0,20,NA
+Arg,neg,3-Phosphoglycerate,184.985118,14.755,180130,Mix1,0,20,NA
+Arg,neg,N-Acetyl-L-glutamic acid,188.055899,11.84,190715,Mix1,0,20,NA
+Arg,neg,Citric acid,191.01918,15.65,160401,Mix2,0,20,NA
+Arg,neg,Isocitric acid,191.01918,15.65,160401,Mix1,0,20,NA
+Arg,neg,D-Gluconic acid,195.05048,10.79,160401,Mix2,0,20,NA
+Arg,neg,Indolepyruvic acid,202.050419,2.375,160401,Mix2,0,20,NA
+Arg,neg,Lipoic acid,205.035699,2.42,160401,Mix1,0,20,NA
+Arg,neg,O-Succinylhomoserine,218.066462,9.57,210415,Mix1,0,20,NA
+Arg,neg,Carnosine,225.098766,10.47,190514,Mix2,0,20,NA
+Arg,neg,D-Ribose 5-phosphate,229.011333,13.29,160401,Mix2,0,20,NA
+Arg,neg,Anserine,239.114416,8.55,190514,Mix2,0,20,NA
+Arg,neg,Thymidine,241.082448,3.27,160401,Mix1,0,20,NA
+Arg,neg,Cytidine,242.077697,8.55,160401,Mix2,0,20,NA
+Arg,neg,Sulfoquinovose?,243.017467,10.31,230330,NA,0,20,NA
+Arg,neg,Uridine,243.061713,6.02,160401,Mix2,0,20,NA
+Arg,neg,D-Glucose 1-phosphate,259.021897,13.45,160401,Mix2,0,20,NA
+Arg,neg,D-Fructose 6-phosphate,259.021897,13.51,160401,Mix1,0,20,NA
+Arg,neg,D-Glucose 6-phosphate,259.021897,14.12,160401,Mix1,0,20,NA
+Arg,neg,Adenosine,266.088929,4.46,160401,Mix2,0,20,NA
+Arg,neg,Deoxyguanosine?,266.08893,7.77,230511,NA,0,20,NA
+Arg,neg,Inosine,267.072946,7.57,180701,Mix2,0,20,NA
+Arg,neg,Guanosine,282.083845,9.06,160401,Mix2,0,20,NA
+Arg,neg,N-Acetylmuramic acid,292.103244,3.35,190514,Mix2,0,20,NA
+Arg,neg,Glutamylphenylalanine,293.113748,9.55,190715,Mix1,0,20,NA
+Arg,neg,"3',5'-Cyclic AMP",328.044698,4.06,160401,Mix2,0,20,NA
+Arg,neg,Sucrose,341.10839,11.77,170331,Mix1,0,20,NA
+Arg,neg,Maltose,341.10839,12.31,180701,Mix2,0,20,NA
+Arg,neg,Lactose,341.10839,12.53,180701,Mix2,0,20,NA
+Arg,neg,Trehalose,341.10839,12.63,160401,Mix2,0,20,NA
+Arg,neg,"3',5'-Cyclic GMP",344.039613,8.8,160401,Mix2,0,20,NA
+Arg,neg,Adenosine monophosphate,346.055262,11.585,160401,Mix2,0,20,NA
+Arg,neg,Guanosine monophosphate,362.050178,13.85,160401,Mix2,0,20,NA
+Arg,neg,Adenosine diphosphate,426.021596,12.09,160401,Mix2,0,20,NA
+Arg,neg,Riboflavin-5-phosphate,455.096794,8.6,160401,Mix2,0,20,NA
+Arg,neg,Maltotriose?,503.161215,13.03,230101,NA,0,20,NA
+Arg,neg,Adenosine triphosphate,505.987929,15.35,160401,Mix2,0,20,NA
+Arg,neg,Sodium taurocholate?,514.283851,1.45,230330,NA,0,20,NA
+Arg,neg,Guanosine triphosphate,521.982844,16.58,160401,Mix2,0,20,NA
+Arg,neg,UDP-glucose,565.047204,13.59,160401,Mix2,0,20,NA
+Arg,neg,UDP-N-acetylglucosamine,606.073753,12.75,160401,Mix2,0,20,NA
+Arg,neg,NAD,662.101304,10.6,160401,Mix2,0,20,NA
+Arg,neg,NADH,664.116954,11.26,160401,Mix2,0,20,NA
+Arg,neg,Maltotetraose?,665.21404,13.78,230101,NA,0,20,NA
+Arg,neg,"3',5'-Cyclic diGMP",689.087051,13.74,160401,Mix2,0,20,NA
+Arg,neg,NADP,742.067637,12.74,160401,Mix2,0,20,NA
+Arg,neg,NADPH,744.083287,13.345,160401,Mix2,0,20,NA
+Arg,neg,Flavin adenine dinucleotide,784.149317,7.585,160401,Mix2,0,20,NA
+Arg,neg,Acetyl-CoA,808.117959,10.84,160401,Mix1,0,20,NA
+Arg,neg,Propionyl-CoA,822.133609,8.83,160401,Mix1,0,20,NA
+Arg,neg,Crotonoyl-CoA,834.133609,8.45,160401,Mix1,0,20,NA
+Arg,neg,Acetoacetyl-CoA,850.128524,10.6,160401,Mix1,0,20,NA
+Arg,neg,Malonyl-CoA,852.107789,13.525,160401,Mix1,0,20,NA
+Arg,neg,(S)-3-Hydroxybutyryl-CoA,852.144174,11.545,160401,Mix1,0,20,NA
+Arg,neg,Succinyl-CoA,866.123439,12.965,160401,Mix1,0,20,NA
+Arg,neg,D-Methylmalonyl-CoA,866.123439,13.18,160401,Mix1,0,20,NA
