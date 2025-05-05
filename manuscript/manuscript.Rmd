@@ -212,4 +212,64 @@ knitr::write_bib(packages_used[nchar(packages_used)>0], file = "r-packages.bib")
 
 ## Supplement
 
+## Supp fig 1: full heatmap of all compounds and timepoints
+
+```{r}
+cmpd_order <- labeled_fracs %>%
+  left_join(parametadata, relationship = "many-to-many") %>%
+  filter(amendment=="Amm") %>%
+  filter(depth=="Surf") %>%
+  filter(startime=="Morn") %>%
+  summarise(mean_label=mean(labeled_frac, na.rm=TRUE), .by=compound_name) %>%
+  arrange(desc(mean_label)) %>%
+  pull(compound_name) %>%
+  str_remove_all("L-")
+
+heatmap_gp <- labeled_fracs %>%
+  left_join(parametadata, relationship = "many-to-many") %>%
+  arrange(amendment, depth, timepoint_num, startime) %>%
+  mutate(shortname=fct_inorder(shortname)) %>%
+  mutate(amendment=factor(amendment, levels=c("Amm", "Nit", "Arg", "GMP"),
+                          labels = c("+Ammonia", "+Nitrate", "+Arginine", "+GMP"))) %>%
+  mutate(depth=factor(depth, levels=c("Surf", "Deep"), labels=c("25m", "175m"))) %>%
+  mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
+  mutate(compound_name=factor(compound_name, cmpd_order)) %>%
+  mutate(compound_class=case_when(
+    compound_name%in%maa_names~"MAA",
+    compound_name%in%aa_names~"Amino\nacid",
+    compound_name%in%nucleo_names~"Nucleic\nacid",
+    compound_name%in%non_n_names~"N-free",
+    compound_name%in%betaine_names~"Betaine",
+    TRUE~"Other"
+  )) %>%
+  mutate(compound_class=factor(compound_class, levels=c("Amino\nacid", "Nucleic\nacid", "MAA", "Betaine", "N-free", "Other"))) %>%
+  ggplot() +
+  geom_raster(aes(x=timepoint, y=tripl, fill=labeled_frac)) +
+  scale_fill_gradientn(colours = viridis::viridis(10, alpha = seq(0, 1, length.out=10), direction = -1), limits=c(0, 1)) +
+  scale_y_discrete(expand=expansion()) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 3), expand=expansion()) +
+  facet_nested(compound_class+compound_name~amendment+depth+startime, scales = "free_x", switch="y", strip=strip_nested(size = "variable")) +
+  labs(x="Timepoint", y="Metabolite", fill="Fraction\nlabeled") +
+  theme_bw() +
+  theme(panel.spacing.x=unit(0.5, "lines"), 
+        panel.spacing.y = unit(0, "lines"),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        strip.text.y.left = element_text(angle=0, hjust = 1),
+        strip.background.y = element_rect(fill=NA, color=NA),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position = "top", 
+        legend.key.width = unit(1, "null")) +
+  guides(
+    fill=guide_colorbar(theme=theme(
+      legend.frame = element_rect(color = "black"),
+      legend.ticks = element_line(color="black"),
+      legend.text = ggtext::element_markdown(hjust=c(0, 0, 0.5, 1, 1)))
+    )
+  )
+
+# ggsave(plot = heatmap_gp, "~/../Desktop/para_map.pdf", device = "pdf", 
+#        width = 10, height = 12)
+```
 
