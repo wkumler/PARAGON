@@ -1,0 +1,64 @@
+---
+title: ""
+author:
+  - William Kumler
+  - Laura T. Carlson
+  - Anitra E. Ingalls
+output: 
+  word_document:
+    reference_docx: Frontiers_Template.docx
+bibliography:
+- Exported Items.bib
+- r-packages.bib
+csl: frontiers-in-marine-science.csl
+---
+
+```{r Run analysis, include=FALSE}
+# TBD
+```
+
+```{r setup}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE)
+library(tidyverse)
+library(ggh4x)
+library(patchwork)
+library(ggtext)
+library(minpack.lm)
+```
+
+
+## Abstract
+
+## Introduction
+
+## Results
+
+## Discussion
+
+## Conclusion
+
+## Methods
+
+## Acknowledgements
+
+## Data availability
+
+## References
+
+```{r packages, eval=FALSE}
+packages_used <- list.files("..", pattern = "*\\.R$|*\\.Rmd$", recursive = TRUE) %>%
+  str_subset("old|scripts", negate=TRUE) %>%
+  map(function(file_name){
+    v <- readLines(paste0("../", file_name))
+    libs <- unique(str_extract(v, "(?<=library\\().*?(?=\\)|,)"))
+    refs <- unique(str_extract(v, "[[:alnum:]]*(?=::)"))
+    pkgs <- unique(c(na.omit(libs), na.omit(refs)))
+  }) %>% unlist() %>% unique()
+knitr::write_bib(packages_used[nchar(packages_used)>0], file = "r-packages.bib")
+```
+
+<div id="refs"></div>
+
+## Supplement
+
+
