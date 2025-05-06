@@ -71,14 +71,8 @@ labeled_fracs <- samp_areas %>%
   select(compound_name, iso_name, shortname, labeled_frac) %>%
   filter(str_detect(iso_name, "13C0, 15N0")) %>%
   select(-iso_name)
-n_labeled_fracs <- samp_areas %>%
-  filter(str_detect(iso_name, "13C0")) %>%
-  filter(!str_detect(iso_name, "15N0") | str_detect(iso_name, "13C0, 15N0")) %>%
-  mutate(labeled_frac=1-area/sum(area), .by = c("shortname", "compound_name")) %>%
-  select(compound_name, iso_name, shortname, labeled_frac) %>%
-  filter(str_detect(iso_name, "13C0, 15N0")) %>%
-  select(-iso_name)
 log_coef_df <- labeled_fracs %>%
+  filter(!compound_name%in%maa_names) %>%
   left_join(parametadata %>% distinct(shortname, amendment, depth, timepoint_num)) %>%
   nest(data=c(shortname, timepoint_num, labeled_frac)) %>%
   mutate(log_fit=map(data, ~glm(.x$labeled_frac~.x$timepoint_num, family="quasibinomial")),
@@ -216,6 +210,127 @@ ggsave(filename = "grouped_heatmap.png", device = "png", path = "manuscript/figu
 
 *Figure XX: Fraction of each metabolite or metabolite group containing at least one 15N label during the treatments amended with 15N ammonia after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the compound signal was isotopically labeled. Separate incubations were started at 6AM and 6PM with water from both 25 meters and 175 meters near Station ALOHA. Three biological replicates are stacked vertically at each timepoint.*
 
+```{r fig surface vs deep labeling rates}
+labeled_fracs %>%
+  filter(!compound_name%in%maa_names) %>%
+  left_join(distinct(parametadata, shortname, amendment, depth, timepoint_num)) %>%
+  filter(amendment!="Nit") %>%
+  summarise(avg_label=mean(labeled_frac), .by=c(compound_name, amendment, depth, timepoint_num)) %>%
+  pivot_wider(names_from = depth, values_from=avg_label) %>%
+  mutate(timepoint_num=ifelse(timepoint_num==0, 0.3, timepoint_num)) %>%
+  ggplot(aes(x=timepoint_num, y=Surf-Deep, color=compound_name, group=compound_name)) +
+  geom_hline(yintercept = 0) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~amendment, nrow=1) +
+  scale_x_log10() +
+  theme_bw() +
+  theme(legend.position = "none")
+ggsave(filename = "deep_vs_surf_labeling.png", device = "png", path = "manuscript/figures",
+       width = 6.5, height = 4, units = "in", dpi = 300)
+```
+
+![](figures/deep_vs_surf_labeling.png)
+
+*Figure XX: Line plots of the metabolite fraction labeled at the surface (25 meters) minus the fraction labeled at 175 meters. Incubations with added ammonia, arginine, and guanosine monophosphate (GMP) are shown. Points are the average of six biological replicates (incubations started in the morning and the evening are combined for additional power) and colors have been added solely for disambiguating purposes. Positive values indicate increased synthesis in the surface samples relative to those at depth.*
+
+```{r regression attempts currently failing, eval=FALSE}
+labeled_fracs %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(compound_name=="Creatinine") %>%
+  filter(amendment=="GMP") %>%
+  mutate(timepoint_num=ifelse(timepoint_num==0, 0.3, timepoint_num)) %>%
+  ggplot(aes(x=timepoint_num, y=labeled_frac, color=startime)) +
+  geom_point() +
+  geom_smooth(method=glm, formula=y~x, method.args=list(family=quasibinomial)) +
+  facet_wrap(~depth, ncol=1)
+
+reg_data <- labeled_fracs %>%
+  filter(!compound_name%in%maa_names) %>%
+  left_join(distinct(parametadata, shortname, amendment, depth, timepoint_num)) %>%
+  mutate(max_frac=max(labeled_frac[timepoint_num==max(timepoint_num)]), .by=c(amendment, compound_name, depth)) %>%
+  mutate(t10_labfrac = mean(labeled_frac[timepoint_num==sort(unique(timepoint_num))[4]]), .by=c(amendment, compound_name, depth))
+
+reg_data %>%
+  distinct(compound_name, amendment, depth, max_frac, t10_labfrac) %>%
+  mutate(category=ifelse(max_frac < 0.1, "Unlabeled", "Good")) %>%
+  mutate(category=ifelse(t10_labfrac <= 0, "Only T26 labeled", category)) %>%
+  mutate(category=ifelse(is.na(category), "DMSOP (unlabeled)", category)) %>%
+  count(amendment, category, depth) %>%
+  print(n=Inf)
+
+reg_fits <- reg_data %>%
+  filter(max_frac>0.1) %>%
+  filter(t10_labfrac>0) %>%
+  filter(compound_name!="Betonicine") %>%
+  filter(compound_name!="Arsenobetaine") %>%
+  filter(compound_name!="Gonyol") %>%
+  mutate(timepoint_num=ifelse(timepoint_num==0, 0.3, timepoint_num)) %>%
+  nest(data=c(shortname, timepoint_num, labeled_frac)) %>%
+  mutate(log_fit=map(data, ~glm(.x$labeled_frac~.x$timepoint_num, family="quasibinomial")),
+         coefs=map(log_fit, function(x)broom::tidy(x))) %>%
+  unnest(coefs) %>%
+  mutate(p_adj=p.adjust(p.value, method = "fdr"), .by = term) %>%
+  filter(p_adj<0.001) %>%
+  select(compound_name, amendment, depth, term, estimate) %>%
+  pivot_wider(names_from = term, values_from = estimate) %>%
+  rename(intercept=`(Intercept)`, slope=`.x$timepoint_num`) %>%
+  mutate(half_max=-intercept/slope, scale=1/slope) %>%
+  mutate(frac_at_T24 = 1/(1+exp(-(intercept+slope*24))))
+# reg_fits %>%
+#   select(compound_name, amendment, depth, intercept, slope) %>%
+#   pivot_longer(intercept:slope) %>%
+#   ggplot(aes(x=depth, y=value)) +
+#   geom_boxplot() +
+#   facet_grid(name~amendment, scales="free_y")
+# reg_fits %>%
+#   select(compound_name, amendment, depth, intercept, slope) %>%
+#   pivot_longer(intercept:slope) %>%
+#   pivot_wider(names_from=depth) %>%
+#   filter(!is.na(Deep)) %>%
+#   nest(data=c(compound_name, Surf, Deep)) %>%
+#   mutate(test=map(data, ~broom::tidy(t.test(.x$Surf, .x$Deep, paired=TRUE)))) %>%
+#   unnest(test)
+# labeled_fracs %>%
+#   left_join(parametadata %>% distinct(shortname, amendment, depth, timepoint_num)) %>%
+#   filter(timepoint_num==max(timepoint_num), .by=amendment) %>%
+#   summarise(avg_Tf_label=mean(labeled_frac), .by=c(compound_name, amendment, depth)) %>%
+#   ggplot() +
+#   geom_boxplot(aes(x=amendment, y=avg_Tf_label, color=depth))
+# 
+# labeled_fracs %>%
+#   left_join(parametadata %>% distinct(shortname, amendment, depth, timepoint_num)) %>%
+#   filter(timepoint_num==max(timepoint_num), .by=amendment) %>%
+#   summarise(avg_Tf_label=mean(labeled_frac), .by=c(compound_name, amendment, depth)) %>%
+#   pivot_wider(names_from=depth, values_from=avg_Tf_label) %>%
+#   ggplot() +
+#   geom_segment(aes(y=Surf, yend=Deep), x=1, xend=2) +
+#   facet_wrap(~amendment, nrow=1)
+# reg_fits %>%
+#   ggplot() +
+#   geom_segment(aes(y=frac_at_T24_Surf, yend=frac_at_T24_Deep,
+#                    x=half_max_Surf, xend=half_max_Deep, color=compound_name),
+#                data = reg_fits %>%
+#                  select(compound_name, depth, half_max, frac_at_T24) %>% 
+#                  pivot_wider(names_from = depth, values_from=c(half_max, frac_at_T24)) %>%
+#                  filter(!is.na(half_max_Deep))) +
+#   geom_point(aes(x=half_max, y=frac_at_T24, fill=depth), pch=21) +
+#   scale_fill_manual(values=c("black", "white"), breaks=c("Deep", "Surf"))
+
+reg_fits %>%
+  filter(amendment!="Nit") %>%
+  ggplot() +
+  geom_segment(aes(y=frac_at_T24_Surf, yend=frac_at_T24_Deep,
+                   x=half_max_Surf, xend=half_max_Deep, color=compound_name),
+               data = reg_fits %>%
+                 select(compound_name, amendment, depth, half_max, frac_at_T24) %>% 
+                 pivot_wider(names_from = depth, values_from=c(half_max, frac_at_T24)) %>%
+                 filter(!is.na(half_max_Deep))) +
+  geom_point(aes(x=half_max, y=frac_at_T24, fill=depth, label=compound_name), pch=21) +
+  scale_fill_manual(values=c("black", "white"), breaks=c("Deep", "Surf")) +
+  facet_wrap(~amendment, scales="free_x") +
+  theme(legend.position = "none")
+```
 
 ```{r fig MAA labeling patterns}
 chosen_maas <- c("Mycosporine-glycine?", "Shinorine?", "Palythine?",
