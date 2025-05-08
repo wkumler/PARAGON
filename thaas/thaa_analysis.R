@@ -248,7 +248,10 @@ quant_data <- all_iso_areas %>%
   left_join(cal_curves) %>%
   mutate(conc_um_in_vial=norm_area/slope) %>%
   mutate(env_conc_nm=conc_um_in_vial/100*1000) %>%
-  filter(iso_name!="Proline, 13C2, 15N1")
+  filter(iso_name!="Proline, 13C2, 15N1") %>%
+  filter(iso_name!="Proline, 13C3, 15N1") %>%
+  filter(iso_name!="Proline, 13C4, 15N1") %>%
+  filter(compound_name!="Lysine")
 write_csv(quant_data, "thaas/quant_data.csv")
 
 
@@ -281,3 +284,75 @@ quant_data %>%
            position="fill",
            color="black", width=1) +
   facet_nested(startime+depth~amendment+timepoint)
+
+pdf("thaas/all_cmpd_labels.pdf", width=9, height = 5)
+for(cmpd_i in setdiff(unique(quant_data$compound_name), c("Citrulline", "Ornithine", "Taurine"))){
+  print(cmpd_i)
+  gp <- quant_data %>%
+    filter(compound_name==cmpd_i) %>%
+    left_join(metathaa) %>%
+    drop_na() %>%
+    ggplot() +
+    geom_col(aes(x=tripl, y=env_conc_nm, fill=iso_name), 
+             position="fill",
+             color="black", width=1) +
+    facet_nested(depth+startime~amendment+timepoint) +
+    ggtitle(cmpd_i)
+  print(gp)
+}
+dev.off()
+
+
+
+
+quant_data %>%
+  # filter(compound_name=="Histidine") %>%
+  filter(compound_name=="Tyrosine") %>%
+  left_join(metathaa) %>%
+  drop_na() %>%
+  ggplot(aes(x=tripl, y=env_conc_nm, fill=iso_name, label=iso_name)) +
+  geom_col(position="fill", color="black", width=1) +
+  facet_nested(depth+startime~amendment+timepoint)
+plotly::ggplotly()
+# Tyrosine, 13C4, 15N1 from GMP?
+# Phenylalanine, 13C4, 15N1 from GMP?
+# Histidine, 13C5, 15N3 from GMP?
+
+
+
+quant_data %>%
+  filter(compound_name%in%c("Phenylalanine", "Tyrosine")) %>%
+  mutate(iso_type=str_extract(iso_name, "13C.*")) %>%
+  left_join(metathaa) %>%
+  drop_na() %>%
+  filter(amendment=="GMP") %>%
+  ggplot(aes(x=tripl, y=env_conc_nm, fill=iso_type, label=iso_name)) +
+  geom_col(position="fill", color="black", width=1) +
+  facet_nested(depth+startime~compound_name+timepoint)
+# 4 carbons from PPP (E4P), 15N from highly labeled pool of glutamate?
+
+iso_mzs %>% filter(iso_name=="Phenylalanine, 13C4, 15N1")
+msdata$MS1[mz%between%pmppm(341.1453, ppm = 10) | mz%between%pmppm(336.1348, ppm = 10)] %>%
+  filter(str_detect(filename, "GMP")) %>%
+  mutate(mz=round(mz)) %>%
+  filter(rt%between%c(5.2, 5.5)) %>%
+  qplotMS1data() +
+  facet_wrap(~mz, ncol=1, scales="free_y")
+iso_mzs %>% filter(iso_name=="Tyrosine, 13C4, 15N1")
+msdata$MS1[mz%between%pmppm(357.1402, ppm = 10) | mz%between%pmppm(352.1297, ppm = 10)] %>%
+  filter(str_detect(filename, "GMP")) %>%
+  mutate(mz=round(mz)) %>%
+  filter(rt%between%c(4, 4.5)) %>%
+  qplotMS1data() +
+  facet_wrap(~mz, ncol=1, scales="free_y")
+
+
+
+
+iso_mzs %>% filter(iso_name=="Histidine, 13C5, 15N3")
+msdata$MS1[mz%between%pmppm(334.1332, ppm = 10) | mz%between%pmppm(326.1253, ppm = 10)] %>%
+  filter(str_detect(filename, "GMP")) %>%
+  mutate(mz=round(mz)) %>%
+  filter(rt%between%c(1, 2)) %>%
+  qplotMS1data() +
+  facet_wrap(~mz, ncol=1, scales="free_y")
