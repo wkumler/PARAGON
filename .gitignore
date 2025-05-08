@@ -9,3 +9,4 @@ targeted/*.rds
 .Rproj.user
 !run_analysis.R
 !paragon.Rproj
+!thaas/*
