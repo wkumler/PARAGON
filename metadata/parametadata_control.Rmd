@@ -259,8 +259,8 @@ all_stans <- paste0(base_url, "master/Ingalls_Lab_Standards.csv") %>%
   )) %>%
   mutate(n_N=as.numeric(str_extract(formula, "(?<=N)\\d+"))) %>%
   mutate(n_N=case_when(
-    !str_detect(formula, "C")~0,
-    str_detect(formula, "C") & is.na(n_N)~1,
+    !str_detect(formula, "N")~0,
+    str_detect(formula, "N") & is.na(n_N)~1,
     TRUE~n_N
   ))
 write_csv(all_stans, "metadata/all_stans.csv")
