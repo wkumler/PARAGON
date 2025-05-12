@@ -21,7 +21,9 @@ library(ggtext)
 library(minpack.lm)
 options(pillar.sigfig = 7)
 options(pillar.print_min = 100)
+```
 
+```{r load data}
 parametadata <- read_csv("metadata/parametadata.csv") %>%
   # filter(IS_type=="noIS") %>%
   filter(polarity=="pos") %>%
@@ -87,6 +89,11 @@ labeled_fracs <- samp_areas %>%
   select(compound_name, iso_name, shortname, labeled_frac) %>%
   filter(str_detect(iso_name, "13C0, 15N0")) %>%
   select(-iso_name)
+
+thaa_quant <- read_csv("quant_data.csv")
+metathaa <- read_csv("metathaa.csv") %>%
+  mutate(depth=factor(depth, levels=c("Surf", "Deep"))) %>%
+  mutate(startime=factor(startime, levels=c("Morn", "Eve")))
 ```
 
 # Abstract
@@ -224,11 +231,6 @@ ggsave("xamend_thaa_gp.png",plot = xamend_metab_gp, device = "png", path = "figu
       - Phenylalanine 13C4, 15N1
 
 ```{r thaa data}
-thaa_quant <- read_csv("quant_data.csv")
-metathaa <- read_csv("metathaa.csv") %>%
-  mutate(depth=factor(depth, levels=c("Surf", "Deep"))) %>%
-  mutate(startime=factor(startime, levels=c("Morn", "Eve")))
-
 all_thaa_plot <- thaa_quant %>%
   filter(!str_detect(iso_name, "2H")) %>%
   left_join(metathaa) %>%
