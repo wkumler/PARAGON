@@ -8,10 +8,6 @@ author:
 output: word_document
 ---
 
-```{r Run analysis, include=FALSE}
-# TBD
-```
-
 ```{r setup, echo=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, eval=FALSE)
 library(tidyverse)
@@ -23,7 +19,7 @@ options(pillar.sigfig = 7)
 options(pillar.print_min = 100)
 ```
 
-```{r load data}
+```{r load data, eval=FALSE}
 parametadata <- read_csv("metadata/parametadata.csv") %>%
   # filter(IS_type=="noIS") %>%
   filter(polarity=="pos") %>%
@@ -33,8 +29,7 @@ parametadata <- read_csv("metadata/parametadata.csv") %>%
   mutate(amendment=factor(amendment, levels=c("Amm", "Nit", "Arg", "GMP"))) %>%
   arrange(amendment, depth, timepoint_num, startime) %>%
   mutate(timepoint=fct_inorder(timepoint))
-peak_areas <- read_csv("targeted/all_peak_areas_w_isos.csv") %>%
-  left_join(parametadata %>% distinct(filename, shortname))
+
 all_stans <- read_csv("metadata/all_stans.csv")
 stan_patched <- all_stans %>%
   filter(!compound_name=="beta-Glutamic acid") %>%
@@ -45,7 +40,6 @@ stan_patched <- all_stans %>%
   mutate(compound_name=str_replace(compound_name, "L-Threonine", "L-Threonine/L-Homoserine")) %>%
   filter(!compound_name=="Allopurinol") %>%
   mutate(compound_name=str_replace(compound_name, "Hypoxanthine", "Hypoxanthine/Allopurinol"))
-  
 maa_names <- c("Also Palythene/Usujirene?", "Shinorine?", "Mycosporine-glycine?", 
                "Palythine?", "Another Palythene/Usujirene?", "Porphyra-334?", 
                "Also Porphyra-334?", "Asterina-330?", "Palythene/Usujirene?",
@@ -76,6 +70,8 @@ aa_ncs <- all_stans %>%
   distinct(compound_name, n_C, n_N) %>%
   add_row(compound_name="Phenylalanine", n_C=9, n_N=1)
 
+peak_areas <- read_csv("targeted/all_peak_areas_w_isos.csv") %>%
+  left_join(parametadata %>% distinct(filename, shortname))
 samp_areas <- parametadata %>%
   filter(samp_type=="Smp") %>%
   distinct(shortname, depth) %>%
@@ -90,8 +86,9 @@ labeled_fracs <- samp_areas %>%
   filter(str_detect(iso_name, "13C0, 15N0")) %>%
   select(-iso_name)
 
-thaa_quant <- read_csv("quant_data.csv")
-metathaa <- read_csv("metathaa.csv") %>%
+thaa_quant <- read_csv("thaas/quant_data.csv") %>%
+  filter(iso_name!="Proline, 13C3, 15N1")
+metathaa <- read_csv("thaas/metathaa.csv") %>%
   mutate(depth=factor(depth, levels=c("Surf", "Deep"))) %>%
   mutate(startime=factor(startime, levels=c("Morn", "Eve")))
 ```
@@ -179,7 +176,7 @@ xamend_metab_gp <- labeled_fracs %>%
       legend.text = ggtext::element_markdown(hjust=c(0, 0, 0.5, 1, 1)))
     )
   )
-ggsave("xamend_thaa_gp.png",plot = xamend_metab_gp, device = "png", path = "figures",
+ggsave("xamend_thaa_gp.png",plot = xamend_metab_gp, device = "png", path = "manuscript/figures",
        width = 6.5, height = 5.5, units = "in", dpi = 300)
 ```
 
@@ -217,7 +214,7 @@ ggsave("xamend_thaa_gp.png",plot = xamend_metab_gp, device = "png", path = "figu
     - Maybe less storage in guanine specifically, labeling is on par with other NAs unlike ammonia
     - THAAs show clear usage of arginine in proteins
       - 30-50% arg in THAAs labeled @73hrs
-      - Clear reuse of arginine backbone as glutamate (fully labeled glutamate) and maybe proline?
+      - Clear reuse of arginine backbone as fully labeled glutamate and proline
   - Guanosine monophosphate
     - Unable to measure GMP well enough directly?
     - Guanosine labeling visible at T3, definitely T10, maybe some decrease at T73 like Arg?
@@ -324,7 +321,7 @@ arg_glut_thaa_plot <- ggplot(thaa_plot_data) +
   )
 total_thaa_gp <- all_thaa_plot / arg_glut_thaa_plot + plot_layout(heights = c(0.3, 0.7))
 total_thaa_gp
-ggsave("total_thaa_gp.png", total_thaa_gp, device = "png", path = "figures",
+ggsave("total_thaa_gp.png", total_thaa_gp, device = "png", path = "manuscript/figures",
        width = 6.5, height = 5, units = "in", dpi = 300)
 ```
 
@@ -392,7 +389,7 @@ labeled_fracs %>%
         legend.background = element_rect(fill="#FFFFFFAA", color="black", linewidth = 0)) +
   guides(shape=guide_legend(override.aes = list(size=3, stroke=1.2, alpha=1, linetype=0)))
 
-ggsave(filename = "MAA_curves.png", device = "png", path = "figures",
+ggsave(filename = "MAA_curves.png", device = "png", path = "manuscript/figures",
        width = 3, height = 6, units = "in", dpi = 300)
 ```
 
@@ -406,21 +403,6 @@ ggsave(filename = "MAA_curves.png", device = "png", path = "figures",
   - High levels of labeling despite minimal glycine labeling and synthesis being 4DG+Gly for these
   - Putative annotations based on labeling pattern (and only found at surface)
     - Maybe also can do a search for fragments
-
-```{r}
-peak_areas %>%
-  filter(compound_name%in%chosen_maas) %>%
-  # filter(compound_name%in%maa_names) %>%
-  # filter(compound_name=="Shinorine?") %>%
-  left_join(parametadata, relationship = "many-to-many") %>%
-  filter(amendment%in%c("Nit", "Amm")) %>%
-  filter(depth=="Surf") %>%
-  mutate(n_N_lab=str_extract(iso_name, "(?<=15N)\\d+")) %>%
-  ggplot() +
-  geom_col(aes(x=tripl, y=area, fill=n_N_lab), color="black", width=1) +
-  facet_nested(compound_name~amendment+startime+timepoint, scales="free_y") +
-  theme_bw()
-```
 
 ## Inorganics more bioavailable at surface, organics equally bioavailable at 25m and 175m
 
@@ -532,8 +514,8 @@ surfdeep_all_cmpd_boxplot_gp <- labeled_fracs %>%
 
 surfdeep_gp <- surfdeep_demo_cmpd_gp / surfdeep_all_cmpd_gp / surfdeep_all_cmpd_boxplot_gp + plot_layout(guides = "collect", heights = c(0.3, 0.5, 0.2))
 
-ggsave(filename = "deep_vs_surf_labeling.png", surfdeep_gp, device = "png", path = "figures",
-       width = 6.5, height = 6.5, units = "in", dpi = 300)
+ggsave(filename = "deep_vs_surf_labeling.png", surfdeep_gp, device = "png", 
+       path = "manuscript/figures", width = 6.5, height = 6.5, units = "in", dpi = 300)
 ```
 
 ![](figures/deep_vs_surf_labeling.png)
@@ -552,7 +534,6 @@ ggsave(filename = "deep_vs_surf_labeling.png", surfdeep_gp, device = "png", path
 ## Other results from untargeted analysis
 
 Upcoming.
-
 
 # Discussion
 
@@ -593,7 +574,7 @@ cmpd_order <- labeled_fracs %>%
   summarise(mean_label=mean(labeled_frac, na.rm=TRUE), .by=compound_name) %>%
   arrange(desc(mean_label)) %>%
   pull(compound_name) %>%
-  str_remove_all("^L-|(?<=)/L-") %>%
+  str_remove_all("^L-|(?<=/)L-") %>%
   c("5-Methylcytosine")
 
 heatmap_gp <- labeled_fracs %>%
@@ -604,7 +585,7 @@ heatmap_gp <- labeled_fracs %>%
                           labels = c("+Ammonia", "+Nitrate", "+Arginine", "+GMP"))) %>%
   mutate(depth=factor(depth, levels=c("Surf", "Deep"), labels=c("25m", "175m"))) %>%
   mutate(compound_name=str_remove_all(compound_name, "^L-|(?<=/)L-")) %>%
-  mutate(compound_name=factor(compound_name, cmpd_order)) %>%
+  mutate(order_name=factor(compound_name, cmpd_order)) %>%
   mutate(compound_class=case_when(
     compound_name%in%maa_names~"MAA",
     compound_name%in%aa_names~"Amino\nacid",
@@ -643,7 +624,7 @@ heatmap_gp <- labeled_fracs %>%
     )
   )
 
-ggsave(plot = heatmap_gp, "manuscript/figures/supp_para_map.pdf", device = "pdf",
+ggsave(plot = heatmap_gp, "manuscript/supplement/para_heatmap.pdf", device = "pdf",
        width = 10, height = 12)
 ```
 
@@ -651,149 +632,23 @@ ggsave(plot = heatmap_gp, "manuscript/figures/supp_para_map.pdf", device = "pdf"
 ## Supp fig: THAA labeling broken down by triplicate
 
 ```{r thaa supplement figures}
-thaa_quant %>%
-  left_join(metathaa) %>%
-  filter(samp_type=="Smp") %>%
-  ggplot() +
-  geom_col(aes(x=tripl, y=env_conc_nm, fill=compound_name), 
-           color="black", width=1, position="fill") +
-  facet_nested(depth+startime~amendment+timepoint) +
-  scale_x_discrete(expand = expansion()) +
-  scale_y_continuous(labels=scales::label_percent(), breaks=c(0, 0.5, 1),
-                     expand = expansion()) +
-  labs(x="Triplicate", y="Fraction labeled", fill=NULL) +
-  theme_bw() +
-  theme(
-    axis.text.y=element_markdown(vjust=c(0, 0.5, 1))
-  )
-
-THAA_mol_C_gp <- thaa_quant %>%
-  filter(!str_detect(iso_name, "2H")) %>%
-  left_join(metathaa) %>%
-  filter(samp_type=="Smp") %>%
-  left_join(aa_ncs) %>%
-  select(filename, compound_name, iso_name, env_conc_nm, n_C, n_N) %>%
-  mutate(n_C_lab=as.numeric(str_extract(iso_name, "(?<=13C)\\d+"))/n_C) %>%
-  mutate(n_C_unlab=n_C-n_C_lab) %>%
-  mutate(nM_C_lab=env_conc_nm*n_C_lab, nM_C_unlab=env_conc_nm*n_C_unlab) %>%
-  select(filename, compound_name, iso_name, nM_C_lab, nM_C_unlab) %>%
-  pivot_longer(c(nM_C_lab, nM_C_unlab)) %>%
-  summarise(total_uM=sum(value)/1000, .by=c(filename, name)) %>%
-  left_join(metathaa) %>%
-  mutate(amendment=factor(amendment, levels = c("T0", "Amm", "Nit", "Arg", "GMP"))) %>%
-  ggplot(aes(x=tripl, y=total_uM, fill=name)) +
-  geom_col(color="black", width=1) +
-  facet_nested(depth+startime~amendment+timepoint) +
-  theme_bw() +
-  scale_x_discrete(expand = expansion()) +
-  scale_y_continuous(expand = expansion(mult=c(0, 0.05))) +
-  scale_fill_manual(breaks = c("nM_C_unlab", "nM_C_lab"), values=c("grey80", "grey20"), 
-                    labels=c("Unlabeled", "Labeled")) +
-  labs(x="Triplicate", y="Total C in THAAs (uM)", fill=NULL) +
-  theme(
-    legend.position = "top"
-  )
-THAA_mol_N_gp <- thaa_quant %>%
-  filter(!str_detect(iso_name, "2H")) %>%
-  left_join(metathaa) %>%
-  filter(samp_type=="Smp") %>%
-  left_join(aa_ncs) %>%
-  select(filename, compound_name, iso_name, env_conc_nm, n_C, n_N) %>%
-  mutate(n_N_lab=as.numeric(str_extract(iso_name, "(?<=15N)\\d+"))) %>%
-  mutate(n_N_unlab=n_N-n_N_lab) %>%
-  mutate(nM_N_lab=env_conc_nm*n_N_lab, nM_N_unlab=env_conc_nm*n_N_unlab) %>%
-  select(filename, compound_name, iso_name, nM_N_lab, nM_N_unlab) %>%
-  pivot_longer(c(nM_N_lab, nM_N_unlab)) %>%
-  summarise(total_uM=sum(value)/1000, .by=c(filename, name)) %>%
-  left_join(metathaa) %>%
-  mutate(amendment=factor(amendment, levels = c("T0", "Amm", "Nit", "Arg", "GMP"))) %>%
-  ggplot(aes(x=tripl, y=total_uM, fill=name)) +
-  geom_col(color="black", width=1) +
-  facet_nested(depth+startime~amendment+timepoint) +
-  theme_bw() +
-  scale_x_discrete(expand = expansion()) +
-  scale_y_continuous(expand = expansion(mult=c(0, 0.05))) +
-  scale_fill_manual(breaks = c("nM_N_unlab", "nM_N_lab"), values=c("grey80", "grey20"), 
-                    labels=c("Unlabeled", "Labeled")) +
-  labs(x="Triplicate", y="Total N in THAAs (uM)", fill=NULL) +
-  theme(
-    legend.position = "top"
-  )
-all_thaa_NC_gp <- guide_area() + THAA_mol_C_gp + THAA_mol_N_gp + plot_layout(guides = "collect", heights = c(0.1, 0.45, 0.45), design = c("1\n2\n3"))
-ggsave("thaas/all_thaa_NC_gp.png", width=6.5, height=8)
-
-
-pdf("figures/all_cmpd_labels.pdf", width=9, height = 5)
+pdf("manuscript/supplement/THAA_labeling.pdf", width=9, height = 5)
 for(cmpd_i in setdiff(unique(thaa_quant$compound_name), c("Citrulline", "Ornithine", "Taurine"))){
   print(cmpd_i)
   gp <- thaa_quant %>%
     filter(compound_name==cmpd_i) %>%
-    left_join(metathaa) %>%
+    left_join(metathaa, by = join_by(filename)) %>%
     drop_na() %>%
     ggplot() +
     geom_col(aes(x=tripl, y=env_conc_nm, fill=iso_name), 
              position="fill",
              color="black", width=1) +
     facet_nested(depth+startime~amendment+timepoint) +
-    ggtitle(cmpd_i)
+    scale_y_continuous(labels = scales::label_percent()) +
+    theme_bw() +
+    ggtitle(cmpd_i) +
+    labs(x="Biological triplicate", y="Fraction labeled", fill="Isotopologue")
   print(gp)
 }
 dev.off()
-```
-
-
-## Supp fig: Fraction of AA as DFAA vs THAA
-
-```{r fraction of aa pool in df vs th}
-thaa_pool_sizes <- thaa_quant %>%
-  filter(!compound_name%in%c("Citrulline", "Ornithine", "Taurine")) %>%
-  filter(str_detect(iso_name, "13C0, 15N0")) %>%
-  filter(str_detect(filename, "Smp.*T0")) %>%
-  select(filename, compound_name, env_conc_nm) %>%
-  mutate(compound_name=ifelse(compound_name=="Isoleucine", "Leucine", compound_name)) %>%
-  summarise(env_conc_nm=sum(env_conc_nm), .by=c(filename, compound_name)) %>%
-  mutate(compound_name=ifelse(compound_name=="Leucine", "Leu/Ile", compound_name)) %>%
-  mutate(compound_name=ifelse(compound_name=="Glutamic acid", "Glu/Gln", compound_name)) %>%
-  mutate(compound_name=ifelse(compound_name=="Aspartic acid", "Asp/Asn", compound_name)) %>%
-  left_join(metathaa) %>%
-  summarise(mean_thaa_conc=mean(env_conc_nm), .by=c(amendment, depth, startime, compound_name))
-metab_pool_sizes <- env_concs %>%
-  filter(str_detect(filename, "Smp.*T0")) %>%
-  mutate(compound_name=str_remove_all(compound_name, "L-")) %>%
-  mutate(compound_name=str_remove(compound_name, "/Homoserine")) %>%
-  mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
-  mutate(compound_name=ifelse(compound_name=="Glutamine", "Glutamic acid", compound_name)) %>%
-  mutate(compound_name=ifelse(compound_name=="Asparagine", "Aspartic acid", compound_name)) %>%
-  summarise(conc_nm_in_env=sum(conc_nm_in_env), .by=c(filename, compound_name)) %>%
-  mutate(compound_name=ifelse(compound_name=="Glutamic acid", "Glu/Gln", compound_name)) %>%
-  mutate(compound_name=ifelse(compound_name=="Aspartic acid", "Asp/Asn", compound_name)) %>%
-  mutate(compound_name=ifelse(compound_name=="Leucine/Isoleucine", "Leu/Ile", compound_name)) %>%
-  filter(compound_name%in%thaa_pool_sizes$compound_name) %>%
-  left_join(parametadata) %>%
-  summarise(mean_metab_conc=mean(conc_nm_in_env), .by=c(amendment, depth, startime, compound_name))
-# Valine and phenylalanine failed QC
-thaa_pool_sizes %>%
-  left_join(metab_pool_sizes) %>%
-  ggplot() +
-  geom_point(aes(x=mean_thaa_conc, y=mean_metab_conc, color=compound_name)) +
-  facet_nested(depth+startime~amendment)
-thaa_pool_sizes %>%
-  left_join(metab_pool_sizes) %>%
-  ggplot() +
-  geom_point(aes(x=mean_thaa_conc, y=mean_metab_conc)) +
-  facet_wrap(~compound_name, scales="free")
-
-thaa_pool_sizes %>%
-  left_join(metab_pool_sizes) %>%
-  mutate(metab_frac=mean_metab_conc/mean_thaa_conc) %>%
-  ggplot() +
-  geom_density(aes(x=metab_frac, color=compound_name))
-thaa_pool_sizes %>%
-  left_join(metab_pool_sizes) %>%
-  mutate(metab_frac=mean_metab_conc/mean_thaa_conc) %>%
-  ggplot() +
-  geom_boxplot(aes(x=compound_name, y=metab_frac)) +
-  scale_y_continuous(labels = scales::label_percent()) +
-  labs(x=NULL, y='Fraction of AA in "free" pool: [metab] / [THAA]') +
-  coord_flip()
 ```
