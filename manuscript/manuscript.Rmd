@@ -1,15 +1,11 @@
 ---
-title: ""
+title: "Nitrogen's form determines its fate in the North Pacific Subtropical Gyre during PARAGON I"
 author:
   - William Kumler
   - Laura T. Carlson
   - Anitra E. Ingalls
-output: 
-  word_document:
-    reference_docx: Frontiers_Template.docx
-csl: frontiers-in-marine-science.csl
-bibliography:
-  - r-packages.bib
+  - Other SCOPE collaborators
+output: word_document
 ---
 
 ```{r Run analysis, include=FALSE}
@@ -859,7 +855,7 @@ all_thaa_NC_gp <- guide_area() + THAA_mol_C_gp + THAA_mol_N_gp + plot_layout(gui
 ggsave("thaas/all_thaa_NC_gp.png", width=6.5, height=8)
 
 
-pdf("thaas/all_cmpd_labels.pdf", width=9, height = 5)
+pdf("figures/all_cmpd_labels.pdf", width=9, height = 5)
 for(cmpd_i in setdiff(unique(thaa_quant$compound_name), c("Citrulline", "Ornithine", "Taurine"))){
   print(cmpd_i)
   gp <- thaa_quant %>%
@@ -877,3 +873,59 @@ for(cmpd_i in setdiff(unique(thaa_quant$compound_name), c("Citrulline", "Ornithi
 dev.off()
 ```
 
+
+## Supp fig: Fraction of AA as DFAA vs THAA
+
+```{r fraction of aa pool in df vs th}
+thaa_pool_sizes <- thaa_quant %>%
+  filter(!compound_name%in%c("Citrulline", "Ornithine", "Taurine")) %>%
+  filter(str_detect(iso_name, "13C0, 15N0")) %>%
+  filter(str_detect(filename, "Smp.*T0")) %>%
+  select(filename, compound_name, env_conc_nm) %>%
+  mutate(compound_name=ifelse(compound_name=="Isoleucine", "Leucine", compound_name)) %>%
+  summarise(env_conc_nm=sum(env_conc_nm), .by=c(filename, compound_name)) %>%
+  mutate(compound_name=ifelse(compound_name=="Leucine", "Leu/Ile", compound_name)) %>%
+  mutate(compound_name=ifelse(compound_name=="Glutamic acid", "Glu/Gln", compound_name)) %>%
+  mutate(compound_name=ifelse(compound_name=="Aspartic acid", "Asp/Asn", compound_name)) %>%
+  left_join(metathaa) %>%
+  summarise(mean_thaa_conc=mean(env_conc_nm), .by=c(amendment, depth, startime, compound_name))
+metab_pool_sizes <- env_concs %>%
+  filter(str_detect(filename, "Smp.*T0")) %>%
+  mutate(compound_name=str_remove_all(compound_name, "L-")) %>%
+  mutate(compound_name=str_remove(compound_name, "/Homoserine")) %>%
+  mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
+  mutate(compound_name=ifelse(compound_name=="Glutamine", "Glutamic acid", compound_name)) %>%
+  mutate(compound_name=ifelse(compound_name=="Asparagine", "Aspartic acid", compound_name)) %>%
+  summarise(conc_nm_in_env=sum(conc_nm_in_env), .by=c(filename, compound_name)) %>%
+  mutate(compound_name=ifelse(compound_name=="Glutamic acid", "Glu/Gln", compound_name)) %>%
+  mutate(compound_name=ifelse(compound_name=="Aspartic acid", "Asp/Asn", compound_name)) %>%
+  mutate(compound_name=ifelse(compound_name=="Leucine/Isoleucine", "Leu/Ile", compound_name)) %>%
+  filter(compound_name%in%thaa_pool_sizes$compound_name) %>%
+  left_join(parametadata) %>%
+  summarise(mean_metab_conc=mean(conc_nm_in_env), .by=c(amendment, depth, startime, compound_name))
+# Valine and phenylalanine failed QC
+thaa_pool_sizes %>%
+  left_join(metab_pool_sizes) %>%
+  ggplot() +
+  geom_point(aes(x=mean_thaa_conc, y=mean_metab_conc, color=compound_name)) +
+  facet_nested(depth+startime~amendment)
+thaa_pool_sizes %>%
+  left_join(metab_pool_sizes) %>%
+  ggplot() +
+  geom_point(aes(x=mean_thaa_conc, y=mean_metab_conc)) +
+  facet_wrap(~compound_name, scales="free")
+
+thaa_pool_sizes %>%
+  left_join(metab_pool_sizes) %>%
+  mutate(metab_frac=mean_metab_conc/mean_thaa_conc) %>%
+  ggplot() +
+  geom_density(aes(x=metab_frac, color=compound_name))
+thaa_pool_sizes %>%
+  left_join(metab_pool_sizes) %>%
+  mutate(metab_frac=mean_metab_conc/mean_thaa_conc) %>%
+  ggplot() +
+  geom_boxplot(aes(x=compound_name, y=metab_frac)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  labs(x=NULL, y='Fraction of AA in "free" pool: [metab] / [THAA]') +
+  coord_flip()
+```
