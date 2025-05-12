@@ -279,14 +279,15 @@ plot_iso_colors <- c(
   "#984EA3",
   "grey20"
 )
-# "#E41A1C" "#377EB8" "#4DAF4A" "#984EA3" "#FF7F00" "#FFFF33" "#A65628" "#F781BF" "#999999"
+thaa_spec_cmpds <- c("Glutamine + Glutamate", "Arginine", "Proline", "Histidine", "Phenylalanine", "Tyrosine")
 thaa_plot_data <- thaa_quant %>%
   left_join(metathaa) %>%
   filter(samp_type=="Smp") %>%
   mutate(amendment=ifelse(timepoint=="T0", "T0", amendment)) %>%
   summarise(avg_env_conc_nm=mean(env_conc_nm, na.rm=TRUE), .by=c(compound_name, iso_name, amendment, timepoint)) %>%
-  filter(compound_name%in%c("Glutamic acid", "Arginine", "Histidine", "Phenylalanine")) %>%
   mutate(compound_name=ifelse(compound_name=="Glutamic acid", "Glutamine + Glutamate", compound_name)) %>%
+  mutate(compound_name=factor(compound_name, levels = thaa_spec_cmpds)) %>%
+  filter(!is.na(compound_name)) %>%
   mutate(plot_iso_name=case_when(
     str_detect(iso_name, "13C0, 15N0")~"Unlabeled",
     str_detect(iso_name, "13C0, 15N1")~"<sup>15</sup>N<sub>1</sub>",
@@ -296,8 +297,10 @@ thaa_plot_data <- thaa_quant %>%
     str_detect(iso_name, "Arginine, 13C0, 15N4")~"Entirely <sup>15</sup>N",
     str_detect(iso_name, "13C1, 15N0")~"<sup>13</sup>C<sub>1</sub>",
     str_detect(iso_name, "13C1, 15N1")~"<sup>13</sup>C<sub>1</sub><sup>15</sup>N<sub>1</sub>",
-    str_detect(iso_name, "Glutamic acid, 13C5, 15N1")~"Entirely <sup>13</sup>C and <sup>15</sup>N",
+    str_detect(iso_name, "Glutamic acid, 13C5, 15N1")~"Entirely <sup>13</sup>C<br>and <sup>15</sup>N",
+    str_detect(iso_name, "Proline, 13C5, 15N1")~"Entirely <sup>13</sup>C<br>and <sup>15</sup>N",
     str_detect(iso_name, "Arginine, 13C6, 15N4")~"Entirely <sup>13</sup>C<br>and <sup>15</sup>N",
+    iso_name=="Tyrosine, 13C4, 15N1"~"<sup>13</sup>C<sub>4</sub><sup>15</sup>N<sub>1</sub>",
     iso_name=="Phenylalanine, 13C4, 15N1"~"<sup>13</sup>C<sub>4</sub><sup>15</sup>N<sub>1</sub>",
     iso_name=="Histidine, 13C5, 15N3"~"<sup>13</sup>C<sub>5</sub><sup>15</sup>N<sub>3</sub>",
     TRUE~"Other labels"
