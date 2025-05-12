@@ -65,6 +65,9 @@ aa_names <- c("Glutamine", "Aspartic acid", "Glutamic acid/beta-Glutamic acid",
               "Leucine/Isoleucine", "Valine", "Arginine")
 bad_cmpds <- c("Melamine", "Uridine", "Itaconic acid?", "Inosine", "Dexpanthenol", 
                "Choline sulfate", "5-Hydroxyectoine", "L-Tyrosine")
+class_levels <- c("Glutamine", "Glutamic acid", "Aspartic acid", "Asparagine", "Arginine", 
+                  "Other amino acids", "Theanine?", "Citrulline", "Ectoine", "Guanine", 
+                  "Guanosine", "Other nucleic acids", "MAAs", "Betaines", "All others")
 aa_ncs <- all_stans %>%
   filter(compound_type=="Amino Acid") %>%
   mutate(compound_name=str_remove(compound_name, "^L-")) %>%
@@ -84,30 +87,7 @@ labeled_fracs <- samp_areas %>%
   select(compound_name, iso_name, shortname, labeled_frac) %>%
   filter(str_detect(iso_name, "13C0, 15N0")) %>%
   select(-iso_name)
-log_coef_df <- labeled_fracs %>%
-  filter(!compound_name%in%maa_names) %>%
-  left_join(parametadata %>% distinct(shortname, amendment, depth, timepoint_num)) %>%
-  nest(data=c(shortname, timepoint_num, labeled_frac)) %>%
-  mutate(log_fit=map(data, ~glm(.x$labeled_frac~.x$timepoint_num, family="quasibinomial")),
-         coefs=map(log_fit, function(x)broom::tidy(x))) %>%
-  unnest(coefs) %>%
-  select(compound_name, amendment, depth, term, estimate) %>%
-  pivot_wider(names_from = term, values_from = estimate) %>%
-  rename(intercept=`(Intercept)`, slope=`.x$timepoint_num`) %>%
-  mutate(half_max=-intercept/slope, scale=1/slope) %>%
-  mutate(frac_at_T24 = 1/(1+exp(-(intercept+slope*24))))
-
-splividis <- function(n, ...){
-  vir <- viridis::viridis(n, ...)
-  if(n%%2==0){
-    vir[as.numeric(matrix(1:n, ncol=2, byrow = TRUE))]
-  } else {
-    index_vec <- suppressWarnings(as.numeric(matrix(1:n, ncol=2, byrow = TRUE)))
-    vir[head(index_vec, -1)]
-  }
-}
 ```
-
 
 # Abstract
 
@@ -143,86 +123,16 @@ One way to reveal the pathways and transformations that marine N undergoes in a 
 
 # Results
 
-## Environmental context of PARAGON cruise
+## Differences in nitrogen labeling at the surface between amendments
 
-PARAGON synthesis paper isn't out yet and I'm not sure it will be anytime soon
-
-Particulate carbon and nitrogen numbers for PARAGON I (from Matt(?))
-
-![](figures/borrowed/pcpn_PIandPII.png)
-
-Data from Rhea showing ammonia/nitrite concentrations - I sampled at 25m and 175m (nitrite max, below ammonia max). Does this mean I was getting a lot of AOA users?
-
-![](figures/borrowed/rhea_ammonia_concs.png)
-
-Angel's IFCB data showing Hemiaulus disappearing over the course of the cruise (most of the Bacillariophyceae are Hemiaulus and she shows that in another plot)
-
-![](figures/borrowed/angel_hemiaulus.png)
-
-Fuyan reports the abundances of various bacterial groups (with the caveat that the SASVs have to have been found in the 4000m depth traps?)
-
-![](figures/borrowed/fuyan_composition_bact.png)
-
-
-## Universal bioavailability of ammonia at surface
-
-The most rapid and extensive labeling was obtained during the ammonia-amended incubations of surface seawater. We observed significant labeling of glutamine, [and others] even at the T0 timepoint, indicating turnover times shorter than the time required to filter and flash-freeze the samples in liquid nitrogen (~20 minutes).
-
-DISCUSSION: the speed at which ammonia labeling happens hints at a high flux, low concentration ammonia cycle in the surface ocean since uptake was too fast and too widespread to be a transcriptional response, indicating that they have ammonia transporters plus GS/GOGAT/GDH always active.
-
-Synthesis rates, especially for betaines?
-
-Aspartate labeled faster than glutamate - discuss pool sizes
-
-Slow labeling of osmolytes - discuss pool sizes
-
-```{r fig small heatmap compound groups}
-class_levels <- c("Glutamine", "Glutamic acid", "Aspartic acid", "Asparagine", "Other amino acids", "Theanine?", "Citrulline", "Ectoine", "Guanine", "Other nucleic acids", "MAAs", "Betaines", "All others")
-
-labeled_fracs %>%
-  left_join(parametadata %>% distinct(shortname, timepoint, timepoint_num, depth, startime, amendment)) %>%
-  filter(amendment=="Amm") %>%
-  mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
-  mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
-  mutate(compound_class=case_when(
-    compound_name%in%class_levels ~ compound_name,
-    compound_name%in%maa_names~"MAAs",
-    compound_name%in%aa_names~"Other amino acids",
-    compound_name%in%nucleo_names~"Other nucleic acids",
-    compound_name%in%betaine_names~"Betaines",
-    TRUE~"All others"
-  )) %>%
-  mutate(compound_class=factor(compound_class, levels=class_levels)) %>%
-  summarise(avg_frac=mean(labeled_frac), .by = c(compound_class, timepoint_num, startime, depth)) %>%
-  mutate(color_group=paste(depth, startime)) %>%
-  ggplot(aes(x=timepoint_num, y=avg_frac, color=color_group, fill=color_group)) +
-  geom_smooth(method = "glm", formula = y~x, method.args = list(family = "quasibinomial"),
-              fill="grey80") +
-  geom_point(pch=21, color="black") +
-  facet_wrap(~compound_class, ncol=5) +
-  scale_y_continuous(labels = scales::label_percent(), breaks = c(0, 0.5, 1)) +
-  scale_x_continuous(breaks = c(0.3, 1, 3, 10, 26), labels = c(0.3, 1, 3, 10, 26)) +
-  scale_color_manual(breaks = c("Surf Morn", "Surf Eve", "Deep Morn", "Deep Eve"),
-                     values = c("#FFD53D", "#DBA20A", "#256A76", "#003743")) +
-  scale_fill_manual(breaks = c("Surf Morn", "Surf Eve", "Deep Morn", "Deep Eve"),
-                     values = c("#FFD53D", "#DBA20A", "#256A76", "#003743")) +
-  labs(x="Hours after 15N added", y="Fraction of metabolite labeled", color=NULL) +
-  theme_bw() +
-  guides(color = guide_legend(nrow = 2, override.aes = list(linewidth=2)),
-         fill = "none") +
-  theme(legend.position = "inside",
-        legend.position.inside = c(0.8, 1/6),
-        legend.location = "plot")
-
-labeled_fracs %>%
+```{r}
+xamend_metab_gp <- labeled_fracs %>%
   left_join(parametadata %>% distinct(shortname, timepoint, timepoint_num, depth, startime, amendment, tripl)) %>%
-  filter(amendment=="Amm") %>%
-  mutate(depth=factor(depth, levels=c("Surf", "Deep"), labels=c("Surface seawater (25 meters)", "Seawater from below DCM (175m)"))) %>%
-  mutate(startime=factor(startime, levels=c("Morn", "Eve"), labels=c("6AM start", "6PM start"))) %>%
+  filter(depth=="Surf") %>%
   mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
   mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
   mutate(compound_class=case_when(
-    compound_name%in%c("Glutamine", "Aspartic acid", "Asparagine", "Glutamic acid", "Ectoine", "Theanine?", "Citrulline", "Guanine") ~ compound_name,
+    compound_name%in%c("Glutamine", "Aspartic acid", "Asparagine", "Glutamic acid", "Ectoine", "Theanine?", "Citrulline", "Guanine", "Guanosine", "Arginine") ~ compound_name,
     compound_name%in%maa_names~"MAAs",
     compound_name%in%aa_names~"Other amino acids",
     compound_name%in%nucleo_names~"Other nucleic acids",
@@ -230,11 +140,13 @@ labeled_fracs %>%
     TRUE~"All others"
   )) %>%
   mutate(compound_class=factor(compound_class, levels=class_levels)) %>%
-  summarise(avg_frac=mean(labeled_frac), .by = c(compound_class, timepoint, startime, depth, tripl)) %>%
+  summarise(avg_frac=mean(labeled_frac), .by = c(compound_class, amendment, timepoint, tripl)) %>%
+  mutate(amendment=factor(amendment, levels=c("Amm", "Nit", "Arg", "GMP"),
+                          labels=c("+Ammonia", "+Nitrate", "+Arginine", "+GMP"))) %>%
   ggplot() +
   geom_raster(aes(x=timepoint, y=tripl, fill=avg_frac)) +
   geom_vline(xintercept = c(1.5:4.5), color="grey80") +
-  facet_nested(compound_class~depth+startime, scales = "free_y", switch="y") +
+  facet_nested(compound_class~amendment, scales = "free_x", switch="y") +
   scale_fill_gradientn(colours = viridis::viridis(10, alpha = seq(0, 1, length.out=10), direction = -1),
                        limits=c(0, 1), breaks=c(0, 0.25, 0.5, 0.75, 1),
                        labels=c("Fully unlabeled", "", "50% labeled", "", "Fully labeled")) +
@@ -244,6 +156,7 @@ labeled_fracs %>%
   theme_bw() +
   theme(panel.spacing.x=unit(0.5, "lines"), 
         panel.spacing.y = unit(0, "lines"),
+        axis.text.x = element_text(angle=90, hjust=1, vjust=0.5),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
         strip.text.y.left = element_text(angle=0, hjust = 1),
@@ -259,18 +172,167 @@ labeled_fracs %>%
       legend.text = ggtext::element_markdown(hjust=c(0, 0, 0.5, 1, 1)))
     )
   )
-
-ggsave(filename = "grouped_heatmap.png", device = "png", path = "manuscript/figures",
-       width = 6.5, height = 4, units = "in", dpi = 300)
+ggsave("xamend_thaa_gp.png",plot = xamend_metab_gp, device = "png", path = "figures",
+       width = 6.5, height = 5.5, units = "in", dpi = 300)
 ```
 
-![](figures/grouped_heatmap.png)
+![](figures/xamend_thaa_gp.png)
 
-*Figure XX: Fraction of each metabolite or metabolite group containing at least one 15N label during the treatments amended with 15N ammonia after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the compound signal was isotopically labeled. Separate incubations were started at 6AM and 6PM with water from both 25 meters and 175 meters near Station ALOHA. Three biological replicates are stacked vertically at each timepoint.*
+*Figure 1: Fraction of each metabolite or metabolite group containing at least one 15N label during the surface seawater amended various substrates after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the compound signal was isotopically labeled. Three biological replicates are stacked vertically at each timepoint and the categories with multiple entries have been averaged. MAA = mycosporine-like amino acids, GMP = guanosine monophosphate.*
 
-Same basic pattern in the evening except MAAs, guanosine, proline?
+  - Ammonia
+    - Really rapid labeling of glutamine/glutamate that aligns nicely with prior work
+      - Aspartate labeled faster than glutamate likely due to small aspartate pool size
+    - Surprisingly rapid labeling of citrulline that isn't reflected in arginine
+      - Pool size problem (arginine >> citrulline)?
+      - Indicates that urea cycle is only half-active?
+    - Putative annotation of theanine based on labeling patterns
+    - Rapid and heavy guanine labeling
+      - Potentially being used as a storage compound
+    - 10-40% of the N in the THAA (protein) pool ends up labeled by T26 (below)
+      - THAAs were 30-50% of total PC (~2 uM, need actual data) and 70-100% PN (~0.35uM)
+  - Nitrate
+    - Very little labeling, even in glutamate/glutamine
+      - Surface community not "expecting" nitrate?
+      - Redox problems with surface energy?
+    - Guanine and MAA labeling exceeds glutamate labeling
+      - Clear sign of a community *subset* using nitrate
+        - Specifically the MAA synthesizers (euks) and those storing N in guanine (diatoms/haptos/dinos)
+    - More extensive labeling (10-50% of the N) in the THAAs
+      - Must be a really high flux through a small AA pool subset, e.g. euks specifically
+  - Arginine
+    - Clear uptake at T0 (20 minutes), 80-90% of the pool taken up at T10
+      - Labeling signal decreases after 24 hours
+    - Label obviously making it into citrulline so urea cycle is active
+      - Don't really have good enough urea data to see labeling change there?
+    - Big jump in labeling of other metabolites at T26 not seen at T10
+      - No hypotheses why this is happening but it occurs in both morn/eve so not light signal
+    - Maybe less storage in guanine specifically, labeling is on par with other NAs unlike ammonia
+    - THAAs show clear usage of arginine in proteins
+      - 30-50% arg in THAAs labeled @73hrs
+      - Clear reuse of arginine backbone as glutamate (fully labeled glutamate) and maybe proline?
+  - Guanosine monophosphate
+    - Unable to measure GMP well enough directly?
+    - Guanosine labeling visible at T3, definitely T10, maybe some decrease at T73 like Arg?
+      - Guanosine pool never gets super heavily labeled
+    - Has a VERY similar pattern to arginine
+      - Also a big jump at T26 with basically no labeling at T10
+      - Implies mostly converted into ammonia as well and used that way
+    - Reuse of carbon backbone for THAAs though
+      - Histidine 13C5, 15N3
+      - Tyrosine 13C4, 15N1
+      - Phenylalanine 13C4, 15N1
 
-```{r fig MAA labeling patterns}
+```{r thaa data}
+thaa_quant <- read_csv("quant_data.csv")
+metathaa <- read_csv("metathaa.csv") %>%
+  mutate(depth=factor(depth, levels=c("Surf", "Deep"))) %>%
+  mutate(startime=factor(startime, levels=c("Morn", "Eve")))
+
+all_thaa_plot <- thaa_quant %>%
+  filter(!str_detect(iso_name, "2H")) %>%
+  left_join(metathaa) %>%
+  filter(samp_type=="Smp") %>%
+  left_join(aa_ncs) %>%
+  select(filename, compound_name, iso_name, env_conc_nm, n_C, n_N) %>%
+  mutate(n_N_lab=as.numeric(str_extract(iso_name, "(?<=15N)\\d+"))) %>%
+  mutate(n_N_unlab=n_N-n_N_lab) %>%
+  mutate(nM_N_lab=env_conc_nm*n_N_lab, nM_N_unlab=env_conc_nm*n_N_unlab) %>%
+  select(filename, compound_name, iso_name, nM_N_lab, nM_N_unlab) %>%
+  pivot_longer(c(nM_N_lab, nM_N_unlab)) %>%
+  summarise(total_uM=sum(value)/1000, .by=c(filename, name)) %>%
+  left_join(metathaa) %>%
+  mutate(amendment=ifelse(timepoint=="T0", "T0", amendment)) %>%
+  mutate(amendment=factor(amendment, levels = c("T0", "Amm", "Nit", "Arg", "GMP"),
+                          labels=c("Initial", "+Ammonia", "+Nitrate", "+Arginine", "+GMP"))) %>%
+  summarise(total_uM=mean(total_uM), .by=c(amendment, timepoint, name)) %>%
+  mutate(name=factor(name, levels=c("nM_N_unlab", "nM_N_lab"), labels = c("Unlabeled", "Labeled"))) %>%
+  ggplot(aes(x=amendment, y=total_uM, fill=name)) +
+  geom_col(color="black", width=1) +
+  theme_bw() +
+  scale_x_discrete(expand = expansion()) +
+  scale_y_continuous(expand = expansion(mult=c(0, 0.05))) +
+  scale_fill_manual(breaks = c("Unlabeled", "Labeled"), values=c("grey80", "grey20")) +
+  labs(x=NULL, y="Total uM N in THAAs", fill=NULL)
+
+plot_iso_levels <- c(
+  "Unlabeled", 
+  "<sup>15</sup>N<sub>1</sub>", 
+  "<sup>15</sup>N<sub>2</sub>", 
+  "<sup>15</sup>N<sub>3</sub>", 
+  "Entirely <sup>15</sup>N",
+  "<sup>13</sup>C<sub>1</sub>", 
+  "<sup>13</sup>C<sub>1</sub><sup>15</sup>N<sub>1</sub>",
+  "<sup>13</sup>C<sub>4</sub><sup>15</sup>N<sub>1</sub>", 
+  "<sup>13</sup>C<sub>5</sub><sup>15</sup>N<sub>3</sub>",
+  "Entirely <sup>13</sup>C<br>and <sup>15</sup>N", 
+  "Other labels")
+plot_iso_colors <- c(
+  "grey80",
+  "#e0ecf6",
+  "#97bfe0",
+  "#377EB8",
+  "#285b84",
+  "#ffb4b5",
+  "#d7b6dc",
+  "#FFFF33",
+  "#4DAF4A",
+  "#984EA3",
+  "grey20"
+)
+# "#E41A1C" "#377EB8" "#4DAF4A" "#984EA3" "#FF7F00" "#FFFF33" "#A65628" "#F781BF" "#999999"
+thaa_plot_data <- thaa_quant %>%
+  left_join(metathaa) %>%
+  filter(samp_type=="Smp") %>%
+  mutate(amendment=ifelse(timepoint=="T0", "T0", amendment)) %>%
+  summarise(avg_env_conc_nm=mean(env_conc_nm, na.rm=TRUE), .by=c(compound_name, iso_name, amendment, timepoint)) %>%
+  filter(compound_name%in%c("Glutamic acid", "Arginine", "Histidine", "Phenylalanine")) %>%
+  mutate(compound_name=ifelse(compound_name=="Glutamic acid", "Glutamine + Glutamate", compound_name)) %>%
+  mutate(plot_iso_name=case_when(
+    str_detect(iso_name, "13C0, 15N0")~"Unlabeled",
+    str_detect(iso_name, "13C0, 15N1")~"<sup>15</sup>N<sub>1</sub>",
+    str_detect(iso_name, "13C0, 15N2")~"<sup>15</sup>N<sub>2</sub>",
+    str_detect(iso_name, "Histidine, 13C0, 15N3")~"Entirely <sup>15</sup>N",
+    str_detect(iso_name, "13C0, 15N3")~"<sup>15</sup>N<sub>3</sub>",
+    str_detect(iso_name, "Arginine, 13C0, 15N4")~"Entirely <sup>15</sup>N",
+    str_detect(iso_name, "13C1, 15N0")~"<sup>13</sup>C<sub>1</sub>",
+    str_detect(iso_name, "13C1, 15N1")~"<sup>13</sup>C<sub>1</sub><sup>15</sup>N<sub>1</sub>",
+    str_detect(iso_name, "Glutamic acid, 13C5, 15N1")~"Entirely <sup>13</sup>C and <sup>15</sup>N",
+    str_detect(iso_name, "Arginine, 13C6, 15N4")~"Entirely <sup>13</sup>C<br>and <sup>15</sup>N",
+    iso_name=="Phenylalanine, 13C4, 15N1"~"<sup>13</sup>C<sub>4</sub><sup>15</sup>N<sub>1</sub>",
+    iso_name=="Histidine, 13C5, 15N3"~"<sup>13</sup>C<sub>5</sub><sup>15</sup>N<sub>3</sub>",
+    TRUE~"Other labels"
+  )) %>%
+  mutate(plot_iso_name=factor(plot_iso_name, levels=plot_iso_levels)) %>%
+  mutate(amendment=factor(amendment, levels = c("T0", "Amm", "Nit", "Arg", "GMP")))
+arg_glut_thaa_plot <- ggplot(thaa_plot_data) +
+  geom_col(aes(x=amendment, y=avg_env_conc_nm, fill=plot_iso_name, label=iso_name),
+           position="fill",
+           color="black", width=1) +
+  facet_wrap(~compound_name) +
+  theme_bw() +
+  scale_x_discrete(expand = expansion()) +
+  scale_y_continuous(labels=scales::label_percent(), breaks=c(0, 0.5, 1),
+                     expand = expansion()) +
+  scale_fill_manual(breaks = plot_iso_levels, values = plot_iso_colors) +
+  labs(x=NULL, y="Fraction of THAA labeled", fill=NULL) +
+  theme(
+    # axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5),
+    legend.text = element_markdown()
+  )
+total_thaa_gp <- all_thaa_plot / arg_glut_thaa_plot + plot_layout(heights = c(0.3, 0.7))
+total_thaa_gp
+ggsave("total_thaa_gp.png", total_thaa_gp, device = "png", path = "figures",
+       width = 6.5, height = 5, units = "in", dpi = 300)
+```
+
+![](figures/total_thaa_gp.png)
+
+*Figure 2: Stacked bar plots showing the fraction of various total hydrolyzable amino acids (THAAs) labeled at the end of the incubations across the four amendments. Total uM nitrogen (N) in the protein pool is shown in the top plot while the fraction of individual amino acids labeled is shown in the rows below. Colors denote specific labeling patterns detected in the THAAs.*
+
+## Minimal diel signal observed except in the UV-reactive mycosporine-like amino acids
+
+```{r fig MAA labeling new}
 chosen_maas <- c("Mycosporine-glycine?", "Shinorine?", "Palythine?",
                  "Palythene/Usujirene?", "Also Palythene/Usujirene?", 
                  "Also Porphyra-334?")
@@ -328,363 +390,167 @@ labeled_fracs %>%
         legend.background = element_rect(fill="#FFFFFFAA", color="black", linewidth = 0)) +
   guides(shape=guide_legend(override.aes = list(size=3, stroke=1.2, alpha=1, linetype=0)))
 
-ggsave(filename = "MAA_curves.png", device = "png", path = "manuscript/figures",
+ggsave(filename = "MAA_curves.png", device = "png", path = "figures",
        width = 3, height = 6, units = "in", dpi = 300)
 ```
 
 ![](figures/MAA_curves.png)
 
-*Figure XX: Fraction of UV-reactive mycosporine-like amino acids (MAAs) containing at least one 15N label over one day during the treatments amended with 15N labeled ammonia or nitrate. Incubations started at 6AM are shown in yellow while incubations started at 6PM are shown in blue, with grey background regions highlighting nighttime. Three replicates are included at each of the 5 timepoints and best-fit power law curves have been fit behind the data.*
+*Figure 3: Fraction of UV-reactive mycosporine-like amino acids (MAAs) containing at least one 15N label over one day during the treatments amended with 15N labeled ammonia or nitrate. Incubations started at 6AM are shown in yellow while incubations started at 6PM are shown in blue, with grey background regions highlighting nighttime. Three replicates are included at each of the 5 timepoints and best-fit power law curves have been fit behind the data.*
 
-Deep labeling is slower and much more limited for ammonia
+  - MAAs clearly show daytime synthesis during the day and not at night
+    - Very clear in +Ammonia, less so in +Nitrate
+    - Need to show this statistically somehow?
+  - High levels of labeling despite minimal glycine labeling and synthesis being 4DG+Gly for these
+  - Putative annotations based on labeling pattern (and only found at surface)
+    - Maybe also can do a search for fragments
 
-  - Asp/Asn especially
-  - Ectoine major exception (ref mcparland for bacterial signal)
+```{r}
+peak_areas %>%
+  filter(compound_name%in%chosen_maas) %>%
+  # filter(compound_name%in%maa_names) %>%
+  # filter(compound_name=="Shinorine?") %>%
+  left_join(parametadata, relationship = "many-to-many") %>%
+  filter(amendment%in%c("Nit", "Amm")) %>%
+  filter(depth=="Surf") %>%
+  mutate(n_N_lab=str_extract(iso_name, "(?<=15N)\\d+")) %>%
+  ggplot() +
+  geom_col(aes(x=tripl, y=area, fill=n_N_lab), color="black", width=1) +
+  facet_nested(compound_name~amendment+startime+timepoint, scales="free_y") +
+  theme_bw()
+```
 
-Nitrate surface morning surprisingly limited
-
-  - "out of order" labeling in MAAs and guanine, maybe also arginine, taurine, NAc-lysine, maybe maybe theanine being unlabeled because it would mean diatoms don’t make it
-
-Organic compounds equally bioavailable at surface and deep and used very similarly to each other
-
-  - Exceptions: guanosine (not guanine!) for GMP amendments
-  - Exceptions: arginine, citrulline, maybe ornithine for Arg (signal goes away after a while and unclear why??)
-
-Organics seem to be largely used for ammonia rather than as-is
-
-  - Carbon backbone traced into glutamate from arginine
-  - Carbon backbone traced into other nucleobases from GMP
-  - Possibly due to way too much of a given compound, useless to have that much Arg/GMP
-  - Not very much fully-labeled guanine despite guanosine being easily cleavable, instead it’s mostly made from scratch (CHECK THIS)
-  - Creatine for being mostly 2x15N 1x13C labeled from arginine (CHECK THIS)
+## Inorganics more bioavailable at surface, organics equally bioavailable at 25m and 175m
 
 ```{r fig surface vs deep labeling rates}
-labeled_fracs %>%
+surfdeep_demo_cmpd_gp <- labeled_fracs %>%
+  mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
+  mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
+  mutate(compound_class=case_when(
+    compound_name%in%c("Glutamine", "Aspartic acid", "Asparagine", "Glutamic acid", "Ectoine", "Theanine?", "Citrulline", "Guanine", "Guanosine", "Arginine") ~ compound_name,
+    compound_name%in%aa_names~"Other amino acids",
+    compound_name%in%nucleo_names~"Other nucleic acids",
+    compound_name%in%betaine_names~"Betaines",
+    TRUE~"All others"
+  )) %>%
+  mutate(compound_class=factor(compound_class, levels=setdiff(class_levels, "MAAs"))) %>%
+  left_join(parametadata %>% distinct(shortname, timepoint_num, depth, startime, amendment, tripl)) %>%
+  filter(compound_name=="Glutamic acid" & amendment=="Amm" |
+           compound_name=="Arginine" & amendment=="Arg" |
+           compound_name=="Guanosine" & amendment=="GMP") %>%
+  mutate(timepoint_num=ifelse(timepoint_num==0, 0.3, timepoint_num)) %>%
+  mutate(amendment=factor(amendment, levels=c("Amm", "Arg", "GMP"),
+                          labels=c("+Ammonia", "+Arginine", "+GMP"))) %>%
+  select(-shortname) %>%
+  summarise(mean_label=mean(labeled_frac), .by=c(compound_class, amendment, timepoint_num, depth)) %>%
+  pivot_wider(names_from=depth, values_from=mean_label) %>%
+  ggplot(aes(x=timepoint_num, color=compound_class, shape=compound_class)) +
+  geom_segment(aes(xend=timepoint_num, y=Surf, yend=Deep), lwd=1) +
+  geom_point(aes(y=Surf), fill="grey80", size=3, stroke=1) +
+  geom_point(aes(y=Deep), fill="grey20", size=3, stroke=1) +
+  stat_summary(aes(y=Surf, label=paste0(round(Surf-Deep, 2)*100, "%"), vjust=-sign(Surf-Deep)*1.5+0.75), 
+               geom = "text", fun = mean) +
+  facet_wrap(~amendment, nrow=1) +
+  scale_color_discrete(drop=FALSE) +
+  scale_x_log10(breaks=c(0.3, 3, 30), labels=c("0.3", "3", "30"), expand=expansion(0.15)) +
+  scale_y_continuous(labels=scales::label_percent(), expand=expansion(mult=c(0, 0.1)),
+                     breaks=c(0, 0.5, 1), limits = c(0, 1)) +
+  scale_shape_manual(breaks=c("Glutamic acid", "Arginine", "Guanosine"), values=c(22, 25, 21)) +
+  labs(x="Hours after <sup>15</sup>N spike", color=NULL, fill=NULL, shape=NULL,
+       y="Percent metabolite\nlabeled") +
+  theme_bw() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    legend.position = "none"
+  )
+
+surfdeep_all_cmpd_gp <- labeled_fracs %>%
+  left_join(parametadata %>% distinct(shortname, timepoint_num, depth, startime, amendment, tripl)) %>%
   filter(!compound_name%in%maa_names) %>%
-  left_join(distinct(parametadata, shortname, amendment, depth, timepoint_num)) %>%
+  mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
+  mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
+  mutate(compound_class=case_when(
+    compound_name%in%c("Glutamine", "Aspartic acid", "Asparagine", "Glutamic acid", "Ectoine", "Theanine?", "Citrulline", "Guanine", "Guanosine", "Arginine") ~ compound_name,
+    compound_name%in%aa_names~"Other amino acids",
+    compound_name%in%nucleo_names~"Other nucleic acids",
+    compound_name%in%betaine_names~"Betaines",
+    TRUE~"All others"
+  )) %>%
+  mutate(compound_class=factor(compound_class, levels=class_levels)) %>%
+  summarise(avg_frac=mean(labeled_frac), .by = c(compound_class, amendment, timepoint_num, depth, tripl)) %>%
   filter(amendment!="Nit") %>%
-  summarise(avg_label=mean(labeled_frac), .by=c(compound_name, amendment, depth, timepoint_num)) %>%
+  summarise(avg_label=mean(avg_frac), .by=c(compound_class, amendment, depth, timepoint_num)) %>%
   pivot_wider(names_from = depth, values_from=avg_label) %>%
   mutate(timepoint_num=ifelse(timepoint_num==0, 0.3, timepoint_num)) %>%
-  ggplot(aes(x=timepoint_num, y=Surf-Deep, color=compound_name, group=compound_name)) +
+  mutate(amendment=factor(amendment, levels=c("Amm", "Arg", "GMP"),
+                          labels=c("+Ammonia", "+Arginine", "+GMP"))) %>%
+  ggplot(aes(x=timepoint_num, y=Surf-Deep, color=compound_class, 
+             fill=compound_class, shape=compound_class)) +
+  geom_line(lwd=0.8) +
+  geom_point(color="black", size=3) +
   geom_hline(yintercept = 0) +
-  geom_line() +
-  geom_point() +
   facet_wrap(~amendment, nrow=1) +
-  scale_x_log10() +
+  scale_x_log10(breaks=c(0.3, 3, 30), labels=c("0.3", "3", "30"), expand=expansion(0.15)) +
+  scale_y_continuous(labels=scales::label_percent()) +
+  scale_shape_manual(breaks=setdiff(class_levels, "MAAs"), values = rep(21:25, length.out=14)) +
+  labs(x="Hours after <sup>15</sup>N spike", color=NULL, fill=NULL, shape=NULL,
+       y="Percent metabolite labeled at 25m\nminus percent labeled at 175m") +
   theme_bw() +
-  theme(legend.position = "none")
-ggsave(filename = "deep_vs_surf_labeling.png", device = "png", path = "manuscript/figures",
-       width = 6.5, height = 4, units = "in", dpi = 300)
+  theme(
+    # axis.title.x = element_markdown(),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    strip.text = element_blank(),
+    strip.background = element_blank()
+  )
+
+
+surfdeep_all_cmpd_boxplot_gp <- labeled_fracs %>%
+  left_join(parametadata %>% distinct(shortname, timepoint_num, depth, startime, amendment, tripl)) %>%
+  filter(!compound_name%in%maa_names) %>%
+  filter(amendment!="Nit") %>%
+  mutate(timepoint_num=ifelse(timepoint_num==0, 0.3, timepoint_num)) %>%
+  summarise(labeled_frac=mean(labeled_frac), .by=c(timepoint_num, compound_name, depth, amendment)) %>%
+  ggplot(aes(x=timepoint_num, y=labeled_frac, group=interaction(timepoint_num, depth), fill=depth)) +
+  geom_boxplot(color="black", outlier.shape=21) +
+  facet_wrap(~amendment, nrow=1) +
+  scale_x_log10(breaks=c(0.3, 3, 30), labels=c("0.3", "3", "30"), expand=expansion(0.15/2)) +
+  scale_y_continuous(labels = scales::label_percent(), breaks=c(0, 0.5, 1)) +
+  scale_fill_manual(breaks=c("Surf", "Deep"), values=c("grey90", "grey30"), labels=c("25 meters", "175 meters")) +
+  labs(x="Hours after <sup>15</sup>N spike", color=NULL, fill=NULL, shape=NULL,
+       y="Percent metabolite\nlabeled") +
+  theme_bw() +
+  theme(
+    axis.title.x = element_markdown(),
+    strip.text = element_blank(),
+    strip.background = element_blank()
+  )
+
+
+surfdeep_gp <- surfdeep_demo_cmpd_gp / surfdeep_all_cmpd_gp / surfdeep_all_cmpd_boxplot_gp + plot_layout(guides = "collect", heights = c(0.3, 0.5, 0.2))
+
+ggsave(filename = "deep_vs_surf_labeling.png", surfdeep_gp, device = "png", path = "figures",
+       width = 6.5, height = 6.5, units = "in", dpi = 300)
 ```
 
 ![](figures/deep_vs_surf_labeling.png)
 
-*Figure XX: Line plots of the metabolite fraction labeled at the surface (25 meters) minus the fraction labeled at 175 meters. Incubations with added ammonia, arginine, and guanosine monophosphate (GMP) are shown. Points are the average of six biological replicates (incubations started in the morning and the evening are combined for additional power) and colors have been added solely for disambiguating purposes. Positive values indicate increased synthesis in the surface samples relative to those at depth.*
+*Figure 4: Plots of the metabolite fraction labeled at the surface (25 meters) and the fraction labeled at 175 meters. Incubations with added ammonia, arginine, and guanosine monophosphate (GMP) are shown. Top row of plots show the calculation of % labeled at 25 meters minus % labeled at 175 meters for three example compounds. All compounds are shown in the middle row of plots, grouped by chemical similarity and labeling pattern where positive values indicate increased synthesis in the surface samples relative to those at depth. Finally, the bottom row of plots shows the relative difference between the surface and deep as boxplots for all compounds without aggregating. Points in the first two rows are the average of six biological replicates (incubations started in the morning and the evening are combined here for additional power) while points in the bottom row denote metabolites with labeled fractions falling outside 1.5 times the interquartile range.*
 
-```{r regression attempts currently failing, eval=FALSE}
-labeled_fracs %>%
-  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
-  filter(compound_name=="Creatinine") %>%
-  filter(amendment=="GMP") %>%
-  mutate(timepoint_num=ifelse(timepoint_num==0, 0.3, timepoint_num)) %>%
-  ggplot(aes(x=timepoint_num, y=labeled_frac, color=startime)) +
-  geom_point() +
-  geom_smooth(method=glm, formula=y~x, method.args=list(family=quasibinomial)) +
-  facet_wrap(~depth, ncol=1)
+  - Ammonia incubations result in much faster labeling at 25 meters than 175m
+    - Presumed to be a phototrophic signal
+    - Major exception is ectoine, a bacterial biosignal (McParland 2021)
+  - Organic N incubations result in equal amounts of labeling at surface and depth
+    - Ectoine again predominantly labeled at depth
+    - Labeling of guanosine at T0 in the +GMP treatment implies rapid uptake and P-cleavage
+  - Nitrate data unavailable due to T10 and T26 deep samples contaminated
+    - See supplemental figure 1 for the data anyway
 
-reg_data <- labeled_fracs %>%
-  filter(!compound_name%in%maa_names) %>%
-  left_join(distinct(parametadata, shortname, amendment, depth, timepoint_num)) %>%
-  mutate(max_frac=max(labeled_frac[timepoint_num==max(timepoint_num)]), .by=c(amendment, compound_name, depth)) %>%
-  mutate(t10_labfrac = mean(labeled_frac[timepoint_num==sort(unique(timepoint_num))[4]]), .by=c(amendment, compound_name, depth))
+## Other results from untargeted analysis
 
-reg_data %>%
-  distinct(compound_name, amendment, depth, max_frac, t10_labfrac) %>%
-  mutate(category=ifelse(max_frac < 0.1, "Unlabeled", "Good")) %>%
-  mutate(category=ifelse(t10_labfrac <= 0, "Only T26 labeled", category)) %>%
-  mutate(category=ifelse(is.na(category), "DMSOP (unlabeled)", category)) %>%
-  count(amendment, category, depth) %>%
-  print(n=Inf)
+Upcoming.
 
-reg_fits <- reg_data %>%
-  filter(max_frac>0.1) %>%
-  filter(t10_labfrac>0) %>%
-  filter(compound_name!="Betonicine") %>%
-  filter(compound_name!="Arsenobetaine") %>%
-  filter(compound_name!="Gonyol") %>%
-  mutate(timepoint_num=ifelse(timepoint_num==0, 0.3, timepoint_num)) %>%
-  nest(data=c(shortname, timepoint_num, labeled_frac)) %>%
-  mutate(log_fit=map(data, ~glm(.x$labeled_frac~.x$timepoint_num, family="quasibinomial")),
-         coefs=map(log_fit, function(x)broom::tidy(x))) %>%
-  unnest(coefs) %>%
-  mutate(p_adj=p.adjust(p.value, method = "fdr"), .by = term) %>%
-  filter(p_adj<0.001) %>%
-  select(compound_name, amendment, depth, term, estimate) %>%
-  pivot_wider(names_from = term, values_from = estimate) %>%
-  rename(intercept=`(Intercept)`, slope=`.x$timepoint_num`) %>%
-  mutate(half_max=-intercept/slope, scale=1/slope) %>%
-  mutate(frac_at_T24 = 1/(1+exp(-(intercept+slope*24))))
-# reg_fits %>%
-#   select(compound_name, amendment, depth, intercept, slope) %>%
-#   pivot_longer(intercept:slope) %>%
-#   ggplot(aes(x=depth, y=value)) +
-#   geom_boxplot() +
-#   facet_grid(name~amendment, scales="free_y")
-# reg_fits %>%
-#   select(compound_name, amendment, depth, intercept, slope) %>%
-#   pivot_longer(intercept:slope) %>%
-#   pivot_wider(names_from=depth) %>%
-#   filter(!is.na(Deep)) %>%
-#   nest(data=c(compound_name, Surf, Deep)) %>%
-#   mutate(test=map(data, ~broom::tidy(t.test(.x$Surf, .x$Deep, paired=TRUE)))) %>%
-#   unnest(test)
-# labeled_fracs %>%
-#   left_join(parametadata %>% distinct(shortname, amendment, depth, timepoint_num)) %>%
-#   filter(timepoint_num==max(timepoint_num), .by=amendment) %>%
-#   summarise(avg_Tf_label=mean(labeled_frac), .by=c(compound_name, amendment, depth)) %>%
-#   ggplot() +
-#   geom_boxplot(aes(x=amendment, y=avg_Tf_label, color=depth))
-# 
-# labeled_fracs %>%
-#   left_join(parametadata %>% distinct(shortname, amendment, depth, timepoint_num)) %>%
-#   filter(timepoint_num==max(timepoint_num), .by=amendment) %>%
-#   summarise(avg_Tf_label=mean(labeled_frac), .by=c(compound_name, amendment, depth)) %>%
-#   pivot_wider(names_from=depth, values_from=avg_Tf_label) %>%
-#   ggplot() +
-#   geom_segment(aes(y=Surf, yend=Deep), x=1, xend=2) +
-#   facet_wrap(~amendment, nrow=1)
-# reg_fits %>%
-#   ggplot() +
-#   geom_segment(aes(y=frac_at_T24_Surf, yend=frac_at_T24_Deep,
-#                    x=half_max_Surf, xend=half_max_Deep, color=compound_name),
-#                data = reg_fits %>%
-#                  select(compound_name, depth, half_max, frac_at_T24) %>% 
-#                  pivot_wider(names_from = depth, values_from=c(half_max, frac_at_T24)) %>%
-#                  filter(!is.na(half_max_Deep))) +
-#   geom_point(aes(x=half_max, y=frac_at_T24, fill=depth), pch=21) +
-#   scale_fill_manual(values=c("black", "white"), breaks=c("Deep", "Surf"))
-
-reg_fits %>%
-  filter(amendment!="Nit") %>%
-  ggplot() +
-  geom_segment(aes(y=frac_at_T24_Surf, yend=frac_at_T24_Deep,
-                   x=half_max_Surf, xend=half_max_Deep, color=compound_name),
-               data = reg_fits %>%
-                 select(compound_name, amendment, depth, half_max, frac_at_T24) %>% 
-                 pivot_wider(names_from = depth, values_from=c(half_max, frac_at_T24)) %>%
-                 filter(!is.na(half_max_Deep))) +
-  geom_point(aes(x=half_max, y=frac_at_T24, fill=depth, label=compound_name), pch=21) +
-  scale_fill_manual(values=c("black", "white"), breaks=c("Deep", "Surf")) +
-  facet_wrap(~amendment, scales="free_x") +
-  theme(legend.position = "none")
-```
-
-## Rapid uptake and use of all N substrates
-
-Total fraction of PN that was visible in metabolites
-
-```{r}
-env_concs <- read_csv("targeted/final_env_concs.csv")
-
-# More compounds, triplicates shown
-env_concs %>%
-  mutate(mean_nm=mean(conc_nm_in_env), .by=compound_name) %>%
-  filter(!compound_name%in%c("Thymine", "Thymidine")) %>%
-  arrange(desc(mean_nm)) %>%
-  mutate(compound_name=ifelse(compound_name=="L-Glutamic acid/beta-Glutamic acid", "Glutamate", compound_name)) %>%
-  mutate(compound_name=ifelse(compound_name%in%unique(compound_name)[1:19], compound_name, "Other")) %>%
-  mutate(compound_name=fct_inorder(compound_name)) %>%
-  summarise(conc_nm=sum(conc_nm_in_env), .by=c(compound_name, filename)) %>%
-  left_join(parametadata) %>%
-  ggplot(aes(x=tripl, y=conc_nm, fill=compound_name)) +
-  geom_col(color="black", width=1) +
-  facet_nested(depth+startime~amendment+timepoint, switch="x") +
-  scale_y_continuous(expand=expansion(mult=c(0, 0.1))) +
-  scale_fill_manual(values = c(splividis(19), "grey")) +
-  labs(x=NULL, y="Unlabeled concentrations (nM)", fill=NULL) +
-  theme_bw() +
-  theme(
-    panel.spacing.x = unit(0, "lines"),
-    axis.text.x = element_blank(),
-    axis.ticks.x = element_blank()
-  )
-
-# Summarized version
-env_concs %>%
-  mutate(mean_nm=mean(conc_nm_in_env), .by=compound_name) %>%
-  filter(!compound_name%in%c("Thymine", "Thymidine")) %>%
-  arrange(desc(mean_nm)) %>%
-  mutate(compound_name=ifelse(compound_name=="L-Glutamic acid/beta-Glutamic acid", 
-                              "Glutamate", compound_name)) %>%
-  mutate(compound_name=str_remove_all(compound_name, "^L-|(?<=/)L-")) %>%
-  mutate(compound_name=ifelse(compound_name%in%unique(compound_name)[1:9], 
-                              compound_name, "Other")) %>%
-  mutate(compound_name=fct_inorder(compound_name)) %>%
-  summarise(conc_nm=sum(conc_nm_in_env), .by=c(compound_name, filename)) %>%
-  left_join(parametadata) %>%
-  summarise(conc_nm=mean(conc_nm), .by=c(compound_name, amendment, depth, timepoint)) %>%
-  ggplot(aes(x=timepoint, y=conc_nm, fill=compound_name)) +
-  geom_col(color="black", width=1) +
-  facet_grid(depth~amendment, scales="free") +
-  scale_y_continuous(expand=expansion(mult=c(0, 0.1))) +
-  scale_fill_manual(values = c(splividis(9), "grey")) +
-  labs(x=NULL, y="Unlabeled concentrations (nM)", fill=NULL) +
-  theme_bw()
-
-# In N moles
-env_concs %>%
-  left_join(stan_patched %>% distinct(compound_name, n_N)) %>%
-  mutate(nM_N=conc_nm_in_env*n_N) %>%
-  mutate(mean_nm=mean(nM_N), .by=compound_name) %>%
-  filter(!compound_name%in%c("Thymine", "Thymidine")) %>%
-  arrange(desc(mean_nm)) %>%
-  mutate(compound_name=ifelse(compound_name=="L-Glutamic acid/beta-Glutamic acid", 
-                              "Glutamate", compound_name)) %>%
-  mutate(compound_name=str_remove_all(compound_name, "^L-|(?<=/)L-")) %>%
-  mutate(compound_name=ifelse(compound_name%in%unique(compound_name)[1:9], 
-                              compound_name, "Other")) %>%
-  mutate(compound_name=fct_inorder(compound_name)) %>%
-  summarise(conc_nm=sum(nM_N), .by=c(compound_name, filename)) %>%
-  left_join(parametadata) %>%
-  summarise(conc_nm=mean(conc_nm), .by=c(compound_name, amendment, depth, timepoint)) %>%
-  ggplot(aes(x=timepoint, y=conc_nm, fill=compound_name)) +
-  geom_col(color="black", width=1) +
-  facet_grid(depth~amendment, scales="free") +
-  scale_y_continuous(expand=expansion(mult=c(0, 0.1))) +
-  scale_fill_manual(values = c(splividis(9), "grey")) +
-  labs(x=NULL, y="Nitrogen in unlabeled metabolites (nM)", fill=NULL) +
-  theme_bw()
-```
-
-```{r}
-peak_areas %>%
-  filter(str_detect(iso_name, "13C0, 15N0")) %>%
-  filter(!compound_name%in%c("Urea", "L-Valine", "Oxalic acid", "Malic acid", 
-                             "Acetylcholine", "Homarine")) %>%
-  left_join(parametadata %>% distinct(filename, samp_type, amendment)) %>%
-  filter(samp_type=="Smp") %>%
-  left_join(read_csv("targeted/rf_df.csv")) %>%
-  mutate(conc_nm=area/rf) %>%
-  filter(!is.na(conc_nm)) %>%
-  mutate(mean_nm=mean(conc_nm), .by=compound_name) %>%
-  arrange(desc(mean_nm)) %>%
-  mutate(compound_name=ifelse(compound_name=="L-Glutamic acid/beta-Glutamic acid", 
-                              "Glutamate", compound_name)) %>%
-  mutate(compound_name=ifelse(compound_name%in%unique(compound_name)[1:19], 
-                              compound_name, "Other")) %>%
-  mutate(compound_name=fct_inorder(compound_name)) %>%
-  summarise(conc_nm=sum(conc_nm), .by=c(compound_name, filename)) %>%
-  left_join(parametadata) %>%
-  ggplot(aes(x=tripl, y=conc_nm, fill=compound_name)) +
-  geom_col(color="black", width=1) +
-  facet_nested(depth+startime~amendment+timepoint, switch="x") +
-  scale_y_continuous(expand=expansion(mult=c(0, 0.1))) +
-  scale_fill_manual(values = c(splividis(19), "grey")) +
-  labs(x=NULL, y="Unlabeled concentrations (nM)", fill=NULL) +
-  theme_bw() +
-  theme(
-    panel.spacing.x = unit(0, "lines"),
-    axis.text.x = element_blank(),
-    axis.ticks.x = element_blank()
-  )
-```
-
-## Labeling traced into protein via total hydrolyzable amino acids
-
-```{r thaa data}
-thaa_quant <- read_csv("thaas/quant_data.csv")
-metathaa <- read_csv("thaas/metathaa.csv") %>%
-  mutate(depth=factor(depth, levels=c("Surf", "Deep"))) %>%
-  mutate(startime=factor(startime, levels=c("Morn", "Eve")))
-
-all_thaa_plot <- thaa_quant %>%
-  filter(!str_detect(iso_name, "2H")) %>%
-  left_join(metathaa) %>%
-  filter(samp_type=="Smp") %>%
-  left_join(aa_ncs) %>%
-  select(filename, compound_name, iso_name, env_conc_nm, n_C, n_N) %>%
-  mutate(n_N_lab=as.numeric(str_extract(iso_name, "(?<=15N)\\d+"))) %>%
-  mutate(n_N_unlab=n_N-n_N_lab) %>%
-  mutate(nM_N_lab=env_conc_nm*n_N_lab, nM_N_unlab=env_conc_nm*n_N_unlab) %>%
-  select(filename, compound_name, iso_name, nM_N_lab, nM_N_unlab) %>%
-  pivot_longer(c(nM_N_lab, nM_N_unlab)) %>%
-  summarise(total_uM=sum(value)/1000, .by=c(filename, name)) %>%
-  left_join(metathaa) %>%
-  mutate(amendment=ifelse(timepoint=="T0", "T0", amendment)) %>%
-  mutate(amendment=factor(amendment, levels = c("T0", "Amm", "Nit", "Arg", "GMP"))) %>%
-  summarise(total_uM=mean(total_uM), .by=c(amendment, depth, startime, timepoint, name)) %>%
-  arrange(depth, startime) %>%
-  mutate(x_axis=paste(depth, startime)) %>%
-  mutate(x_axis=fct_inorder(x_axis)) %>%
-  ggplot(aes(x=x_axis, y=total_uM, fill=name)) +
-  geom_col(color="black", width=1) +
-  facet_nested(.~amendment, scales="free_y") +
-  theme_bw() +
-  scale_x_discrete(expand = expansion()) +
-  scale_y_continuous(expand = expansion(mult=c(0, 0.05))) +
-  scale_fill_manual(breaks = c("nM_N_unlab", "nM_N_lab"), values=c("grey80", "grey20"), 
-                    labels=c("Unlabeled", "Labeled")) +
-  labs(x=NULL, y="Total uM N in THAAs", fill=NULL) +
-  theme(
-    axis.text.x=element_blank()
-  )
-
-thaa_plot_data <- thaa_quant %>%
-  left_join(metathaa) %>%
-  filter(samp_type=="Smp") %>%
-  mutate(amendment=ifelse(timepoint=="T0", "T0", amendment)) %>%
-  summarise(avg_env_conc_nm=mean(env_conc_nm, na.rm=TRUE), .by=c(compound_name, iso_name, amendment, timepoint, startime, depth)) %>%
-  filter(compound_name%in%c("Glutamic acid", "Arginine")) %>%
-  mutate(iso_name=case_when(
-    str_detect(iso_name, "13C0, 15N0")~"Unlabeled",
-    str_detect(iso_name, "13C0, 15N1")~"Singly 15N labeled",
-    str_detect(iso_name, "13C1, 15N0")~"Singly 13C labeled",
-    str_detect(iso_name, "Glutamic acid, 13C5, 15N1")~"Fully C and N\nlabeled glutamate",
-    str_detect(iso_name, "Arginine, 13C0, 15N3")~"3x 15N\nlabeled arginine",
-    str_detect(iso_name, "Arginine, 13C0, 15N4")~"Fully N\nlabeled arginine",
-    str_detect(iso_name, "Arginine, 13C6, 15N4")~"Fully C and N\nlabeled arginine",
-    TRUE~"Other labeled"
-  )) %>%
-  mutate(iso_name=factor(iso_name, levels=c(
-    "Unlabeled", "Singly 15N labeled", "Singly 13C labeled", 
-    "3x 15N\nlabeled arginine", "Fully N\nlabeled arginine", 
-    "Fully C and N\nlabeled arginine", "Fully C and N\nlabeled glutamate", 
-    "Other labeled"))) %>%
-  mutate(amendment=factor(amendment, levels = c("T0", "Amm", "Nit", "Arg", "GMP"))) %>%
-  arrange(depth, startime) %>%
-  mutate(x_axis=paste(depth, startime)) %>%
-  mutate(x_axis=fct_inorder(x_axis))
-cpal_breaks <- levels(thaa_plot_data$iso_name)
-cpal_cols <- c("grey80", viridis::viridis(length(cpal_breaks)-2), "grey20")
-arg_glut_thaa_plot <- ggplot(thaa_plot_data) +
-  geom_col(aes(x=x_axis, y=avg_env_conc_nm, fill=iso_name),
-           position="fill",
-           color="black", width=1) +
-  facet_wrap2(compound_name~amendment, ncol=5, strip = strip_nested(bleed = TRUE)) +
-  theme_bw() +
-  scale_x_discrete(expand = expansion()) +
-  scale_y_continuous(labels=scales::label_percent(), breaks=c(0, 0.5, 1),
-                     expand = expansion()) +
-  scale_fill_manual(breaks = cpal_breaks, values = cpal_cols) +
-  labs(x=NULL, y="Fraction labeled", fill=NULL) +
-  theme(
-    axis.text.x=element_text(angle=90, hjust=1, vjust = 0.5)
-  )
-total_thaa_gp <- all_thaa_plot / arg_glut_thaa_plot + plot_layout(heights = c(0.4, 0.6))
-ggsave("total_thaa_gp.png", total_thaa_gp, device = "png", path = "manuscript/figures",
-       width = 6.5, height = 5.5, units = "in", dpi = 300)
-```
-
-![](figures/total_thaa_gp.png)
-
-  - THAAs were 30-50% of total PC (~2 uM, need actual data) and 70-100% PN (~0.35uM)
-  - Maybe more labeling happening from inorganics in evening?
-  - 50% turnover of arginine in proteins in 3 days per +Arg data, less at surface than deep (??)
-  - 30-50% Glu/Gln turnover in proteins in one day per Amm data
-  - Glutamate, proline fully labeled labeled from arginine
-  - Phenylalanine, tyrosine, histidine(?) labeled from GMP
-  - How is there so much nitrate labeling when I don't see that in the metabolites?
 
 # Discussion
 
