@@ -13,7 +13,7 @@ library(tidyverse)
 #   # str_subset("Poo.*Full") %>%
 #   str_subset("DDA", negate = TRUE)
 # file.copy(ms_files, paste0("mzMLs/"))
-ms_files <- list.files("mzMLs", full.names = TRUE)
+ms_files <- list.files("mzMLs/pos", full.names = TRUE, pattern="noIS")
 
 
 # library(RaMS)
@@ -42,11 +42,11 @@ cwp <- CentWaveParam(
   integrate=2
 )
 msnexp_withpeaks <- findChromPeaks(msnexp, cwp)
-saveRDS(msnexp_withpeaks, "msnexp_withpeaks.rds")
+saveRDS(msnexp_withpeaks, "untargeted/msnexp_withpeaks.rds")
 
 
 
-msnexp_withpeaks <- readRDS("msnexp_withpeaks.rds")
+msnexp_withpeaks <- readRDS("untargeted/msnexp_withpeaks.rds")
 register(BPPARAM = SerialParam(progressbar = TRUE))
 pdp <- PeakDensityParam(
   sampleGroups = str_remove(ms_files, "-[A-C](?=-)|_\\d(?=\\.mzML)"), 
@@ -58,12 +58,12 @@ msnexp_grouped <- groupChromPeaks(msnexp_withpeaks, pdp)
 
 register(BPPARAM = SnowParam(progressbar = TRUE, workers = 5, tasks = length(ms_files)))
 msnexp_filled <- fillChromPeaks(msnexp_grouped, FillChromPeaksParam())
-saveRDS(msnexp_filled, "msnexp_filled.rds")
+saveRDS(msnexp_filled, "untargeted/msnexp_filled.rds")
 
 
 
 
-msnexp_filled <- readRDS("msnexp_filled.rds")
+msnexp_filled <- readRDS("untargeted/msnexp_filled.rds")
 peak_df <- msnexp_filled %>%
   chromPeaks() %>%
   as.data.frame() %>%
@@ -89,11 +89,11 @@ oaoo_df <- feature_df %>%
 oaoo_df %>%
   count(feature) %>%
   distinct(n)
-saveRDS(oaoo_df, "one_and_only_one_peak_per_feature_file.rds")
+saveRDS(oaoo_df, "untargeted/one_and_only_one_peak_per_feature_file.rds")
 
 
 
-# oaoo_df <- readRDS("one_and_only_one_peak_per_feature_file.rds")
+# oaoo_df <- readRDS("untargeted/one_and_only_one_peak_per_feature_file.rds")
 stats_calc <- oaoo_df %>%
   mutate(timepoint=as.numeric(str_extract(filename, "(?<=T)\\d+"))) %>%
   mutate(timepoint=ifelse(timepoint==0, 0.3, timepoint)) %>%
@@ -104,11 +104,11 @@ stats_calc <- oaoo_df %>%
   unnest(lm_test) %>%
   filter(term=="log10(.x$timepoint)") %>%
   mutate(p_adj=p.adjust(p.value, method = "fdr"))
-saveRDS(stats_calc, file = "lmtest_stats_calc.rds")
+# saveRDS(stats_calc, file = "untargeted/lmtest_stats_calc.rds")
 
 
 
-# msnexp_filled <- readRDS("msnexp_filled.rds")
+# msnexp_filled <- readRDS("untargeted/msnexp_filled.rds")
 # peak_df <- msnexp_filled %>%
 #   chromPeaks() %>%
 #   as.data.frame() %>%
@@ -122,8 +122,8 @@ peak_quality_scores <- peak_df %>%
   BiocParallel::bplapply(function(peak_df_i){
     library(tidyverse)
     library(RaMS)
-    source("squallms_functions.R")
-    msdata_i <- grabMSdata(paste0("mzMLs/", peak_df_i$filename[1]), verbosity = 0)
+    source("untargeted/squallms_functions.R")
+    msdata_i <- grabMSdata(paste0("mzMLs/pos/", peak_df_i$filename[1]), verbosity = 0)
     peak_qscores_i <- peak_df_i %>%
       filter(mz%between%pmppm(118.0865+0.997035, 10)) %>%
       # slice(1) -> row_data
@@ -159,22 +159,11 @@ peak_quality_scores <- peak_df %>%
   }, BPPARAM = SnowParam(progressbar = TRUE, workers = 10, tasks = length(ms_files))) %>%
   bind_rows() %>%
   arrange(peak_id)
-saveRDS(peak_quality_scores, "peak_quality_scores.rds")
+saveRDS(peak_quality_scores, "untargeted/peak_quality_scores.rds")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+msnexp_filled <- readRDS("untargeted/msnexp_filled.rds")
+peak_quality_scores <- readRDS("untargeted/peak_quality_scores.rds")
 feature_ids <- featureDefinitions(msnexp_filled) %>%
   as.data.frame() %>%
   rownames_to_column("feature") %>% 
@@ -196,25 +185,12 @@ cleaned_combined_peaks <- peak_quality_scores %>%
   filter(!is.na(feature)) %>%
   left_join(peak_ids) %>%
   select(feature, mzmed, rtmed, filename, peak_id, mz, rt, into, everything())
+saveRDS(cleaned_combined_peaks, "untargeted/cleaned_combined_peaks.rds")
 
 
 
 
-lmtest_output <- cleaned_combined_peaks %>%
-  arrange(feature) %>%
-  select(feature, filename, into) %>%
-  mutate(samp_type=str_extract(filename, "Smp|Blk|Poo")) %>%
-  filter(samp_type=="Smp") %>%
-  mutate(timepoint=as.numeric(str_extract(filename, "(?<=T)\\d+"))) %>%
-  mutate(timepoint=ifelse(timepoint==0, 0.3, timepoint)) %>%
-  mutate(amendment=str_extract(filename, "Amm|GMP|Arg|Nit")) %>%
-  mutate(depth=str_extract(filename, "Surf|Deep")) %>%
-  nest(data=-feature) %>%
-  filter(sapply(data, nrow)>2) %>%
-  mutate(lm_test=map(data, ~broom::tidy(lm(log10(.x$into)~log10(.x$timepoint))), .progress = TRUE)) %>%
-  unnest(lm_test) %>%
-  filter(term=="log10(.x$timepoint)") %>%
-  mutate(p_adj=p.adjust(p.value, method = "fdr"))
+
 
 
 iso_df <- cleaned_combined_peaks %>%

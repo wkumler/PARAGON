@@ -536,7 +536,60 @@ ggsave(filename = "deep_vs_surf_labeling.png", surfdeep_gp, device = "png",
 
 ## Other results from untargeted analysis
 
-Upcoming.
+```{r load clean_combined and make feat_shape_df}
+cleaned_combined_peaks <- readRDS("untargeted/cleaned_combined_peaks.rds")
+lmtest_output <- cleaned_combined_peaks %>%
+  arrange(feature) %>%
+  select(feature, filename, into) %>%
+  left_join(parametadata) %>%
+  filter(samp_type=="Smp") %>%
+  mutate(timepoint_num=ifelse(timepoint_num==0, 0.3, timepoint_num)) %>%
+  nest(data=-feature) %>%
+  filter(sapply(data, nrow)>2) %>%
+  mutate(lm_test=map(data, ~broom::tidy(lm(log10(.x$into)~log10(.x$timepoint_num))), .progress = TRUE)) %>%
+  unnest(lm_test) %>%
+  filter(term=="log10(.x$timepoint_num)") %>%
+  mutate(p_adj=p.adjust(p.value, method = "fdr"))
+
+feat_shape_df <- cleaned_combined_peaks %>%
+  summarise(mzmed=unique(mzmed),
+            rtmed=unique(rtmed),
+            med_iso_cor=median(iso_cor), 
+            med_snr=median(beta_snr),
+            med_cor=median(beta_cor),
+            .by=feature) %>%
+  left_join(lmtest_output %>% select(feature, estimate, p_adj)) %>%
+  mutate(peak_qual=ifelse(med_snr>-50*med_cor+50, "Good", "Bad")) %>%
+  mutate(is_iso=ifelse(med_iso_cor>0.8, "Is iso", "Not iso")) %>%
+  mutate(time_trend=ifelse(p_adj<0.001& estimate>0, "Increases", "No change"))
+feat_shape_df %>%
+  filter(!is.na(time_trend)) %>%
+  count(peak_qual, is_iso, time_trend)
+```
+
+```{r}
+best_labeled <- feat_shape_df %>%
+  filter(peak_qual=="Good" & is_iso=="Is iso" & time_trend=="Increases") %>%
+  arrange(feature) %>%
+  select(feature, mzmed, rtmed, med_iso_cor, med_snr, med_cor, p_adj)
+psb_stans <- all_stans %>%
+  filter(polarity=="pos") %>%
+  summarise(compound_name=paste(compound_name, collapse = "/"), .by = mz) %>%
+  rowwise() %>%
+  mutate(N15_mz_lower=pmppm(mz+0.997035, 10)[1]) %>%
+  mutate(N15_mz_upper=pmppm(mz+0.997035, 10)[2]) %>%
+  select(compound_name, N15_mz_lower, N15_mz_upper)
+best_labeled %>%
+  left_join(chosen_stans, join_by(between(x$mzmed, y$N15_mz_lower, y$N15_mz_upper))) %>%
+  select(-N15_mz_lower, -N15_mz_upper) %>%
+  mutate(compound_name=ifelse(duplicated(compound_name)&!is.na(compound_name), "Isocytosine", compound_name)) %>%
+  mutate(compound_name=ifelse((mzmed-lag(mzmed))%between%c(0.996, 0.998), "iso_prev?", compound_name)) %>%
+  mutate(rtmed=rtmed/60) %>%
+  select(feature, mzmed, rtmed, compound_name) %>%
+  arrange(mzmed) %>%
+  write_csv("untargeted/best_labeled_anno_2.csv")
+```
+
 
 # Discussion
 
