@@ -2,10 +2,11 @@
 !.gitignore
 !metadata/*
 !untargeted/*
+untargeted/*.rds
 !targeted/*
+targeted/*.rds
 !manuscript/*
 !manuscript/figures/*
-targeted/*.rds
 .Rproj.user
 !run_analysis.R
 !paragon.Rproj
