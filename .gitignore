@@ -8,6 +8,5 @@ targeted/*.rds
 !manuscript/*
 !manuscript/figures/*
 .Rproj.user
-!run_analysis.R
 !paragon.Rproj
 !thaas/*
