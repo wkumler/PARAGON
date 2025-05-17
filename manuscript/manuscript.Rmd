@@ -23,12 +23,12 @@ options(pillar.print_min = 100)
 parametadata <- read_csv("metadata/parametadata.csv") %>%
   # filter(IS_type=="noIS") %>%
   filter(polarity=="pos") %>%
-  filter(samp_type=="Smp") %>%
+  filter(samp_type=="Smp" | samp_type=="Bad") %>%
   mutate(startime=factor(startime, levels=c("Morn", "Eve"))) %>%
   mutate(depth=factor(depth, levels=c("Surf", "Deep"))) %>%
   mutate(amendment=factor(amendment, levels=c("Amm", "Nit", "Arg", "GMP"))) %>%
   arrange(amendment, depth, timepoint_num, startime) %>%
-  mutate(timepoint=fct_inorder(timepoint))
+  mutate(timepoint=factor(timepoint, levels=c("T0", "T1", "T3", "T10", "T18", "T26", "T73")))
 
 all_stans <- read_csv("metadata/all_stans.csv")
 stan_patched <- all_stans %>%
@@ -131,7 +131,8 @@ One way to reveal the pathways and transformations that marine N undergoes in a 
 
 ```{r}
 xamend_metab_gp <- labeled_fracs %>%
-  left_join(parametadata %>% distinct(shortname, timepoint, timepoint_num, depth, startime, amendment, tripl)) %>%
+  left_join(parametadata %>% distinct(shortname, samp_type, timepoint, timepoint_num, depth, startime, amendment, tripl)) %>%
+  filter(samp_type!="Bad") %>%
   filter(depth=="Surf") %>%
   mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
   mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
@@ -422,6 +423,7 @@ surfdeep_demo_cmpd_gp <- labeled_fracs %>%
   )) %>%
   mutate(compound_class=factor(compound_class, levels=setdiff(class_levels, "MAAs"))) %>%
   left_join(parametadata %>% distinct(shortname, timepoint_num, depth, startime, amendment, tripl)) %>%
+  filter(timepoint_num!=18) %>%
   filter(compound_name=="Glutamic acid" & amendment=="Amm" |
            compound_name=="Arginine" & amendment=="Arg" |
            compound_name=="Guanosine" & amendment=="GMP") %>%
@@ -453,7 +455,8 @@ surfdeep_demo_cmpd_gp <- labeled_fracs %>%
   )
 
 surfdeep_all_cmpd_gp <- labeled_fracs %>%
-  left_join(parametadata %>% distinct(shortname, timepoint_num, depth, startime, amendment, tripl)) %>%
+  left_join(parametadata %>% distinct(shortname, timepoint, timepoint_num, depth, startime, amendment, tripl)) %>%
+  filter(timepoint_num!=18) %>%
   filter(!compound_name%in%maa_names) %>%
   mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
   mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
@@ -495,6 +498,7 @@ surfdeep_all_cmpd_gp <- labeled_fracs %>%
 
 surfdeep_all_cmpd_boxplot_gp <- labeled_fracs %>%
   left_join(parametadata %>% distinct(shortname, timepoint_num, depth, startime, amendment, tripl)) %>%
+  filter(timepoint_num!=18) %>%
   filter(!compound_name%in%maa_names) %>%
   filter(amendment!="Nit") %>%
   mutate(timepoint_num=ifelse(timepoint_num==0, 0.3, timepoint_num)) %>%
