@@ -176,11 +176,11 @@ xamend_metab_gp <- labeled_fracs %>%
       legend.text = ggtext::element_markdown(hjust=c(0, 0, 0.5, 1, 1)))
     )
   )
-ggsave("xamend_thaa_gp.png",plot = xamend_metab_gp, device = "png", path = "manuscript/figures",
+ggsave("xamend_metab_gp.png",plot = xamend_metab_gp, device = "png", path = "manuscript/figures",
        width = 6.5, height = 5.5, units = "in", dpi = 300)
 ```
 
-![](figures/xamend_thaa_gp.png)
+![](figures/xamend_metab_gp.png)
 
 *Figure 1: Fraction of each metabolite or metabolite group containing at least one 15N label during the surface seawater amended various substrates after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the compound signal was isotopically labeled. Three biological replicates are stacked vertically at each timepoint and the categories with multiple entries have been averaged. MAA = mycosporine-like amino acids, GMP = guanosine monophosphate.*
 
