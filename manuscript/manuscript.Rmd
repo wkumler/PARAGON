@@ -540,7 +540,6 @@ ggsave(filename = "deep_vs_surf_labeling.png", surfdeep_gp, device = "png",
 source("untargeted/xcms_multicore.R")
 ```
 
-
 ```{r load clean_combined and make feat_shape_df}
 cleaned_combined_peaks <- readRDS("untargeted/cleaned_combined_peaks.rds")
 lmtest_output <- cleaned_combined_peaks %>%
@@ -603,6 +602,8 @@ feat_shape_df_xamend <- cleaned_combined_peaks %>%
   mutate(time_trend=ifelse(p_adj<0.001& estimate>0, "Increases", "No change"))
 feat_shape_df_xamend %>%
   bind_rows(iso_df %>% mutate(amendment="Overall")) %>%
+  # filter(!rtmed%between%(c(14, 14.5)*60)) %>%
+  # filter(!rtmed<(2*60)) %>%
   filter(!is.na(time_trend)) %>%
   count(peak_qual, is_iso, time_trend, amendment) %>%
   pivot_wider(names_from = amendment, values_from=n, values_fill = 0) %>%
@@ -614,7 +615,6 @@ feat_shape_df_xamend %>%
   geom_bar(aes(x=amendment)) +
   facet_wrap(~peak_qual+is_iso+time_trend, scales="free_y", ncol=4)
 ```
-
 
 ```{r write out the best labels for manual annotation}
 best_labeled <- feat_shape_df %>%
@@ -638,34 +638,40 @@ best_labeled %>%
   write_csv("untargeted/best_labeled_anno.csv")
 ```
 
-```{r create a heatmap and cluster all high-quality peaks}
-labeled_fracs <- cleaned_combined_peaks %>%
+```{r heatmap of all high-quality feats}
+high_qual_feats <- cleaned_combined_peaks %>%
+  filter(rtmed>120 & !rtmed%between%c(14*60, 14.5*60)) %>%
+  left_join(parametadata %>% distinct(filename, samp_type)) %>%
+  filter(samp_type=="Smp") %>%
   summarise(med_iso_cor=median(iso_cor), 
             med_snr=median(beta_snr),
             med_cor=median(beta_cor),
             .by=c(feature)) %>%
   filter(med_snr>-50*med_cor+50) %>%
-  filter(med_iso_cor>0.8) %>%
-  select(feature) %>%
-  left_join(cleaned_combined_peaks %>% select(feature, filename, lab_area, unlab_area), multiple = "all") %>%
+  filter(med_iso_cor>0.8)
+untarg_lab_fracs <- cleaned_combined_peaks %>%
+  filter(feature%in%high_qual_feats$feature) %>%
+  select(feature, filename, lab_area, unlab_area) %>%
+  left_join(parametadata %>% distinct(filename, samp_type)) %>%
+  filter(samp_type=="Smp") %>%
+  slice_max(unlab_area, by=c(feature, filename), with_ties = FALSE) %>%
   mutate(labeled_frac=lab_area/(lab_area+unlab_area)) %>%
-  select(-lab_area, -unlab_area)
+  left_join(parametadata %>% distinct(filename, shortname)) %>%
+  select(feature, shortname, labeled_frac)
 
-cmpd_order <- labeled_fracs %>%
-  left_join(parametadata) %>%
+cmpd_order <- untarg_lab_fracs %>%
   summarise(mean_label=mean(labeled_frac, na.rm=TRUE), .by=feature) %>%
   arrange(desc(mean_label)) %>%
   pull(feature)
 
 colorpal <- viridis::viridis(10, alpha=seq(0, 1, length.out=10), direction = -1)
-untarg_heatmap <- labeled_fracs %>%
-  left_join(parametadata) %>%
-  filter(samp_type=="Smp") %>%
+untarg_heatmap <- untarg_lab_fracs %>%
+  complete(feature, shortname, fill=list(labeled_frac=0)) %>%
   mutate(feature=factor(feature, levels=cmpd_order)) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
   ggplot() +
   geom_raster(aes(x=timepoint, y=tripl, fill=labeled_frac)) +
   scale_fill_gradientn(colours = colorpal, limits = c(0, 1)) +
-  facet_wrap(feature~amendment+depth+startime) +
   scale_y_discrete(expand=expansion()) +
   scale_x_discrete(guide = guide_axis(n.dodge = 5), expand=expansion()) +
   facet_nested(feature~amendment+depth+startime, scales = "free_x", switch="y", strip=strip_nested(size = "variable")) +
@@ -693,6 +699,80 @@ untarg_heatmap <- labeled_fracs %>%
 ggsave("untargeted/untarg_heatmap.pdf", width = 10, height=36, units = "in")
 ```
 
+```{r run kmeans}
+untarg_lab_mat <- untarg_lab_fracs %>%
+  bind_rows(labeled_fracs %>% rename(feature=compound_name)) %>%
+  pivot_wider(names_from = "feature", values_from = "labeled_frac", values_fill=0) %>%
+  column_to_rownames("shortname") %>%
+  data.matrix()
+
+set.seed(124)
+
+# sapply(1:20, function(n_clust){
+#   replicate(10, {
+#     kmeans_out <- kmeans(t(untarg_lab_mat), centers = n_clust)
+#     kmeans_out$betweenss / kmeans_out$totss * 100
+#   })
+# }) %>%
+#   boxplot()
+
+n_clust <- 10
+untarg_kmeans <- untarg_lab_mat %>%
+  t() %>%
+  kmeans(centers = n_clust)
+kmeans_df <- data.frame(cluster=1:n_clust, n=untarg_kmeans$size) %>%
+  arrange(desc(n)) %>%
+  mutate(cluster_name=paste0("Cluster ", row_number(), " n=", n)) %>%
+  mutate(cluster_name=fct_inorder(cluster_name)) %>%
+  left_join(data.frame(cluster=untarg_kmeans$cluster, feature=names(untarg_kmeans$cluster))) %>%
+  select(cluster_name, feature)
+
+# Plot clusters as heatmap
+untarg_lab_fracs %>%
+  left_join(kmeans_df) %>%
+  summarise(labeled_frac=mean(labeled_frac), .by = c(cluster_name, shortname)) %>%
+  left_join(parametadata) %>%
+  ggplot() +
+  geom_raster(aes(x=timepoint, y=tripl, fill=labeled_frac)) +
+  scale_fill_gradientn(colours = colorpal, limits = c(0, 1)) +
+  facet_wrap(cluster_name~amendment+depth+startime) +
+  scale_y_discrete(expand=expansion()) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 5), expand=expansion()) +
+  facet_nested(cluster_name~amendment+depth+startime, scales = "free_x", switch="y", 
+               strip=strip_nested(size = "variable")) +
+  labs(x="Timepoint", y=NULL, fill="Fraction\nlabeled") +
+  theme_bw() +
+  theme(panel.spacing.x=unit(0.2, "lines"), 
+        panel.spacing.y = unit(0, "lines"),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        # axis.ticks.length.x=unit(1:5, "lines"),
+        # axis.text.x = element_markdown(vjust = -5:-1),
+        strip.text.y.left = element_text(angle=0, hjust = 1),
+        # strip.background.y = element_rect(fill=NA, color=NA),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position = "top", 
+        legend.key.width = unit(1, "null")) +
+  guides(
+    fill=guide_colorbar(theme=theme(
+      legend.frame = element_rect(color = "black"),
+      legend.ticks = element_line(color="black"),
+      legend.text = ggtext::element_markdown(hjust=c(0, 0.5, 0.5, 0.5, 1)))
+    )
+  )
+
+# Export as CSV
+kmeans_df %>%
+  filter(!startsWith(feature, "FT")) %>%
+  arrange(cluster_name, feature) %>%
+  split(.$cluster_name) %>%
+  map(function(df_i){
+    df_i %>% add_row(cluster_name="", feature="")
+  }) %>%
+  bind_rows() %>%
+  write_csv("untargeted/cluster_assignments.csv")
+```
 
 # Discussion
 
