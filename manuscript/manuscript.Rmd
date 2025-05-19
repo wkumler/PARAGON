@@ -568,6 +568,7 @@ feat_shape_df <- cleaned_combined_peaks %>%
             .by=feature) %>%
   left_join(lmtest_output %>% select(feature, estimate, p_adj)) %>%
   mutate(peak_qual=ifelse(med_snr>-50*med_cor+50, "Good", "Bad")) %>%
+  mutate(peak_qual=ifelse(rtmed<2*60 | between(rtmed, 14*60, 14.5*60), "Solvent artifact", peak_qual)) %>%
   mutate(is_iso=ifelse(med_iso_cor>0.8, "Is iso", "Not iso")) %>%
   mutate(time_trend=ifelse(p_adj<0.001& estimate>0, "Increases", "No change"))
 feat_shape_df %>%
