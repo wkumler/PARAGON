@@ -174,11 +174,12 @@ xamend_metab_gp <- labeled_fracs %>%
     fill=guide_colorbar(theme=theme(
       legend.frame = element_rect(color = "black"),
       legend.ticks = element_line(color="black"),
-      legend.text = ggtext::element_markdown(hjust=c(0, 0, 0.5, 1, 1)))
+      legend.text = ggtext::element_markdown(hjust=c(0, 0, 0.5, 1, 1))),
+      text=element_text(size=12)
     )
   )
 ggsave("xamend_metab_gp.png",plot = xamend_metab_gp, device = "png", path = "manuscript/figures",
-       width = 6.5, height = 5.5, units = "in", dpi = 300)
+       width = 6.5, height = 4, units = "in", dpi = 300)
 ```
 
 ![](figures/xamend_metab_gp.png)
