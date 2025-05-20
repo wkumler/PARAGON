@@ -240,6 +240,8 @@ Glycerophosphocholine,258.110652,10.86,1,HILIC,4,Betaine,C8H21NO6P,180130,Mix1,p
 D-Glucose 1-phosphate,259.021897,13.45,-1,HILIC,4,Sugar phosphate,C6H13O9P,160401,Mix2,neg,6,0
 D-Fructose 6-phosphate,259.021897,13.51,-1,HILIC,4,Sugar phosphate,C6H13O9P,160401,Mix1,neg,6,0
 D-Glucose 6-phosphate,259.021897,14.12,-1,HILIC,4,Sugar phosphate,C6H13O9P,160401,Mix1,neg,6,0
+Mycosporine-methylamine:serine?,259.129398,NA,1,HILIC,NA,Custom,C11H18N2O5,230101,NA,pos,11,2
+Mycosporine-alanine/Mycosporine-beta alanine?,260.113414,NA,1,HILIC,NA,Custom,C11H17NO6,230101,NA,pos,11,1
 2-Heptyl-3-hydroxy-quinolone,260.165054,2.16,1,HILIC,4,Quorum sensing,C16H21NO2,160401,Mix1,pos,16,1
 O-Methylmalonyl-L-carnitine,262.129063,9.67,1,HILIC,4,Betaine,C11H19NO6,180701,Mix2,pos,11,1
 Adenosine,266.088929,4.46,-1,HILIC,4,Nucleoside,C10H13N5O4,160401,Mix2,neg,10,5
@@ -261,8 +263,11 @@ Glutamylphenylalanine,293.113748,9.55,-1,HILIC,4,Dipeptide,C14H18N2O5,190715,Mix
 N-Acetylmuramic acid,294.118894,3.35,1,HILIC,5,Amino sugar,C11H19NO8,190514,Mix2,pos,11,1
 Glutamylphenylalanine,295.129398,9.55,1,HILIC,4,Dipeptide,C14H18N2O5,190715,Mix1,pos,14,2
 Mycosporine-2-glycine?,303.1186,11.3,1,HILIC,NA,Custom,C12H18N2O7,230101,NA,pos,12,2
+Mycosporine glutaminol/Palythinol/Mycosporine-methylamine:threonine?,303.155613,NA,1,HILIC,NA,Custom,C13H22N2O6,230101,NA,pos,13,2
 Glutathione,308.091634,12,1,HILIC,4,Antioxidant,C10H17N3O6S,160401,Mix1,pos,10,3
+Mycosporine-glutamine?,317.134877,NA,1,HILIC,NA,Custom,C13H20N2O7,230101,NA,pos,13,2
 "3',5'-Cyclic AMP",328.044698,4.06,-1,HILIC,4,Intracellular signaling,C10H12N5O6P,160401,Mix2,neg,10,5
+Palythenic acid?,329.134877,NA,1,HILIC,NA,Custom,C14H20N2O7,230101,NA,pos,14,2
 Shinorine?,333.1292,11.6,1,HILIC,NA,Custom,C13H20N2O8,230101,NA,pos,13,2
 S-Farnesyl-L-cysteine methyl ester,340.231026,1.58,1,HILIC,NA,Post translational modified amino acid,C19H33NO2S,180130,NA,pos,19,1
 Sucrose,341.10839,11.77,-1,HILIC,5,Sugar,C12H22O11,170331,Mix1,neg,12,0
