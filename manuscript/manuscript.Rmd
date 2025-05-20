@@ -8,7 +8,7 @@ author:
 output: word_document
 ---
 
-```{r setup, echo=FALSE}
+```{r setup, echo=FALSE, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, eval=FALSE)
 library(tidyverse)
 library(ggh4x)
@@ -348,7 +348,7 @@ peak_areas %>%
   facet_wrap(~compound_name)
 ```
 
-Other amino acids and nucleobases/nucleosides had trace amounts of labeling after 3 hours and were extensively labeled (>25%) after 24 hours (Figure 1). Cytidine (42.2% labeled) and adenosine (59.9%) were more heavily ^15^N labeled than their nucleobase constituents at T26 (22.9% and 42.1%, respectively), corresponding to the expected synthesis pathway. Guanine, however, had the inverse trend and at 44.9% labeled was 15% more labeled than guanosine (Supplemental figure XX). The deoxyribose forms were in all cases less completely labeled than their ribose counterparts (deoxycytidine = 18.9%, deoxyadenosine = 20.3%, and deoxyguanosine = 17.2%) `r wc("Maybe better as a small table?")` `r wc("Consider trying harder to get thymine/uracil/inosine values?")`. In each case, the fully ^15^N labeled nucleobase was the dominant constituent of the isotope envelope (^15^N~3~ for cytosine and ^15^N~5~ for adenine and guanine). Other compounds, including betaines (here restricted to quaternary amines with a carboxylic acid group) and choline derivatives showed very little labeling at all, with only homarine (15.0% labeled) and O-acetylcarnitine (9.9% labeled) exceeding 5% labeling after 24 hours`r wc("Expand betaine discussion and turn it into a separate paragraph? Not sure what more to say...")`. 
+Other amino acids and nucleobases/nucleosides had trace amounts of labeling after 3 hours and were extensively labeled (>25%) after 24 hours (Figure 1). Cytidine (42.2% labeled) and adenosine (59.9%) were more heavily ^15^N labeled than their nucleobase constituents at T26 (22.9% and 42.1%, respectively), corresponding to the expected synthesis pathway. Guanine, however, had the inverse trend and at 44.9% labeled was 15% more labeled than guanosine (Supplemental figure XX). The deoxyribose forms were in all cases less completely labeled than their ribose counterparts (deoxycytidine = 18.9%, deoxyadenosine = 20.3%, and deoxyguanosine = 17.2%) `r wc("Maybe better as a small table?")` `r wc("Consider trying harder to get thymine/uracil/inosine values?")`. In each case, the fully ^15^N labeled nucleobase was the dominant constituent of the isotope envelope (^15^N~3~ for cytosine and ^15^N~5~ for adenine and guanine). Other compounds, including betaines (here restricted to quaternary amines with a carboxylic acid group) and choline derivatives showed very little labeling at all, with only homarine (15.0% labeled) and O-acetylcarnitine (9.9% labeled) exceeding 5% labeling after 24 hours`r wc("Expand betaine discussion and turn it into a separate paragraph? Not sure what more to say... fluxes?")`. 
 
 Amendments with ^15^NO~3~ showed a significantly different labeling pattern with very few metabolites incorporating the ^15^N label at the surface even after 24 hours. Glutamine and glutamate, which were labeled within 20 minutes from ammonia and are the main way in which inorganic nitrogen becomes organic, here saw only trace amounts of production from the added nitrate even after 24 hours. The most heavily labeled compound was guanine, which saw trace amounts of labeling at the T10 timepoint and reached ~40% labeling at T26. This labeling was not reflected in the other nucleobases. The only group of compounds that did see compelling degrees of label were the mycosporine-like amino acids (MAAs), a group of compounds produced under UV exposure (see below). These compounds, like guanine, were labeled in excess of the bulk glutamate/amino acid pool from which their nitrogen is sourced. This is only possible if the nitrate is assimilated by a subset of the community that is able to reduce it and prevents it from entering the environment. Metabolites specific to those organisms can then be made from the small pool of heavily-labeled organic material without affecting the fraction of glutamate or glutamine labeled in bulk.
 
@@ -362,43 +362,30 @@ labeled_fracs %>%
   arrange(timepoint)
 ```
 
-The organic nitrogen amendments also showed labeling patterns distinct from the ammonia incubations, though a large fraction of the nitrogen was clearly remineralized into ammonia/glutamate and used to label a similar suite of compounds (Figure 1). Fully C and N labeled (^13^C~6~, ^15^N~4~) arginine was visibly taken up at the T0 timepoint (within 20 minutes) and 80-90% of the pool was fully labeled after 12 hours. Surprisingly, the fraction of arginine labeled decreased from this point, with the T26 and T73 timepoints showing 
+The organic nitrogen amendments also showed labeling patterns distinct from the ammonia incubations, though a large fraction of the nitrogen was clearly remineralized into ammonia/glutamate and used to label a similar suite of compounds (Figure 1). Fully C and N labeled (^13^C~6~, ^15^N~4~) arginine was visibly taken up at the T0 timepoint (within 20 minutes) and 80-90% of the pool was fully labeled after 12 hours. Surprisingly, the fraction of arginine labeled decreased from this point, with the T26 and T73 timepoints dropping to 73% and 46% labeled, respectively. This labeling rapidly propagated into citrulline via the urea cycle, indicating that labeled urea (^13^C~1~, ^15^N~2~) was created and available in the system as well though we were unable to measure this directly `r wc("I could try harder to get urea values for this but it's pretty bad.")`. Glutamate and glutamine were labeled much more slowly, reaching 10% labeled after 10 hours and a maximum of 66% labeled after 24 hours. Much of this nitrogen was then cycled very quickly among other compounds which also saw a jump in labeling at 24 hours. This was particularly true for other amino acids and the nucleobases/nucleosides and here, guanine was not labeled more than other nucleobases. Mycosporine-like amino acids and betaines were unlabeled above background even after 3 days of incubation.
 
-  - Arginine
-    - Clear uptake at T0 (20 minutes), 80-90% of the pool taken up at T10
-      - Labeling signal decreases after 24 hours
-    - Label obviously making it into citrulline so urea cycle is active
-      - Don't really have good enough urea data to see labeling change there?
-    - Big jump in labeling of other metabolites at T26 not seen at T10
-      - No hypotheses why this is happening but it occurs in both morn/eve so not light signal
-    - Maybe less storage in guanine specifically, labeling is on par with other NAs unlike ammonia
-  - Guanosine monophosphate
-    - Unable to measure GMP well enough directly?
-    - Guanosine labeling visible at T3, definitely T10, maybe some decrease at T73 like Arg?
-      - Guanosine pool never gets super heavily labeled
-    - Has a VERY similar pattern to arginine
-      - Also a big jump at T26 with basically no labeling at T10
-      - Implies mostly converted into ammonia as well and used that way
+```{r gmp numbers}
+labeled_fracs %>%
+  filter(compound_name%in%c("Guanosine", "Guanine")) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(depth=="Surf") %>%
+  filter(amendment=="GMP") %>%
+  summarise(frac=mean(labeled_frac), .by=c(compound_name, timepoint)) %>%
+  pivot_wider(names_from=compound_name, values_from=frac) %>%
+  arrange(timepoint)
+peak_areas %>%
+  filter(compound_name%in%c("Guanosine", "Guanine", "Adenine", "Adenosine", "Hypoxanthine/Allopurinol")) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(amendment=="GMP") %>%
+  filter(depth=="Surf") %>%
+  mutate(iso_name=str_remove(iso_name, ".*?, ")) %>%
+  # filter(iso_name!="13C0, 15N0") %>%
+  ggplot() +
+  geom_col(aes(x=tripl, y=area, fill=iso_name), position="fill", color="black") +
+  facet_grid(compound_name~timepoint)
+```
 
-
-
-
-We also explored the degree of labeling incorporation into proteins by measuring the total hydrolyzable amino acids (THAAs) at both the start of each incubation and the end (Figure 2). Proteins were 30-50% of total particulate carbon pool (~2 uM) and 70-100% of the total particulate nitrogen (~0.25 uM), with free amino acids composing between 0.15% and 17% of the total. Glutamate + glutamine had the largest fraction in the free amino acid pool, varying between 3.4% and 17% while threonine had the largest fraction in protein (0.15% - 0.3% free). [Discuss additional variance here - see below tables(?)]
-
-  - Nitrate
-    - More extensive labeling (10-50% of the N) in the THAAs
-      - Must be a really high flux through a small AA pool subset, e.g. euks specifically
-  - Ammonia
-    - THAAs show clear usage of arginine in proteins
-    - 30-50% arg in THAAs labeled @73hrs
-    - Clear reuse of arginine backbone as fully labeled glutamate and proline
-  - GMP
-    - Reuse of carbon backbone
-    - Histidine 13C5, 15N3
-    - Tyrosine 13C4, 15N1
-    - Phenylalanine 13C4, 15N1
-
-
+The guanosine monophosphate (GMP) incubations showed a pattern very similar to the arginine incubations in the identity, timing, and magnitude in which metabolites were labeled (Figure 1). While we were unable to measure GMP directly `r wc("I can try harder here but the data is pretty bad :(")` we saw clear labeling of fully C and N labeled guanosine (^13^C~10~, ^15^N~5~) after 3 hours that increased to a maximum of 75% after 24 hours before decreasing slightly to 64% labeled at the end of the three-day incubation. A small part of this signal was reflected in guanine, with ^13^C~5~, ^15^N~5~ guanine representing about 10% of the signal at T3 and reaching a maximum of 40% at T26. At T26 we also saw extensive labeling in adenine, adenosine, and hypoxanthine though their dominant labeling patterns (^13^C~0~ ^15^N~5~, ^13^C~5~ ^15^N~5~, and ^13^C~0~ ^15^N~4~ respectively, Supplemental figure XX) suggested that the adenine and hypoxanthine were synthesized from glutamate and that the ribose pool had been swamped by guanosine cleavage. Here, unlike the arginine incubations, we also saw some MAA labeling at the end of the 3 day incubation.
 
 ```{r thaa tables}
 thaa_avgs <- thaa_quant %>%
@@ -415,6 +402,8 @@ thaa_avgs <- thaa_quant %>%
   )) %>%
   mutate(iso_name=str_remove(iso_name, ".*(?=13)")) %>%
   summarise(thaa_nM=sum(thaa_nM), .by=c(compound_name, iso_name, amendment, timepoint))
+
+
 metab_avgs <- nM_labeled %>%
   mutate(compound_name=str_remove_all(compound_name, "L-")) %>%
   mutate(iso_name=str_remove(iso_name, ".*(?=13)")) %>%
@@ -439,10 +428,10 @@ left_join(metab_avgs, thaa_avgs) %>%
   summarise(metab_nM=sum(metab_nM, na.rm=TRUE), 
             thaa_nM=sum(thaa_nM, na.rm=TRUE),
             .by=c(compound_name, timepoint, amendment)) %>%
+  filter(!(timepoint=="T26" & amendment%in%c("Arg", "GMP"))) %>%
   mutate(perc_in_free=metab_nM/(metab_nM+thaa_nM)*100) %>%
   select(amendment, compound_name, timepoint, perc_in_free) %>%
   pivot_wider(names_from=timepoint, values_from=perc_in_free) %>%
-  mutate(T26=ifelse(amendment%in%c("Arg", "GMP"), NA, T26)) %>%
   arrange(amendment, compound_name)
 
 # Breakdown of THAA isotope labeling
@@ -452,6 +441,11 @@ left_join(metab_avgs, thaa_avgs) %>%
   filter(perc_in_free<100) %>%
   arrange(timepoint, compound_name)
 ```
+
+
+We also explored the degree of labeling incorporation into proteins by measuring the total hydrolyzable amino acids (THAAs) at both the start of each incubation and the end (Figure 2). Proteins were 30-50% of total particulate carbon pool (~2 uM) and 70-100% of the total particulate nitrogen (~0.25 uM), with free amino acids composing between 0.15% and 17% of the total`r wc("I'm not really sure what to say here or how to dive into the variance that's of interest to us. Report the compound with the most/least in protein? Break it down by labeled vs unlabeled?")``.
+
+There were differences in THAA labeling patterns between the amendments (Figure 2). Despite their shorter incubation time (26 hours vs 73 hours), the inorganic nitrogen amendments generally higher fractions of labeled protein. The nitrate amendments in particular were surprisingly heavily labeled given the minimal signal seen in the free metabolites, with a degree of labeling exceeding the ammonia incubation. This indicates that most of the assimilation was done by the small subset of organisms able to reduce nitrate and use it for growth and that these organisms did not share the reduced nitrogen with the rest of the community`r wc("Is this something for the discussion instead?")`.
 
 ```{r fig2 thaa data}
 all_thaa_plot <- thaa_quant %>%
@@ -558,6 +552,7 @@ ggsave("total_thaa_gp.png", total_thaa_gp, device = "png", path = "manuscript/fi
 
 *Figure 2: Stacked bar plots showing the fraction of various total hydrolyzable amino acids (THAAs) labeled at the end of the incubations across the four amendments. Total uM nitrogen (N) in the protein pool is shown in the top plot while the fraction of individual amino acids labeled is shown in the rows below. Colors denote specific labeling patterns detected in the THAAs.*
 
+We believe the organic nitrogen amendments largely resulted in metabolite labeling via remineralization to ammonia or glutamate based on the absence of a labeled carbon backbone in most of the labeled metabolites, but in the THAAs we were able to see some transformations that used the carbon backbone as-is. Proline and glutamate both had detectable ^13^C~5~ ^15^N~1~ labels in the arginine treatments. We also saw histidine ^13^C~5~ ^15^N~3~ synthesized during the guanosine monophosphate treatment, confirming again that the ribose pool must have been swamped with fully ^13^C labeled ribose cleaved from guanosine in order to enter the PRPP pathway. The ^15^N~3~ pattern also indicates that for these organisms, glutamate, glutamine, and adenine were also heavily labeled. Finally, both phenylalanine and tyrosine had significant ^13^C~4~ ^15^N~1~ labeling, likely from erythrose 4-phosphate via the pentose phosphate pathway indicating new synthesis through shikimate with nitrogen addition from a heavily labeled glutamate pool again.
 
 ## Minimal diel signal observed except in the UV-reactive mycosporine-like amino acids
 
@@ -1012,6 +1007,10 @@ kmeans_df %>%
 [DISCUSSION: surface community not "expecting" nitrate? problems with redox at surface?]
 
 [DISCUSSION: not expecting to see any C labeling from the organics via CO2 because inorganic C pool is so much larger, unlike the N pool]
+
+[DISCUSSION: What does the decrease in arginine labeling in +Arg at T26 and T73 indicate? Pulse-chase behavior? How is the labeled pool specifically decreasing?]
+
+[DISCUSSION: Contrasting the THAA +Nit with the metabolites hints at a small but rapidly churning amino acid pool that's deeply segregated]
 
 # Conclusion
 
