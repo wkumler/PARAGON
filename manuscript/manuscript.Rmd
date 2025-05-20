@@ -15,8 +15,42 @@ library(ggh4x)
 library(patchwork)
 library(ggtext)
 library(minpack.lm)
+library(RaMS)
 options(pillar.sigfig = 7)
 options(pillar.print_min = 100)
+
+wc <- function(
+  comment, 
+  highlight = "", 
+  author = "Will", 
+  time = Sys.time(),
+  id = "0"
+) {
+  if (isTRUE(knitr:::pandoc_to() == "docx")) {
+    return(
+      sprintf(
+        '[%s]{.comment-start id="%s" author="%s" date="%s"} %s []{.comment-end id="%s"}',
+        comment,
+        id,
+        author,
+        time,
+        highlight,
+        id
+      )
+    )
+  } else {
+    return(
+      sprintf(
+        "*%s* **[Comment id %s by %s at time %s: %s]**", 
+        highlight,
+        id,
+        author, 
+        time, 
+        comment
+      )
+    )
+  }
+}
 ```
 
 ```{r load data, eval=FALSE}
@@ -86,6 +120,20 @@ labeled_fracs <- samp_areas %>%
   filter(str_detect(iso_name, "13C0, 15N0")) %>%
   select(-iso_name)
 
+env_concs <- read_csv("targeted/final_env_concs.csv") %>%
+  select(-conc_um_in_vial) %>%
+  left_join(parametadata %>% distinct(filename, shortname)) %>%
+  select(-filename)
+nM_labeled <- samp_areas %>%
+  left_join(env_concs) %>%
+  mutate(labeled_frac=area/sum(area), .by = c("shortname", "compound_name")) %>%
+  mutate(rel_label=labeled_frac/labeled_frac[str_detect(iso_name, "13C0, 15N0")], .by = c("shortname", "compound_name")) %>%
+  mutate(nM_labeled=conc_nm_in_env*rel_label) %>%
+  select(filename, compound_name, iso_name, nM_labeled)
+
+
+cleaned_combined_peaks <- readRDS("untargeted/cleaned_combined_peaks.rds")
+
 thaa_quant <- read_csv("thaas/quant_data.csv") %>%
   filter(iso_name!="Proline, 13C3, 15N1")
 metathaa <- read_csv("thaas/metathaa.csv") %>%
@@ -129,7 +177,34 @@ One way to reveal the pathways and transformations that marine N undergoes in a 
 
 ## Differences in nitrogen labeling at the surface between amendments
 
-```{r}
+```{r gln numbers}
+labeled_fracs %>%
+  filter(compound_name=="L-Glutamine") %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(timepoint%in%c("T0", "T26")) %>%
+  filter(depth=="Surf") %>%
+  filter(amendment=="Amm") %>%
+  summarise(frac=mean(labeled_frac), .by=c(compound_name, timepoint))
+peak_areas %>%
+  filter(compound_name=="L-Glutamine") %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(depth=="Surf") %>%
+  filter(amendment=="Amm") %>%
+  ggplot(aes(x=tripl, y=area, fill=iso_name)) +
+  geom_col(color="black") +
+  facet_grid(startime~timepoint)
+nM_labeled %>%
+  filter(compound_name%in%c("L-Glutamine")) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(depth=="Surf") %>%
+  filter(amendment=="Amm") %>%
+  summarise(conc=mean(nM_labeled), .by=c(compound_name, timepoint)) %>%
+  arrange(timepoint)
+```
+
+We observed significant differences in ^15^N labeling patterns between the different treatment incubations performed with ALOHA surface seawater (Figure 1). Ammonia incubations resulted in very rapid labeling, with glutamine more than 75% labeled even at the T0 timepoint, corresponding to the amount of time required to spike and immediately filter the 2 liters of seawater (~15 minutes). The dominant labeling pattern at T0 was a single ^15^N, though all later timepoints showed more doubly-^15^N labeled glutamine than singly-labeled. After 24 hours, glutamine was more than 95% labeled and had approximately doubled in pool size (initially ~0.3 nM becoming 0.8 nM).
+
+```{r fig1 grouped metab heatmap}
 xamend_metab_gp <- labeled_fracs %>%
   left_join(parametadata %>% distinct(shortname, samp_type, timepoint, timepoint_num, depth, startime, amendment, tripl)) %>%
   filter(samp_type!="Bad") %>%
@@ -184,28 +259,111 @@ ggsave("xamend_metab_gp.png",plot = xamend_metab_gp, device = "png", path = "man
 
 ![](figures/xamend_metab_gp.png)
 
-*Figure 1: Fraction of each metabolite or metabolite group containing at least one 15N label during the surface seawater amended various substrates after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the compound signal was isotopically labeled. Three biological replicates are stacked vertically at each timepoint and the categories with multiple entries have been averaged. MAA = mycosporine-like amino acids, GMP = guanosine monophosphate.*
+*Figure 1: Fraction of each metabolite or metabolite group containing at least one ^15^N label during the surface seawater amendments with various substrates after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the compound signal was isotopically labeled. Three biological replicates are stacked vertically at each timepoint and the categories with multiple entries have been averaged. MAA = mycosporine-like amino acids, GMP = guanosine monophosphate.*
 
-  - Ammonia
-    - Really rapid labeling of glutamine/glutamate that aligns nicely with prior work
-      - Aspartate labeled faster than glutamate likely due to small aspartate pool size
-    - Surprisingly rapid labeling of citrulline that isn't reflected in arginine
-      - Pool size problem (arginine >> citrulline)?
-      - Indicates that urea cycle is only half-active?
-    - Putative annotation of theanine based on labeling patterns
-    - Rapid and heavy guanine labeling
-      - Potentially being used as a storage compound
-    - 10-40% of the N in the THAA (protein) pool ends up labeled by T26 (below)
-      - THAAs were 30-50% of total PC (~2 uM, need actual data) and 70-100% PN (~0.35uM)
-  - Nitrate
-    - Very little labeling, even in glutamate/glutamine
-      - Surface community not "expecting" nitrate?
-      - Redox problems with surface energy?
-    - Guanine and MAA labeling exceeds glutamate labeling
-      - Clear sign of a community *subset* using nitrate
-        - Specifically the MAA synthesizers (euks) and those storing N in guanine (diatoms/haptos/dinos)
-    - More extensive labeling (10-50% of the N) in the THAAs
-      - Must be a really high flux through a small AA pool subset, e.g. euks specifically
+```{r gluaspcit numbers}
+labeled_fracs %>%
+  filter(compound_name%in%c("L-Glutamic acid/beta-Glutamic acid", "L-Aspartic acid",
+                            "Citrulline", "L-Arginine", "Theanine?")) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(timepoint=="T1") %>%
+  filter(depth=="Surf") %>%
+  filter(amendment=="Amm") %>%
+  summarise(frac=mean(labeled_frac), .by=c(compound_name))
+env_concs %>%
+  filter(compound_name%in%c("L-Glutamic acid/beta-Glutamic acid", "L-Aspartic acid",
+                            "Citrulline", "L-Arginine")) %>%
+  left_join(parametadata %>% filter(IS_type=="wIS")) %>%
+  filter(timepoint=="T1") %>%
+  filter(depth=="Surf") %>%
+  filter(amendment=="Amm") %>%
+  summarise(conc=mean(conc_nm_in_env), .by=c(compound_name))
+```
+
+```{r theanine annotation check}
+# Check theanine annotation and numbers
+cleaned_combined_peaks %>% 
+  filter(mzmed%between%pmppm(175.1077, 10)) %>%
+  left_join(parametadata) %>%
+  filter(amendment=="Amm") %>%
+  filter(depth=="Surf") %>%
+  summarise(mzmed=unique(mzmed), rtmed=unique(rtmed)/60, into=mean(into),
+            beta_snr=median(beta_snr), beta_cor=median(beta_cor), 
+            .by=feature)
+arrow::open_dataset("tmzMLs/pqds") %>%
+  filter(amendment=="Amm") %>%
+  filter(samp_type=="Smp") %>%
+  filter(polarity=="pos") %>%
+  filter(mz%between%pmppm(175.1077, 10) | mz%between%pmppm(176.1047, 10)) %>%
+  filter(rt%between%c(7.2, 8.5)) %>%
+  dplyr::collect() %>%
+  mutate(mz=round(mz)) %>%
+  slice_max(int, by=c(filename, mz, rt)) %>%
+  arrange(rt) %>%
+  summarise(area=trapz(rt, int), .by=c(filename, mz)) %>%
+  pivot_wider(names_from=mz, values_from=area) %>%
+  mutate(labeled_frac=`176`/(`175`+`176`)) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(depth=="Surf") %>%
+  ggplot() +
+  geom_boxplot(aes(x=timepoint, y=labeled_frac, color=startime))
+```
+
+The ^15^N was then quickly propagated to glutamate and aspartate, creating a metabolite pool 40-50% labeled for each of these after a single hour. Aspartate was labeled slightly faster than glutamate, likely as a result of its smaller pool size (0.2 nM Asp versus 0.5 nM Glu). Also rapidly labeled was citrulline, reaching 20% labeled after a single hour, though arginine was not labeled until much later despite its location immediately downstream of this metabolite. Untargeted detection of other molecular features revealed an additional metabolite that was 30% labeled at the one hour timepoint with an *m/z* value of 175.1077 and a retention time of 8.2 minutes which we have putatively identified as theanine (N5-ethyl glutamine) based on *m/z* match and labeling pattern.
+
+```{r betaine and nucleo numbers}
+labeled_fracs %>%
+  filter(compound_name%in%nucleo_names) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(timepoint=="T26") %>%
+  filter(amendment=="Amm") %>%
+  summarise(frac=mean(labeled_frac), .by=c(compound_name)) %>%
+  mutate(nuc_type=case_when(
+    compound_name%in%c("Cytosine", "Adenine", "Guanine", "Hypoxanthine/Allopurinol")~"Nucleobase",
+    compound_name%in%c("Cytidine", "Adenosine", "Guanosine")~"Nucleoside",
+    compound_name%in%c("Deoxycytidine?", "Deoxyadenosine", "Deoxyguanosine?")~"Deoxy"
+  )) %>%
+  mutate(nuc_shortname=str_extract(tolower(compound_name), tolower("Cy|Ad|Gu|Hy"))) %>%
+  select(nuc_shortname, nuc_type, frac) %>%
+  pivot_wider(names_from=nuc_type, values_from=frac) %>%
+  select(nuc_shortname, Nucleoside, Nucleobase, Deoxy)
+
+labeled_fracs %>%
+  filter(compound_name%in%betaine_names) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(timepoint=="T26") %>%
+  filter(amendment=="Amm") %>%
+  summarise(frac=mean(labeled_frac), .by=c(compound_name))
+
+peak_areas %>%
+  filter(compound_name%in%nucleo_names) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(timepoint=="T26") %>%
+  filter(amendment=="Amm") %>%
+  filter(depth=="Surf") %>%
+  mutate(iso_name=str_remove(iso_name, ".*?, ")) %>%
+  filter(iso_name!="13C0, 15N0") %>%
+  ggplot() +
+  geom_col(aes(x=tripl, y=area, fill=iso_name), position="fill", color="black") +
+  facet_wrap(~compound_name)
+```
+
+Other amino acids and nucleobases/nucleosides had trace amounts of labeling after 3 hours and were extensively labeled (>25%) after 24 hours (Figure 1). Cytidine (42.2% labeled) and adenosine (59.9%) were more heavily ^15^N labeled than their nucleobase constituents at T26 (22.9% and 42.1%, respectively), corresponding to the expected synthesis pathway. Guanine, however, had the inverse trend and at 44.9% labeled was 15% more labeled than guanosine (Supplemental figure XX). The deoxyribose forms were in all cases less completely labeled than their ribose counterparts (deoxycytidine = 18.9%, deoxyadenosine = 20.3%, and deoxyguanosine = 17.2%) `r wc("Maybe better as a small table?")` `r wc("Consider trying harder to get thymine/uracil/inosine values?")`. In each case, the fully ^15^N labeled nucleobase was the dominant constituent of the isotope envelope (^15^N_3_ for cytosine and ^15^N_5_ for adenine and guanine). Other compounds, including betaines (here restricted to quaternary amines with a carboxylic acid group) and choline derivatives showed very little labeling at all, with only homarine (15.0% labeled) and O-acetylcarnitine (9.9% labeled) exceeding 5% labeling after 24 hours`r wc("Expand betaine discussion and turn it into a separate paragraph? Not sure what more to say...")`. 
+
+Amendments with ^15^NO_3_ showed a significantly different labeling pattern with very few metabolites incorporating the ^15^N label at the surface even after 24 hours. Glutamine and glutamate, which were labeled within 20 minutes from ammonia and are the main way in which inorganic nitrogen becomes organic, here saw only trace amounts of production from the added nitrate even after 24 hours. The most heavily labeled compound was guanine, which saw trace amounts of labeling at the T10 timepoint and reached ~40% labeling at T26. This labeling was not reflected in the other nucleobases. The only group of compounds that did see compelling degrees of label were the mycosporine-like amino acids (MAAs), a group of compounds produced under UV exposure (see below). These compounds, like guanine, were labeled in excess of the bulk glutamate/amino acid pool from which their nitrogen is sourced. This is only possible if the nitrate is assimilated by a subset of the community that is able to reduce it and prevents it from entering the environment. Metabolites specific to those organisms can then be made from the small pool of heavily-labeled organic material without affecting the fraction of glutamate or glutamine labeled in bulk.
+
+```{r arg numbers}
+labeled_fracs %>%
+  filter(compound_name=="L-Arginine") %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(depth=="Surf") %>%
+  filter(amendment=="Arg") %>%
+  summarise(frac=mean(labeled_frac), .by=c(compound_name, timepoint)) %>%
+  arrange(timepoint)
+```
+
+The organic nitrogen amendments also showed labeling patterns distinct from the ammonia incubations, though a large fraction of the nitrogen was clearly remineralized into ammonia/glutamate and used to label a similar suite of compounds (Figure 1). Fully C and N labeled (^13^C_6_, ^15^N_4_) arginine was visibly taken up at the T0 timepoint (within 20 minutes) and 80-90% of the pool was fully labeled after 12 hours. Surprisingly, the fraction of arginine labeled decreased from this point, with the T26 and T73 timepoints showing 
+
   - Arginine
     - Clear uptake at T0 (20 minutes), 80-90% of the pool taken up at T10
       - Labeling signal decreases after 24 hours
@@ -214,9 +372,6 @@ ggsave("xamend_metab_gp.png",plot = xamend_metab_gp, device = "png", path = "man
     - Big jump in labeling of other metabolites at T26 not seen at T10
       - No hypotheses why this is happening but it occurs in both morn/eve so not light signal
     - Maybe less storage in guanine specifically, labeling is on par with other NAs unlike ammonia
-    - THAAs show clear usage of arginine in proteins
-      - 30-50% arg in THAAs labeled @73hrs
-      - Clear reuse of arginine backbone as fully labeled glutamate and proline
   - Guanosine monophosphate
     - Unable to measure GMP well enough directly?
     - Guanosine labeling visible at T3, definitely T10, maybe some decrease at T73 like Arg?
@@ -224,12 +379,81 @@ ggsave("xamend_metab_gp.png",plot = xamend_metab_gp, device = "png", path = "man
     - Has a VERY similar pattern to arginine
       - Also a big jump at T26 with basically no labeling at T10
       - Implies mostly converted into ammonia as well and used that way
-    - Reuse of carbon backbone for THAAs though
-      - Histidine 13C5, 15N3
-      - Tyrosine 13C4, 15N1
-      - Phenylalanine 13C4, 15N1
 
-```{r thaa data}
+
+
+
+We also explored the degree of labeling incorporation into proteins by measuring the total hydrolyzable amino acids (THAAs) at both the start of each incubation and the end (Figure 2). Proteins were 30-50% of total particulate carbon pool (~2 uM) and 70-100% of the total particulate nitrogen (~0.25 uM), with free amino acids composing between 0.15% and 17% of the total. Glutamate + glutamine had the largest fraction in the free amino acid pool, varying between 3.4% and 17% while threonine had the largest fraction in protein (0.15% - 0.3% free). [Discuss additional variance here - see below tables(?)]
+
+  - Nitrate
+    - More extensive labeling (10-50% of the N) in the THAAs
+      - Must be a really high flux through a small AA pool subset, e.g. euks specifically
+  - Ammonia
+    - THAAs show clear usage of arginine in proteins
+    - 30-50% arg in THAAs labeled @73hrs
+    - Clear reuse of arginine backbone as fully labeled glutamate and proline
+  - GMP
+    - Reuse of carbon backbone
+    - Histidine 13C5, 15N3
+    - Tyrosine 13C4, 15N1
+    - Phenylalanine 13C4, 15N1
+
+
+
+```{r thaa tables}
+thaa_avgs <- thaa_quant %>%
+  left_join(metathaa) %>%
+  filter(samp_type=="Smp") %>%
+  filter(depth=="Surf") %>%
+  select(compound_name, iso_name, amendment, timepoint, depth, startime, env_conc_nm) %>%
+  summarise(thaa_nM=mean(env_conc_nm), .by = c(compound_name, iso_name, amendment, timepoint)) %>%
+  mutate(compound_name=case_when(
+    compound_name%in%c("Aspartic acid")~"Aspartate + asparagine",
+    compound_name%in%c("Glutamic acid")~"Glutamate + glutamine",
+    compound_name%in%c("Leucine", "Isoleucine")~"Leucine + isoleucine",
+    TRUE~compound_name
+  )) %>%
+  mutate(iso_name=str_remove(iso_name, ".*(?=13)")) %>%
+  summarise(thaa_nM=sum(thaa_nM), .by=c(compound_name, iso_name, amendment, timepoint))
+metab_avgs <- nM_labeled %>%
+  mutate(compound_name=str_remove_all(compound_name, "L-")) %>%
+  mutate(iso_name=str_remove(iso_name, ".*(?=13)")) %>%
+  filter(compound_name%in%aa_names) %>%
+  filter(!compound_name%in%c("Methionine", "Valine", "Lysine")) %>%
+  mutate(compound_name=case_when(
+    compound_name%in%c("Asparagine", "Aspartic acid")~"Aspartate + asparagine",
+    compound_name%in%c("Glutamine", "Glutamic acid/beta-Glutamic acid")~"Glutamate + glutamine",
+    compound_name=="Threonine/Homoserine"~"Threonine",
+    compound_name=="Leucine/Isoleucine"~"Leucine + isoleucine",
+    TRUE~compound_name
+  )) %>%
+  summarise(nM_labeled=sum(nM_labeled), .by = c(compound_name, iso_name, filename)) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  mutate(final_timepoint=ifelse(amendment%in%c("Amm", "Nit"), "T26", "T73")) %>%
+  filter(timepoint%in%c("T0", final_timepoint)) %>%
+  select(compound_name, iso_name, amendment, timepoint, depth, startime, nM_labeled) %>%
+  summarise(metab_nM=mean(nM_labeled), .by = c(compound_name, iso_name, amendment, timepoint))
+
+# Fraction of THAA that's DFAA at T0 and T26
+left_join(metab_avgs, thaa_avgs) %>%
+  summarise(metab_nM=sum(metab_nM, na.rm=TRUE), 
+            thaa_nM=sum(thaa_nM, na.rm=TRUE),
+            .by=c(compound_name, timepoint, amendment)) %>%
+  mutate(perc_in_free=metab_nM/(metab_nM+thaa_nM)*100) %>%
+  select(amendment, compound_name, timepoint, perc_in_free) %>%
+  pivot_wider(names_from=timepoint, values_from=perc_in_free) %>%
+  mutate(T26=ifelse(amendment%in%c("Arg", "GMP"), NA, T26)) %>%
+  arrange(amendment, compound_name)
+
+# Breakdown of THAA isotope labeling
+left_join(metab_avgs, thaa_avgs) %>%
+  mutate(perc_in_free=metab_nM/(metab_nM+thaa_nM)*100) %>%
+  arrange(amendment, compound_name) %>%
+  filter(perc_in_free<100) %>%
+  arrange(timepoint, compound_name)
+```
+
+```{r fig2 thaa data}
 all_thaa_plot <- thaa_quant %>%
   filter(!str_detect(iso_name, "2H")) %>%
   left_join(metathaa) %>%
@@ -245,13 +469,13 @@ all_thaa_plot <- thaa_quant %>%
   left_join(metathaa) %>%
   mutate(amendment=ifelse(timepoint=="T0", "T0", amendment)) %>%
   mutate(amendment=factor(amendment, levels = c("T0", "Amm", "Nit", "Arg", "GMP"),
-                          labels=c("Initial", "+Ammonia", "+Nitrate", "+Arginine", "+GMP"))) %>%
+                          labels=c("Initial (T0)", "+Ammonia", "+Nitrate", "+Arginine", "+GMP"))) %>%
   summarise(total_uM=mean(total_uM), .by=c(amendment, timepoint, name)) %>%
   mutate(name=factor(name, levels=c("nM_N_unlab", "nM_N_lab"), labels = c("Unlabeled", "Labeled"))) %>%
   ggplot(aes(x=amendment, y=total_uM, fill=name)) +
-  geom_col(color="black", width=1) +
+  geom_col(color="black", width=0.9) +
   theme_bw() +
-  scale_x_discrete(expand = expansion()) +
+  # scale_x_discrete(expand = expansion(mult = c(0.05))) +
   scale_y_continuous(expand = expansion(mult=c(0, 0.05))) +
   scale_fill_manual(breaks = c("Unlabeled", "Labeled"), values=c("grey80", "grey20")) +
   labs(x=NULL, y="Total uM N in THAAs", fill=NULL)
@@ -333,6 +557,7 @@ ggsave("total_thaa_gp.png", total_thaa_gp, device = "png", path = "manuscript/fi
 ![](figures/total_thaa_gp.png)
 
 *Figure 2: Stacked bar plots showing the fraction of various total hydrolyzable amino acids (THAAs) labeled at the end of the incubations across the four amendments. Total uM nitrogen (N) in the protein pool is shown in the top plot while the fraction of individual amino acids labeled is shown in the rows below. Colors denote specific labeling patterns detected in the THAAs.*
+
 
 ## Minimal diel signal observed except in the UV-reactive mycosporine-like amino acids
 
@@ -546,7 +771,6 @@ source("untargeted/xcms_multicore.R")
 ```
 
 ```{r load clean_combined and make feat_shape_df}
-cleaned_combined_peaks <- readRDS("untargeted/cleaned_combined_peaks.rds")
 lmtest_output <- cleaned_combined_peaks %>%
   arrange(feature) %>%
   select(feature, filename, into) %>%
@@ -780,7 +1004,14 @@ kmeans_df %>%
   write_csv("untargeted/cluster_assignments.csv")
 ```
 
+ - Putative annotation of theanine based on labeling patterns
+ - Annotation of pyrroline and friends too
+
 # Discussion
+
+[DISCUSSION: surface community not "expecting" nitrate? problems with redox at surface?]
+
+[DISCUSSION: not expecting to see any C labeling from the organics via CO2 because inorganic C pool is so much larger, unlike the N pool]
 
 # Conclusion
 
