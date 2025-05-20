@@ -77,7 +77,10 @@ stan_patched <- all_stans %>%
 maa_names <- c("Also Palythene/Usujirene?", "Shinorine?", "Mycosporine-glycine?", 
                "Palythine?", "Another Palythene/Usujirene?", "Porphyra-334?", 
                "Also Porphyra-334?", "Asterina-330?", "Palythene/Usujirene?",
-               "Mycosporine-2-glycine?")
+               "Mycosporine-2-glycine?", "Mycosporine-alanine/Mycosporine-beta alanine?",
+               "Mycosporine-methylamine:serine?", "Mycosporine-glutamine?",
+               "Mycosporine glutaminol/Palythinol/Mycosporine-methylamine:threonine?", 
+               "Palythenic acid?")
 nucleo_names <- c("5-Methylcytosine", "Adenosine", "Cytidine", "Adenine", "Guanosine",
                   "Cytosine", "Hypoxanthine/Allopurinol", "Guanine", "Deoxycytidine?",
                   "Deoxyadenosine", "Deoxyguanosine?")
@@ -556,11 +559,79 @@ We believe the organic nitrogen amendments largely resulted in metabolite labeli
 
 ## Minimal diel signal observed except in the UV-reactive mycosporine-like amino acids
 
+```{r maa numbers}
+labeled_fracs %>%
+  filter(compound_name%in%chosen_maas) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(timepoint%in%c("T0", "T10")) %>%
+  filter(depth=="Surf") %>%
+  filter(startime=="Morn") %>%
+  filter(amendment=="Amm") %>%
+  summarise(frac=mean(labeled_frac), .by=c(compound_name, timepoint))
+```
+
+We performed the four nitrogen amendments at both 6AM and at 6PM to test for any diel effects in labeling patterns. Very few compounds showed a significant difference between the 6AM start time and the 6PM start time with the exception being the mycosporine-like amino acids (MAAs, Figure 3). Shinorine and palythine were confirmed via MS^2^ fragments while the other annotations remain putative, though their presence exclusively in the surface is compelling. During the ammonia incubations, six `r wc("double-check this after rerun")` MAAs showed clear ^15^N incorporation while exposed to sunlight, with the labeled fraction increasing sharply over the first 10 hours in the incubations started at 6AM. Incubations started at 6PM showed very little labeling from ammonia until a full 24 hours had passed. Shinorine, mycosporine-glycine, palythine, porphyra-334 were all clearly labeled (>20% ^15^N) as well as two of three molecular features detected at an *m/z* of 285.1445 possibly corresponding to palythene and usujirene.
+
 ```{r fig MAA labeling new}
+all_maa_data <- labeled_fracs %>%
+  filter(compound_name%in%maa_names) %>%
+  mutate(compound_name=factor(compound_name, levels=maa_names)) %>%
+  arrange(compound_name) %>%
+  mutate(compound_name=str_remove(compound_name, "\\?$")) %>%
+  mutate(compound_name=str_replace(compound_name, "Also Palythene/Usujirene", "Palythene or\n usujirene")) %>%
+  mutate(compound_name=str_replace(compound_name, "Palythene/Usujirene", "Usujirene or\n palythene")) %>%
+  mutate(compound_name=str_remove(compound_name, "Also ")) %>%
+  mutate(compound_name=str_replace(compound_name, "-glycine", "-\nglycine")) %>%
+  mutate(compound_name=fct_inorder(compound_name)) %>%
+  left_join(parametadata, relationship = "many-to-many") %>%
+  filter(samp_type=="Smp") %>%
+  filter(IS_type=="noIS") %>%
+  filter(amendment%in%c("Amm", "Nit", "Arg", "GMP")) %>%
+  mutate(amendment=factor(amendment, levels=c("Amm", "Nit", "Arg", "GMP"), labels=c("+Ammonia", "+Nitrate", "+Arginine", "+GMP"))) %>%
+  mutate(clock_time=ifelse(startime=="Morn", 6+timepoint_num, 18+timepoint_num)) %>%
+  mutate(startime=factor(startime, levels=c("Morn", "Eve"), labels=c("6AM start", "6PM start")))
+all_maa_gp <- ggplot(all_maa_data) +
+  annotate("rect", xmin=-Inf, xmax = 6, ymin=-Inf, ymax=Inf, fill="grey80") +
+  annotate("rect", xmin=18, xmax = 30, ymin=-Inf, ymax=Inf, fill="grey80") +
+  annotate("rect", xmin=42, xmax = Inf, ymin=-Inf, ymax=Inf, fill="grey80") +
+  geom_hline(yintercept = c(0.25, 0.5, 0.75, 1), color="grey90") +
+  geom_smooth(aes(x=clock_time, y=labeled_frac, color=startime),
+              method=nlsLM, formula="y~a*x^b+d", se = FALSE,
+              method.args=list(start=list(a=1, b=2, d=1),
+                               control=nls.lm.control(maxiter = 500))) +
+  # geom_smooth(aes(x=clock_time, y=labeled_frac, group=startime),
+  #             method=glm, formula = "y~x", method.args=list(family="quasibinomial"), 
+  #             color="grey10", se=FALSE) +
+  # geom_point(aes(x=clock_time, y=labeled_frac, shape=startime), color="black", 
+  #            fill="white", size=3) +
+  geom_point(aes(x=clock_time, y=labeled_frac, shape=startime, fill=startime),
+             color="black", size=2, alpha=0.7) +
+  facet_nested(compound_name~amendment, scales="free_x") +
+  scale_x_continuous(breaks = c(6, 18, 30, 42), labels = c("6AM", "6PM", "6AM", "6PM")) +
+  scale_y_continuous(labels = scales::label_percent(),
+                     limits = c(0, 1), breaks = c(0, 0.5, 1)) +
+  scale_shape_manual(values=c(24, 25), breaks = c("6AM start", "6PM start")) +
+  scale_fill_manual(values=c("#f4bb23", "#0b505c"), breaks = c("6AM start", "6PM start"),
+                    aesthetics = c("color", "fill")) +
+  labs(x=NULL, color=NULL, shape=NULL, fill=NULL, y="Fraction of MAA containing at least one 15N atom") +
+  theme_bw() +
+  theme(axis.text.y = element_markdown(vjust=c(0, 0.5, 1)),
+        axis.title.x = element_blank(),
+        legend.position = "inside",
+        legend.margin = margin(0.1,0.25,0.1,0.1, unit="lines"),
+        legend.position.inside = c(1, 1),
+        legend.justification = c(1, 1), 
+        legend.background = element_rect(fill="#FFFFFFAA", color="black", linewidth = 0)) +
+  guides(shape=guide_legend(override.aes = list(size=3, stroke=1.2, alpha=1, linetype=0)))
+ggsave(plot = all_maa_gp, filename = "supp_MAA_curves.png", device = "png", 
+       path = "manuscript/supplement", width = 6.5, height = 9, units = "in", dpi = 300)
+
+
+
 chosen_maas <- c("Mycosporine-glycine?", "Shinorine?", "Palythine?",
                  "Palythene/Usujirene?", "Also Palythene/Usujirene?", 
                  "Also Porphyra-334?")
-labeled_fracs %>%
+chosen_maa_data <- labeled_fracs %>%
   filter(compound_name%in%chosen_maas) %>%
   mutate(compound_name=factor(compound_name, levels=chosen_maas)) %>%
   arrange(compound_name) %>%
@@ -576,24 +647,16 @@ labeled_fracs %>%
   filter(amendment%in%c("Amm", "Nit")) %>%
   mutate(amendment=factor(amendment, levels=c("Amm", "Nit"), labels=c("+Ammonia", "+Nitrate"))) %>%
   mutate(clock_time=ifelse(startime=="Morn", 6+timepoint_num, 18+timepoint_num)) %>%
-  mutate(startime=factor(startime, levels=c("Morn", "Eve"), labels=c("6AM start", "6PM start"))) %>%
-  ggplot() +
+  mutate(startime=factor(startime, levels=c("Morn", "Eve"), labels=c("6AM start", "6PM start")))
+chosen_maa_gp <- ggplot(chosen_maa_data) +
   annotate("rect", xmin=-Inf, xmax = 6, ymin=-Inf, ymax=Inf, fill="grey80") +
-  # annotate("rect", xmin=6, xmax = 18, ymin=-Inf, ymax=Inf, fill="#d0bd65") +
   annotate("rect", xmin=18, xmax = 30, ymin=-Inf, ymax=Inf, fill="grey80") +
-  # annotate("rect", xmin=30, xmax = 42, ymin=-Inf, ymax=Inf, fill="#d0bd65") +
   annotate("rect", xmin=42, xmax = Inf, ymin=-Inf, ymax=Inf, fill="grey80") +
   geom_hline(yintercept = c(0.25, 0.5, 0.75, 1), color="grey90") +
-  # annotate("rect", xmin=-Inf, xmax=Inf, ymin=-Inf, ymax = Inf, fill="white", alpha=0.3) +
   geom_smooth(aes(x=clock_time, y=labeled_frac, color=startime),
               method=nlsLM, formula="y~a*x^b+d", se = FALSE,
               method.args=list(start=list(a=1, b=2, d=1),
                                control=nls.lm.control(maxiter = 500))) +
-  # geom_smooth(aes(x=clock_time, y=labeled_frac, group=startime),
-  #             method=glm, formula = "y~x", method.args=list(family="quasibinomial"), 
-  #             color="grey10", se=FALSE) +
-  # geom_point(aes(x=clock_time, y=labeled_frac, shape=startime), color="black", 
-  #            fill="white", size=3) +
   geom_point(aes(x=clock_time, y=labeled_frac, shape=startime, fill=startime),
              color="black", size=2, alpha=0.7) +
   facet_nested(compound_name~amendment) +
@@ -613,23 +676,19 @@ labeled_fracs %>%
         legend.justification = c(1, 1), 
         legend.background = element_rect(fill="#FFFFFFAA", color="black", linewidth = 0)) +
   guides(shape=guide_legend(override.aes = list(size=3, stroke=1.2, alpha=1, linetype=0)))
-
-ggsave(filename = "MAA_curves.png", device = "png", path = "manuscript/figures",
-       width = 3, height = 6, units = "in", dpi = 300)
+ggsave(plot = chosen_maa_gp, filename = "MAA_curves.png", device = "png", 
+       path = "manuscript/figures", width = 3, height = 6, units = "in", dpi = 300)
 ```
 
 ![](figures/MAA_curves.png)
 
 *Figure 3: Fraction of UV-reactive mycosporine-like amino acids (MAAs) containing at least one 15N label over one day during the treatments amended with 15N labeled ammonia or nitrate. Incubations started at 6AM are shown in yellow while incubations started at 6PM are shown in blue, with grey background regions highlighting nighttime. Three replicates are included at each of the 5 timepoints and best-fit power law curves have been fit behind the data.*
 
-  - MAAs clearly show daytime synthesis during the day and not at night
-    - Very clear in +Ammonia, less so in +Nitrate
-    - Need to show this statistically somehow?
-  - High levels of labeling despite minimal glycine labeling and synthesis being 4DG+Gly for these
-  - Putative annotations based on labeling pattern (and only found at surface)
-    - Maybe also can do a search for fragments
+Nitrate data showed similar degrees of labeling which was again surprising given the reduced amount of bulk metabolite labeling in those amendments, though the synthesis of MAAs from nitrate appeared less clearly diel. Shinorine and porphyra-334 were particularly well-labeled under nitrate, approaching the values achieved in the ammonia incubations. Very little MAA labeling was observed during the arginine and GMP amendments until the 73 hour timepoint, though at that point the fraction labeled was approximately equivalent to the inorganic amendments and slightly higher for GMP than arginine.
 
-## Inorganics more bioavailable at surface, organics equally bioavailable at 25m and 175m
+## Ammonia more bioavailable at surface, organics equally bioavailable at 25m and 175m
+
+
 
 ```{r fig surface vs deep labeling rates}
 surfdeep_demo_cmpd_gp <- labeled_fracs %>%
@@ -1011,6 +1070,8 @@ kmeans_df %>%
 [DISCUSSION: What does the decrease in arginine labeling in +Arg at T26 and T73 indicate? Pulse-chase behavior? How is the labeled pool specifically decreasing?]
 
 [DISCUSSION: Contrasting the THAA +Nit with the metabolites hints at a small but rapidly churning amino acid pool that's deeply segregated]
+
+[DISCUSSION: MAAs are mostly made from the 4DG core plus N-containing amino acids (glycine). How does the labeling of these compare to their substituent AAs? (it's much larger)]
 
 # Conclusion
 
