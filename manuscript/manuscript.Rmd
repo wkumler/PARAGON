@@ -139,6 +139,25 @@ nM_labeled <- samp_areas %>%
 
 
 cleaned_combined_peaks <- readRDS("untargeted/cleaned_combined_peaks.rds")
+high_qual_feats <- cleaned_combined_peaks %>%
+  filter(rtmed>120 & !rtmed%between%c(14*60, 14.5*60)) %>%
+  left_join(parametadata %>% distinct(filename, samp_type)) %>%
+  filter(samp_type=="Smp") %>%
+  summarise(med_iso_cor=median(iso_cor), 
+            med_snr=median(beta_snr),
+            med_cor=median(beta_cor),
+            .by=c(feature)) %>%
+  filter(med_snr>-50*med_cor+50) %>%
+  filter(med_iso_cor>0.8)
+untarg_lab_fracs <- cleaned_combined_peaks %>%
+  filter(feature%in%high_qual_feats$feature) %>%
+  select(feature, filename, lab_area, unlab_area) %>%
+  left_join(parametadata %>% distinct(filename, samp_type)) %>%
+  filter(samp_type=="Smp") %>%
+  slice_max(unlab_area, by=c(feature, filename), with_ties = FALSE) %>%
+  mutate(labeled_frac=lab_area/(lab_area+unlab_area)) %>%
+  left_join(parametadata %>% distinct(filename, shortname)) %>%
+  select(feature, shortname, labeled_frac)
 
 thaa_quant <- read_csv("thaas/quant_data.csv") %>%
   filter(iso_name!="Proline, 13C3, 15N1")
@@ -931,78 +950,16 @@ best_labeled %>%
 
 Of the 219 features that remained, the majority (150) had a ^15^N isotope with the correct *m/z* value and a chromatographic similarity score above 0.8 (see Methods). 80 of these 150 also showed linear increases in peak area across the timepoints, denoting likely ^15^N-labeled metabolites. We manually inspected each of these 80 metabolites and were able to identify the majority as either compounds in our list of authentic standards (19/80), an isotope of a known compound (39/80), or an in-source fragment of a known compound (12/80, with fragments from proline (70.0658), glutamic acid/glutamate (84.0449, 102.0550, and 130.0499), and the loss of ribose from nucleosides). Five compounds were putatively identified using isotope labeling patterns and literature searches: FT1362 with an *m/z* of 121.07798 and a retention time (RT) of 4.5 minutes we flagged as indoline, FT1564 with an *m/z* of 124.0524 and a 2.7 minute RT we flagged as the ^15^N isotope of nicotinamide, FT4529 with an *m/z* of 228.0979 and a 6.7 minute RT we flagged as deoxycytidine, FT5860 with an *m/z* of 282.1182 and an 11.1 minute RT we flagged as pangamic acid, and FT6622 with an *m/z* of 333.1292 and an 11.2 minute RT we flagged as shinorine. Four additional compounds could not be putatively identified but had plausible molecular formulae: FT3699 with an *m/z* of 192.0866 and 10.3 RT we assigned C~7~H~14~NO~5~, FT4598 with an *m/z* of 231.1703	and 1.9 RT we assigned C~11~H~23~N~2~O~3~, FT4733 with an *m/z* of 236.1492 and 10.0 RT we assigned C~10~H~22~NO~5~, and FT5185 with an *m/z* of 252.1441 and 10.7 RT we assigned C~10~H~22~NO~6~. One feature we were unable to annotate at all (FT5076, *m/z* 248.1258 and RT 12.0).`r wc("Is this information useful? Or should I just refer people to a supplemental table after giving the general breakdown?")`
 
-
-```{r heatmap of all high-quality feats}
-high_qual_feats <- cleaned_combined_peaks %>%
-  filter(rtmed>120 & !rtmed%between%c(14*60, 14.5*60)) %>%
-  left_join(parametadata %>% distinct(filename, samp_type)) %>%
-  filter(samp_type=="Smp") %>%
-  summarise(med_iso_cor=median(iso_cor), 
-            med_snr=median(beta_snr),
-            med_cor=median(beta_cor),
-            .by=c(feature)) %>%
-  filter(med_snr>-50*med_cor+50) %>%
-  filter(med_iso_cor>0.8)
-untarg_lab_fracs <- cleaned_combined_peaks %>%
-  filter(feature%in%high_qual_feats$feature) %>%
-  select(feature, filename, lab_area, unlab_area) %>%
-  left_join(parametadata %>% distinct(filename, samp_type)) %>%
-  filter(samp_type=="Smp") %>%
-  slice_max(unlab_area, by=c(feature, filename), with_ties = FALSE) %>%
-  mutate(labeled_frac=lab_area/(lab_area+unlab_area)) %>%
-  left_join(parametadata %>% distinct(filename, shortname)) %>%
-  select(feature, shortname, labeled_frac)
-
-cmpd_order <- untarg_lab_fracs %>%
-  summarise(mean_label=mean(labeled_frac, na.rm=TRUE), .by=feature) %>%
-  arrange(desc(mean_label)) %>%
-  pull(feature)
-
-colorpal <- viridis::viridis(10, alpha=seq(0, 1, length.out=10), direction = -1)
-untarg_heatmap <- untarg_lab_fracs %>%
-  complete(feature, shortname, fill=list(labeled_frac=0)) %>%
-  mutate(feature=factor(feature, levels=cmpd_order)) %>%
-  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
-  ggplot() +
-  geom_raster(aes(x=timepoint, y=tripl, fill=labeled_frac)) +
-  scale_fill_gradientn(colours = colorpal, limits = c(0, 1)) +
-  scale_y_discrete(expand=expansion()) +
-  scale_x_discrete(guide = guide_axis(n.dodge = 5), expand=expansion()) +
-  facet_nested(feature~amendment+depth+startime, scales = "free_x", switch="y", strip=strip_nested(size = "variable")) +
-  labs(x="Timepoint", y="Metabolite", fill="Fraction\nlabeled") +
-  theme_bw() +
-  theme(panel.spacing.x=unit(0.2, "lines"), 
-        panel.spacing.y = unit(0, "lines"),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        # axis.ticks.length.x=unit(1:5, "lines"),
-        # axis.text.x = element_markdown(vjust = -5:-1),
-        strip.text.y.left = element_text(angle=0, hjust = 1),
-        # strip.background.y = element_rect(fill=NA, color=NA),
-        panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        legend.position = "top", 
-        legend.key.width = unit(1, "null")) +
-  guides(
-    fill=guide_colorbar(theme=theme(
-      legend.frame = element_rect(color = "black"),
-      legend.ticks = element_line(color="black"),
-      legend.text = ggtext::element_markdown(hjust=c(0, 0.5, 0.5, 0.5, 1)))
-    )
-  )
-ggsave("untargeted/untarg_heatmap.pdf", width = 10, height=36, units = "in")
-```
-
 To derive biological meaning from the untargeted analysis, we performed a k-means clustering of the features across all the treatments and timepoints and included our targeted data in the clustering. Clear patterns of isotope incorporation emerged in 6 of the 10 clusters we used (Figure 5). Cluster 1, the largest with 64 molecular features, contained many of the unlabeled compounds including those without any nitrogen and all of the betaines. Cluster 2 contained most of the amino acids, the nucleobases cytosine and guanine, the and the deoxynucleosides as well as ectoine and citrulline. Cluster 3 contained homarine, beta-alanine, and O-acetylcarnitine as well as the remaining amino acids aside from aspartate, glutamate, and glutamine which fell into cluster 4. Known compounds in cluster 5 consisted of adenine, adenosine, cytidine, and hypoxanthine while guanosine fell alone into cluster 6. The MAAs were distributed across clusters 8 and 9, while clusters 7 and 10 had no known compounds.
 
-```{r run kmeans}
+```{r run kmeans and save heatmap and save clusters}
 untarg_lab_mat <- untarg_lab_fracs %>%
   bind_rows(labeled_fracs %>% rename(feature=compound_name) %>% select(-filename)) %>%
   pivot_wider(names_from = "feature", values_from = "labeled_frac", values_fill=0) %>%
   column_to_rownames("shortname") %>%
   data.matrix()
 
-set.seed(124)
+set.seed(123)
 
 # sapply(1:20, function(n_clust){
 #   replicate(10, {
@@ -1025,6 +982,7 @@ kmeans_df <- data.frame(cluster=1:n_clust, n=untarg_kmeans$size) %>%
 
 # Plot clusters as heatmap
 untarg_heatmap <- untarg_lab_fracs %>%
+  bind_rows(labeled_fracs %>% rename(feature=compound_name) %>% select(-filename)) %>%
   left_join(kmeans_df) %>%
   summarise(labeled_frac=mean(labeled_frac), .by = c(cluster_name, shortname)) %>%
   left_join(parametadata) %>%
@@ -1042,10 +1000,7 @@ untarg_heatmap <- untarg_lab_fracs %>%
         panel.spacing.y = unit(0, "lines"),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
-        # axis.ticks.length.x=unit(1:5, "lines"),
-        # axis.text.x = element_markdown(vjust = -5:-1),
         strip.text.y.left = element_text(angle=0, hjust = 1),
-        # strip.background.y = element_rect(fill=NA, color=NA),
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         legend.position = "top", 
@@ -1075,6 +1030,41 @@ kmeans_df %>%
 ![](figures/untarg_heatmap.png)
 
 *Figure 5: Fraction of each cluster containing at least one ^15^N label during the surface seawater amendments with various substrates after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the feature signal was isotopically labeled. Three biological replicates are stacked vertically at each timepoint and the labeling within each clusters has been averaged across all the composing features. The number of features in each cluster is specified by the n in the facet name. GMP = guanosine monophosphate.*
+
+```{r supp fig heatmap of all high-quality feats}
+colorpal <- viridis::viridis(10, alpha=seq(0, 1, length.out=10), direction = -1)
+untarg_heatmap <- untarg_lab_fracs %>%
+  bind_rows(labeled_fracs %>% rename(feature=compound_name) %>% select(-filename)) %>%
+  complete(feature, shortname, fill=list(labeled_frac=0)) %>%
+  left_join(kmeans_df) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  ggplot() +
+  geom_raster(aes(x=timepoint, y=tripl, fill=labeled_frac)) +
+  scale_fill_gradientn(colours = colorpal, limits = c(0, 1)) +
+  scale_y_discrete(expand=expansion()) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 5), expand=expansion()) +
+  facet_nested(cluster_name~feature~amendment+depth+startime, 
+               scales = "free_x", switch="y", strip=strip_nested(size = "variable")) +
+  labs(x="Timepoint", y=NULL, fill="Fraction\nlabeled") +
+  theme_bw() +
+  theme(panel.spacing.x=unit(0.2, "lines"), 
+        panel.spacing.y = unit(0, "lines"),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        strip.text.y.left = element_text(angle=0, hjust = 1),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position = "top", 
+        legend.key.width = unit(1, "null")) +
+  guides(
+    fill=guide_colorbar(theme=theme(
+      legend.frame = element_rect(color = "black"),
+      legend.ticks = element_line(color="black"),
+      legend.text = ggtext::element_markdown(hjust=c(0, 0.5, 0.5, 0.5, 1)))
+    )
+  )
+ggsave("manuscript/supplement/untarg_heatmap.pdf", width = 10, height=36, units = "in")
+```
 
 # Discussion
 

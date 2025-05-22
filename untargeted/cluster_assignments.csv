@@ -32,51 +32,51 @@ Cluster 1 n=66,Trimethylamine N-oxide
 Cluster 1 n=66,Urea
 Cluster 1 n=66,beta-Alaninebetaine
 ,
-Cluster 2 n=50,Glycine
-Cluster 2 n=50,Homarine
-Cluster 2 n=50,L-Alanine
-Cluster 2 n=50,L-Histidine
-Cluster 2 n=50,L-Leucine/L-Isoleucine
-Cluster 2 n=50,L-Lysine
-Cluster 2 n=50,L-Methionine
-Cluster 2 n=50,L-Serine
-Cluster 2 n=50,L-Threonine/L-Homoserine
-Cluster 2 n=50,L-Valine
-Cluster 2 n=50,O-Acetylcarnitine
-Cluster 2 n=50,beta-Alanine
+Cluster 2 n=31,Glycine
+Cluster 2 n=31,Homarine
+Cluster 2 n=31,L-Histidine
+Cluster 2 n=31,L-Lysine
+Cluster 2 n=31,L-Serine
+Cluster 2 n=31,L-Threonine/L-Homoserine
+Cluster 2 n=31,L-Valine
+Cluster 2 n=31,O-Acetylcarnitine
+Cluster 2 n=31,beta-Alanine
 ,
-Cluster 3 n=33,Adenine
-Cluster 3 n=33,Adenosine
-Cluster 3 n=33,Citrulline
-Cluster 3 n=33,Cytidine
-Cluster 3 n=33,Cytosine
-Cluster 3 n=33,Deoxyadenosine
-Cluster 3 n=33,Deoxycytidine?
-Cluster 3 n=33,Deoxyguanosine?
-Cluster 3 n=33,Ectoine
-Cluster 3 n=33,Guanine
-Cluster 3 n=33,Guanosine
-Cluster 3 n=33,Hypoxanthine/Allopurinol
-Cluster 3 n=33,L-Arginine
-Cluster 3 n=33,L-Asparagine
-Cluster 3 n=33,L-Proline
-Cluster 3 n=33,N6-Acetyl-L-lysine
+Cluster 3 n=30,L-Aspartic acid
+Cluster 3 n=30,L-Glutamic acid/beta-Glutamic acid
+Cluster 3 n=30,L-Glutamine
 ,
-Cluster 4 n=27,L-Aspartic acid
-Cluster 4 n=27,L-Glutamic acid/beta-Glutamic acid
-Cluster 4 n=27,L-Glutamine
+Cluster 4 n=29,Citrulline
+Cluster 4 n=29,Cytosine
+Cluster 4 n=29,Deoxyadenosine
+Cluster 4 n=29,Deoxycytidine?
+Cluster 4 n=29,Deoxyguanosine?
+Cluster 4 n=29,Guanine
+Cluster 4 n=29,L-Alanine
+Cluster 4 n=29,L-Arginine
+Cluster 4 n=29,L-Asparagine
+Cluster 4 n=29,L-Leucine/L-Isoleucine
+Cluster 4 n=29,L-Methionine
+Cluster 4 n=29,L-Proline
 ,
+Cluster 5 n=27,Adenine
+Cluster 5 n=27,Adenosine
+Cluster 5 n=27,Cytidine
+Cluster 5 n=27,Hypoxanthine/Allopurinol
 ,
-Cluster 6 n=17,Also Palythene/Usujirene?
-Cluster 6 n=17,Also Porphyra-334?
-Cluster 6 n=17,Mycosporine-glycine?
-Cluster 6 n=17,Palythene/Usujirene?
-Cluster 6 n=17,Palythine?
-Cluster 6 n=17,Porphyra-334?
-Cluster 6 n=17,Shinorine?
-Cluster 6 n=17,Theanine?
+Cluster 6 n=17,Guanosine
 ,
+Cluster 7 n=17,Also Palythene/Usujirene?
+Cluster 7 n=17,Also Porphyra-334?
+Cluster 7 n=17,Mycosporine-glycine?
+Cluster 7 n=17,Palythene/Usujirene?
+Cluster 7 n=17,Palythine?
+Cluster 7 n=17,Porphyra-334?
+Cluster 7 n=17,Shinorine?
+Cluster 7 n=17,Theanine?
 ,
 ,
+Cluster 9 n=7,Ectoine
+Cluster 9 n=7,N6-Acetyl-L-lysine
 ,
 ,
