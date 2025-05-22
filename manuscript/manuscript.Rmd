@@ -178,6 +178,8 @@ One way to reveal the pathways and transformations that marine N undergoes in a 
 
 # Results
 
+`r wc("Do I need a 'here's what the cruise looked like' results section?")`
+
 ## Differences in nitrogen labeling at the surface between amendments
 
 ```{r gln numbers}
@@ -688,7 +690,20 @@ Nitrate data showed similar degrees of labeling which was again surprising given
 
 ## Ammonia more bioavailable at surface, organics equally bioavailable at 25m and 175m
 
+```{r surfdeep nums}
+labeled_fracs %>%
+  # filter(compound_name%in%c("L-Glutamic acid/beta-Glutamic acid", "L-Aspartic acid", "L-Asparagine", "Theanine?")) %>%
+    # filter(compound_name%in%c("Guanine", "Guanosine", "Cytosine", "Cytidine", "Adenine", "Adenosine")) %>%
+  filter(compound_name%in%c("Glycine betaine", "Homarine", "Trigonelline", "Choline")) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(amendment=="Amm") %>%
+  summarise(frac=mean(labeled_frac), .by=c(compound_name, timepoint, depth)) %>%
+  pivot_wider(names_from=depth, values_from=frac) %>%
+  summarise(Surf/Deep, .by=c(compound_name, timepoint)) %>%
+  arrange(compound_name)
+```
 
+We also performed the four nitrogen amendments at both the surface (25 meters) and below the euphotic zone (175 meters) to investigate the effect of depth on organic and inorganic nitrogen use `r wc("Maybe find and include the light level at 175m?")`. We found that ammonia was used much more readily at the surface as measured by the fraction of metabolite labeled, with ^15^N incorporation for amino acids 5-25% greater in the surface than at depth (Figure 4). Glutamate, theanine, aspartate, and asparagine were among the most different with glutamate and theanine surface values about 10 times those at depth while ^15^N aspartate was undetectable until T3 and ^15^N asparagine never detected. In contrast, glutamine labeling was similar between the two depths, with the fraction labeled 10-20 percentage points higher at the surface across all timepoints; a trend which was clearly not propagated to glutamate or other amino acids and instead must have represented accumulation or protein incorporation. `r wc("Not super happy with the numeric language here - feels like I'm flipping between 'times greater' and 'percentage points higher'.")`
 
 ```{r fig surface vs deep labeling rates}
 surfdeep_demo_cmpd_gp <- labeled_fracs %>%
@@ -809,22 +824,17 @@ ggsave(filename = "deep_vs_surf_labeling.png", surfdeep_gp, device = "png",
 
 *Figure 4: Plots of the metabolite fraction labeled at the surface (25 meters) and the fraction labeled at 175 meters. Incubations with added ammonia, arginine, and guanosine monophosphate (GMP) are shown. Top row of plots show the calculation of % labeled at 25 meters minus % labeled at 175 meters for three example compounds. All compounds are shown in the middle row of plots, grouped by chemical similarity and labeling pattern where positive values indicate increased synthesis in the surface samples relative to those at depth. Finally, the bottom row of plots shows the relative difference between the surface and deep as boxplots for all compounds without aggregating. Points in the first two rows are the average of six biological replicates (incubations started in the morning and the evening are combined here for additional power) while points in the bottom row denote metabolites with labeled fractions falling outside 1.5 times the interquartile range.*
 
-  - Ammonia incubations result in much faster labeling at 25 meters than 175m
-    - Presumed to be a phototrophic signal
-    - Major exception is ectoine, a bacterial biosignal (McParland 2021)
-  - Organic N incubations result in equal amounts of labeling at surface and depth
-    - Ectoine again predominantly labeled at depth
-    - Labeling of guanosine at T0 in the +GMP treatment implies rapid uptake and P-cleavage
-  - Nitrate data unavailable due to T10 and T26 deep samples contaminated
-    - See supplemental figure 1 for the data anyway
+Other metabolites varied in their degree of labeling (Figure 4). Nucleobases and nucleosides were much more heavily labeled from ammonia at the surface, with maximum labeling 3-10 times more extensive around T3 and T10 if the isotope was measurable at both depths and infinitely more so if not. Betaines and other nitrogen-containing metabolites, however, were almost entirely unlabeled at 175 meters until the 24 hour mark, at which the fraction labeled in both was 5-20 times higher at the surface. An important exception to this rule is the osmolyte ectoine, an aspartate derivative that nonetheless was synthesized with nitrogen from ammonia at depth at rates equal to or exceeding those of the surface.
 
-## Other results from untargeted analysis
+We were unfortunately unable to present the data collected from the 175 meter labeled nitrate incubations here due to missed timepoints and confusion during sample collection but the raw numbers are provided in the supplement (Table XX and Supplemental Figure XX).
 
-```{r source multicore}
-source("untargeted/xcms_multicore.R")
-```
+^15^N use from the organic nitrogen substrates was again strikingly similar between the 25 meter and 175 meter samples aside from the direct products of the amended compounds. In both cases, uptake and use of the labeled substrate was equal or slightly higher at depth for a majority of the metabolites measured. Exceptions to this were theanine, which was 20-30 percentage points more heavily labeled at the surface by the end of the incubations, and ectoine, which was synthesized more at depth even to a larger degree than it was during the ammonia treatments, reaching nearly 50 percentage points more labeled at 175 meters than it was at 25m.
+
+## Untargeted methods reveal widespread labeling throughout the metabolome
 
 ```{r load clean_combined and make feat_shape_df}
+cleaned_combined_peaks <- readRDS("untargeted/cleaned_combined_peaks.rds")
+
 lmtest_output <- cleaned_combined_peaks %>%
   arrange(feature) %>%
   select(feature, filename, into) %>%
@@ -833,11 +843,11 @@ lmtest_output <- cleaned_combined_peaks %>%
   mutate(timepoint_num=ifelse(timepoint_num==0, 0.3, timepoint_num)) %>%
   nest(data=-feature) %>%
   filter(sapply(data, nrow)>2) %>%
-  mutate(lm_test=map(data, ~broom::tidy(lm(log10(.x$into)~log10(.x$timepoint_num))), .progress = TRUE)) %>%
+  mutate(lm_test=map(data, ~broom::tidy(lm(log10(.x$into)~log10(.x$timepoint_num))),
+                     .progress = TRUE)) %>%
   unnest(lm_test) %>%
   filter(term=="log10(.x$timepoint_num)") %>%
   mutate(p_adj=p.adjust(p.value, method = "fdr"))
-
 feat_shape_df <- cleaned_combined_peaks %>%
   summarise(mzmed=unique(mzmed),
             rtmed=unique(rtmed),
@@ -847,15 +857,12 @@ feat_shape_df <- cleaned_combined_peaks %>%
             .by=feature) %>%
   left_join(lmtest_output %>% select(feature, estimate, p_adj)) %>%
   mutate(peak_qual=ifelse(med_snr>-50*med_cor+50, "Good", "Bad")) %>%
-  mutate(peak_qual=ifelse(rtmed<2*60 | between(rtmed, 14*60, 14.5*60), "Solvent artifact", peak_qual)) %>%
+  mutate(peak_qual=ifelse(rtmed<2*60 | between(rtmed, 14*60, 14.5*60), 
+                          "Solvent artifact", peak_qual)) %>%
   mutate(is_iso=ifelse(med_iso_cor>0.8, "Is iso", "Not iso")) %>%
   mutate(time_trend=ifelse(p_adj<0.001& estimate>0, "Increases", "No change"))
-feat_shape_df %>%
-  filter(!is.na(time_trend)) %>%
-  count(peak_qual, is_iso, time_trend)
-```
 
-```{r get counts per amendment instead of as a whole}
+
 # Repeat analysis across amendments to get additional numbers
 lmtest_xamend <- cleaned_combined_peaks %>%
   arrange(feature) %>%
@@ -868,7 +875,8 @@ lmtest_xamend <- cleaned_combined_peaks %>%
   mutate(depth=str_extract(filename, "Surf|Deep")) %>%
   nest(data=-c(feature, amendment)) %>%
   filter(sapply(data, nrow)>2) %>%
-  mutate(lm_test=map(data, ~broom::tidy(lm(log10(.x$into)~log10(.x$timepoint))), .progress = TRUE)) %>%
+  mutate(lm_test=map(data, ~broom::tidy(lm(log10(.x$into)~log10(.x$timepoint))), 
+                     .progress = TRUE)) %>%
   unnest(lm_test) %>%
   filter(term=="log10(.x$timepoint)") %>%
   mutate(p_adj=p.adjust(p.value, method = "fdr"))
@@ -882,23 +890,21 @@ feat_shape_df_xamend <- cleaned_combined_peaks %>%
             .by=c(feature, amendment)) %>%
   left_join(lmtest_xamend %>% select(feature, amendment, estimate, p_adj)) %>%
   mutate(peak_qual=ifelse(med_snr>-50*med_cor+50, "Good", "Bad")) %>%
+  mutate(peak_qual=ifelse(rtmed<2*60 | between(rtmed, 14*60, 14.5*60), 
+                          "Solvent artifact", peak_qual)) %>%
   mutate(is_iso=ifelse(med_iso_cor>0.8, "Is iso", "Not iso")) %>%
   mutate(time_trend=ifelse(p_adj<0.001& estimate>0, "Increases", "No change"))
-feat_shape_df_xamend %>%
-  bind_rows(iso_df %>% mutate(amendment="Overall")) %>%
-  # filter(!rtmed%between%(c(14, 14.5)*60)) %>%
-  # filter(!rtmed<(2*60)) %>%
-  filter(!is.na(time_trend)) %>%
-  count(peak_qual, is_iso, time_trend, amendment) %>%
-  pivot_wider(names_from = amendment, values_from=n, values_fill = 0) %>%
-  print()
+```
+
+```{r count categories as a whole and by amendment}
 feat_shape_df_xamend %>%
   bind_rows(feat_shape_df %>% mutate(amendment="Overall")) %>%
   filter(!is.na(time_trend)) %>%
-  ggplot() +
-  geom_bar(aes(x=amendment)) +
-  facet_wrap(~peak_qual+is_iso+time_trend, scales="free_y", ncol=4)
+  count(peak_qual, is_iso, time_trend, amendment) %>%
+  pivot_wider(names_from = amendment, values_from=n, values_fill = 0)
 ```
+
+After a heuristic compound discovery approach revealed the putatively identified theanine, deoxyguanosine, deoxycytidine, and MAAs had interesting labeling patterns, we decided to perform a fully untargeted analysis to detect additional compounds that were labeled over the course of the incubations. Fairly lax peakpicking settings for xcms returned nearly 10,000 chromatographic peaks in each of the ~280 samples across the four LC runs used, one for each amendment sample set. At this point we noted that the nitrate amendment samples had an unusually large number of peaks detected due to the inclusion of a contaminant suite, likely plastic, which fortunately eluted before many of our compounds of interest. Correspondence requiring the presence of a peak in all three biological triplicates for a given treatment/timepoint combination reduced that number to approximately 5,000 unique features. Random inspection revealed that the majority of these features were noise so we calculated additional peak quality metrics as well as reintegrated each peak and its predicted isotope (see Methods). Of the initial 5,602 features, over half (2,956) failed quality control and an additional 1,690 were determined to be likely solvent artifacts due to their elution in less than two minutes or `r wc("when a large proportion of junk was coming off the column (median retention times between 14.0 and 14.5 minutes)? during the retention time when sulfate eluted? based on their peak shape and retention time? due to the fact that they showed no change across any of the treatments or timepoints? The darn things just look bad and I hate them but I can't really explain why.")` and were removed from downstream analysis.
 
 ```{r write out the best labels for manual annotation}
 best_labeled <- feat_shape_df %>%
@@ -921,6 +927,9 @@ best_labeled %>%
   select(feature, mzmed, rtmed, compound_name) %>%
   write_csv("untargeted/best_labeled_anno.csv")
 ```
+
+Of the 219 features that remained, the majority (150) had a ^15^N isotope with the correct *m/z* value and a chromatographic similarity score above 0.8 (see Methods). 80 of these 150 also showed linear increases in peak area across the timepoints, denoting likely ^15^N-labeled metabolites. We manually inspected each of these 80 metabolites and were able to identify the majority as either compounds in our list of authentic standards (19/80), an isotope of a known compound (39/80), or an in-source fragment of a known compound (12/80, with fragments from proline (70.0658), glutamic acid/glutamate (84.0449, 102.0550, and 130.0499), and the loss of ribose from nucleosides). Five compounds were putatively identified using isotope labeling patterns and literature searches: FT1362 with an *m/z* of 121.07798 and a retention time (RT) of 4.5 minutes we flagged as indoline, FT1564 with an *m/z* of 124.0524 and a 2.7 minute RT we flagged as the ^15^N isotope of nicotinamide, FT4529 with an *m/z* of 228.0979 and a 6.7 minute RT we flagged as deoxycytidine, FT5860 with an *m/z* of 282.1182 and an 11.1 minute RT we flagged as pangamic acid, and FT6622 with an *m/z* of 333.1292 and an 11.2 minute RT we flagged as shinorine. Four additional compounds could not be putatively identified but had plausible molecular formulae: FT3699 with an *m/z* of 192.0866 and 10.3 RT we assigned C~7~H~14~NO~5~, FT4598 with an *m/z* of 231.1703	and 1.9 RT we assigned C~11~H~23~N~2~O~3~, FT4733 with an *m/z* of 236.1492 and 10.0 RT we assigned C~10~H~22~NO~5~, and FT5185 with an *m/z* of 252.1441 and 10.7 RT we assigned C~10~H~22~NO~6~. One feature we were unable to annotate at all (FT5076, *m/z* 248.1258 and RT 12.0).
+
 
 ```{r heatmap of all high-quality feats}
 high_qual_feats <- cleaned_combined_peaks %>%
@@ -983,9 +992,11 @@ untarg_heatmap <- untarg_lab_fracs %>%
 ggsave("untargeted/untarg_heatmap.pdf", width = 10, height=36, units = "in")
 ```
 
+To derive biological meaning from the untargeted analysis, we performed a k-means clustering of the features across all the treatments and timepoints and included our targeted data in the clustering. Clear patterns of isotope incorporation emerged in 6 of the 10 clusters we used (Figure 5). Cluster 1, the largest with 64 molecular features, contained many of the unlabeled compounds including those without any nitrogen and all of the betaines. Cluster 2 contained most of the amino acids, the nucleobases cytosine and guanine, the and the deoxynucleosides as well as ectoine and citrulline. Cluster 3 contained homarine, beta-alanine, and O-acetylcarnitine as well as the remaining amino acids aside from aspartate, glutamate, and glutamine which fell into cluster 4. Known compounds in cluster 5 consisted of adenine, adenosine, cytidine, and hypoxanthine while guanosine fell alone into cluster 6. The MAAs were distributed across clusters 8 and 9, while clusters 7 and 10 had no known compounds.
+
 ```{r run kmeans}
 untarg_lab_mat <- untarg_lab_fracs %>%
-  bind_rows(labeled_fracs %>% rename(feature=compound_name)) %>%
+  bind_rows(labeled_fracs %>% rename(feature=compound_name) %>% select(-filename)) %>%
   pivot_wider(names_from = "feature", values_from = "labeled_frac", values_fill=0) %>%
   column_to_rownames("shortname") %>%
   data.matrix()
@@ -1012,7 +1023,7 @@ kmeans_df <- data.frame(cluster=1:n_clust, n=untarg_kmeans$size) %>%
   select(cluster_name, feature)
 
 # Plot clusters as heatmap
-untarg_lab_fracs %>%
+untarg_heatmap <- untarg_lab_fracs %>%
   left_join(kmeans_df) %>%
   summarise(labeled_frac=mean(labeled_frac), .by = c(cluster_name, shortname)) %>%
   left_join(parametadata) %>%
@@ -1045,6 +1056,8 @@ untarg_lab_fracs %>%
       legend.text = ggtext::element_markdown(hjust=c(0, 0.5, 0.5, 0.5, 1)))
     )
   )
+ggsave("untarg_heatmap.png", untarg_heatmap, path="manuscript/figures",
+       width=6.5, height=4, units = "in")
 
 # Export as CSV
 kmeans_df %>%
@@ -1058,8 +1071,9 @@ kmeans_df %>%
   write_csv("untargeted/cluster_assignments.csv")
 ```
 
- - Putative annotation of theanine based on labeling patterns
- - Annotation of pyrroline and friends too
+![](figures/untarg_heatmap.png)
+
+*Figure 5: Fraction of each cluster containing at least one ^15^N label during the surface seawater amendments with various substrates after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the feature signal was isotopically labeled. Three biological replicates are stacked vertically at each timepoint and the labeling within each clusters has been averaged across all the composing features. The number of features in each cluster is specified by the n in the facet name. GMP = guanosine monophosphate.*
 
 # Discussion
 
@@ -1076,6 +1090,8 @@ kmeans_df %>%
 # Conclusion
 
 # Methods
+
+[explain chromatographic similarity scoring as pearson's correlation coefficient]
 
 # Acknowledgements
 
