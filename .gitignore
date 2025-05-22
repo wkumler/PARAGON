@@ -10,3 +10,5 @@ targeted/*.rds
 .Rproj.user
 !paragon.Rproj
 !thaas/*
+!README.Rmd
+!README.md
