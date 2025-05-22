@@ -41,6 +41,8 @@ at each timepoint and the categories with multiple entries have been
 averaged. MAA = mycosporine-like amino acids, GMP = guanosine
 monophosphate.
 
+------------------------------------------------------------------------
+
 ![](manuscript/figures/total_thaa_gp.png)
 
 Figure 2: Stacked bar plots showing the fraction of various total
@@ -52,9 +54,6 @@ patterns detected in the THAAs.
 
 <table>
 <tr>
-<td>
-<img src="manuscript/figures/MAA_curves.png" width="4500"/>
-</td>
 <td style="vertical-align: middle; text-align: center;">
 Figure 3: Fraction of UV-reactive mycosporine-like amino acids (MAAs)
 containing at least one <sup>15</sup>N label over one day during the
@@ -64,8 +63,13 @@ at 6PM are shown in blue, with grey background regions highlighting
 nighttime. Three replicates are included at each of the 5 timepoints and
 best-fit power law curves have been fit behind the data.
 </td>
+<td>
+<img src="manuscript/figures/MAA_curves.png" width="4500"/>
+</td>
 </tr>
 </table>
+
+------------------------------------------------------------------------
 
 ![](manuscript/figures/deep_vs_surf_labeling.png)
 
@@ -83,6 +87,8 @@ rows are the average of six biological replicates (incubations started
 in the morning and the evening are combined here for additional power)
 while points in the bottom row denote metabolites with labeled fractions
 falling outside 1.5 times the interquartile range.
+
+------------------------------------------------------------------------
 
 ![](manuscript/figures/untarg_heatmap.png)
 
