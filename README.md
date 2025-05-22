@@ -50,21 +50,22 @@ shown in the top plot while the fraction of individual amino acids
 labeled is shown in the rows below. Colors denote specific labeling
 patterns detected in the THAAs.
 
-<div style="display: flex; align-items: center;">
-
-<img src="manuscript/figures/MAA_curves.png" style="width: 50%; margin-right: 10px;" />
-
-<div style="text-align: center; flex: 1;">
-
-    <p>Figure 3: Fraction of UV-reactive mycosporine-like amino acids (MAAs) containing at least one ^15^N label over one day during the treatments amended with ^15^N labeled ammonia or nitrate. Incubations started at 6AM are shown in yellow while incubations started at 6PM are shown in blue, with grey background regions highlighting nighttime. Three replicates are included at each of the 5 timepoints and best-fit power law curves have been fit behind the data.</p>
-
-</div>
-
-</div>
-
-<div clear="left">
-
-</div>
+<table>
+<tr>
+<td>
+<img src="manuscript/figures/MAA_curves.png" width="4500"/>
+</td>
+<td style="vertical-align: middle; text-align: center;">
+Figure 3: Fraction of UV-reactive mycosporine-like amino acids (MAAs)
+containing at least one <sup>15</sup>N label over one day during the
+treatments amended with <sup>15</sup>N labeled ammonia or nitrate.
+Incubations started at 6AM are shown in yellow while incubations started
+at 6PM are shown in blue, with grey background regions highlighting
+nighttime. Three replicates are included at each of the 5 timepoints and
+best-fit power law curves have been fit behind the data.
+</td>
+</tr>
+</table>
 
 ![](manuscript/figures/deep_vs_surf_labeling.png)
 
