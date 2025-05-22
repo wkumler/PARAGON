@@ -101,6 +101,9 @@ bad_cmpds <- c("Melamine", "Uridine", "Itaconic acid?", "Inosine", "Dexpanthenol
 class_levels <- c("Glutamine", "Glutamic acid", "Aspartic acid", "Asparagine", "Arginine", 
                   "Other amino acids", "Theanine?", "Citrulline", "Ectoine", "Guanine", 
                   "Guanosine", "Other nucleic acids", "MAAs", "Betaines", "All others")
+class_colors <- c("#08519C", "#2171B5", "#4292C6", "#6BAED6", "#8EBAD1", 
+                  "#08306B", "#006D2C", "#319B4D", "#AB0022", "#6A51A3", 
+                  "#AE9AD8", "#4E1F88", "#E0C174", "#4D2B01", "grey40")
 aa_ncs <- all_stans %>%
   filter(compound_type=="Amino Acid") %>%
   mutate(compound_name=str_remove(compound_name, "^L-")) %>%
@@ -231,7 +234,9 @@ xamend_metab_gp <- labeled_fracs %>%
   ggplot() +
   geom_raster(aes(x=timepoint, y=tripl, fill=avg_frac)) +
   geom_vline(xintercept = c(1.5:5.5), color="grey80") +
-  facet_nested(compound_class~amendment, scales = "free_x", switch="y") +
+  facet_nested(compound_class~amendment, scales = "free_x", switch="y", 
+               strip=strip_nested(text_y = elem_list_text(color=class_colors, 
+                                                          face=rep("bold", length(class_colors))))) +
   scale_fill_gradientn(colours = viridis::viridis(10, alpha = seq(0, 1, length.out=10), direction = -1),
                        limits=c(0, 1), breaks=c(0, 0.25, 0.5, 0.75, 1),
                        labels=c("Fully unlabeled", "", "50% labeled", "", "Fully labeled")) +
@@ -249,7 +254,8 @@ xamend_metab_gp <- labeled_fracs %>%
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         legend.position = "top", 
-        legend.key.width = unit(1, "null")) +
+        legend.key.width = unit(1, "null"),
+        text=element_text(size=15)) +
   guides(
     fill=guide_colorbar(theme=theme(
       legend.frame = element_rect(color = "black"),
@@ -258,8 +264,9 @@ xamend_metab_gp <- labeled_fracs %>%
       text=element_text(size=12)
     )
   )
+xamend_metab_gp
 ggsave("xamend_metab_gp.png",plot = xamend_metab_gp, device = "png", path = "manuscript/figures",
-       width = 6.5, height = 4, units = "in", dpi = 300)
+       width = 6.5, height = 4.5, units = "in", dpi = 300)
 ```
 
 ![](figures/xamend_metab_gp.png)
@@ -473,11 +480,12 @@ all_thaa_plot <- thaa_quant %>%
   mutate(name=factor(name, levels=c("nM_N_unlab", "nM_N_lab"), labels = c("Unlabeled", "Labeled"))) %>%
   ggplot(aes(x=amendment, y=total_uM, fill=name)) +
   geom_col(color="black", width=0.9) +
+  geom_hline(yintercept = 0) +
   theme_bw() +
   # scale_x_discrete(expand = expansion(mult = c(0.05))) +
   scale_y_continuous(expand = expansion(mult=c(0, 0.05))) +
   scale_fill_manual(breaks = c("Unlabeled", "Labeled"), values=c("grey80", "grey20")) +
-  labs(x=NULL, y="Total uM N in THAAs", fill=NULL)
+  labs(x=NULL, y="Total uM N in THAAs      ", fill=NULL)
 
 plot_iso_levels <- c(
   "Unlabeled", 
@@ -492,17 +500,8 @@ plot_iso_levels <- c(
   "Entirely <sup>13</sup>C<br>and <sup>15</sup>N", 
   "Other labels")
 plot_iso_colors <- c(
-  "grey80",
-  "#e0ecf6",
-  "#97bfe0",
-  "#377EB8",
-  "#285b84",
-  "#ffb4b5",
-  "#d7b6dc",
-  "#FFFF33",
-  "#4DAF4A",
-  "#984EA3",
-  "grey20"
+  "grey80","#e0ecf6","#97bfe0","#377EB8","#285b84","#ffb4b5","#AE9AD8",
+  "#E0C144","#319B4D","#5A4193","grey30"
 )
 thaa_spec_cmpds <- c("Glutamine + Glutamate", "Arginine", "Proline", "Histidine", "Phenylalanine", "Tyrosine")
 thaa_plot_data <- thaa_quant %>%
@@ -535,7 +534,7 @@ thaa_plot_data <- thaa_quant %>%
 arg_glut_thaa_plot <- ggplot(thaa_plot_data) +
   geom_col(aes(x=amendment, y=avg_env_conc_nm, fill=plot_iso_name, label=iso_name),
            position="fill",
-           color="black", width=1) +
+           color="black", width=1, lwd=0.2) +
   facet_wrap(~compound_name) +
   theme_bw() +
   scale_x_discrete(expand = expansion()) +
@@ -550,7 +549,7 @@ arg_glut_thaa_plot <- ggplot(thaa_plot_data) +
 total_thaa_gp <- all_thaa_plot / arg_glut_thaa_plot + plot_layout(heights = c(0.3, 0.7))
 total_thaa_gp
 ggsave("total_thaa_gp.png", total_thaa_gp, device = "png", path = "manuscript/figures",
-       width = 6.5, height = 5, units = "in", dpi = 300)
+       width = 6.5, height = 4.5, units = "in", dpi = 300)
 ```
 
 ![](figures/total_thaa_gp.png)
@@ -735,7 +734,7 @@ surfdeep_demo_cmpd_gp <- labeled_fracs %>%
   stat_summary(aes(y=Surf, label=paste0(round(Surf-Deep, 2)*100, "%"), vjust=-sign(Surf-Deep)*1.5+0.75), 
                geom = "text", fun = mean) +
   facet_wrap(~amendment, nrow=1) +
-  scale_color_discrete(drop=FALSE) +
+  scale_color_manual(breaks=class_levels, values = class_colors) +
   scale_x_log10(breaks=c(0.3, 3, 30), labels=c("0.3", "3", "30"), expand=expansion(0.15)) +
   scale_y_continuous(labels=scales::label_percent(), expand=expansion(mult=c(0, 0.1)),
                      breaks=c(0, 0.5, 1), limits = c(0, 1)) +
@@ -779,6 +778,7 @@ surfdeep_all_cmpd_gp <- labeled_fracs %>%
   scale_x_log10(breaks=c(0.3, 3, 30), labels=c("0.3", "3", "30"), expand=expansion(0.15)) +
   scale_y_continuous(labels=scales::label_percent()) +
   scale_shape_manual(breaks=setdiff(class_levels, "MAAs"), values = rep(21:25, length.out=14)) +
+  scale_color_manual(breaks=class_levels, values = class_colors, aesthetics = c("color", "fill")) +
   labs(x="Hours after <sup>15</sup>N spike", color=NULL, fill=NULL, shape=NULL,
        y="Percent metabolite labeled at 25m\nminus percent labeled at 175m") +
   theme_bw() +
@@ -816,6 +816,7 @@ surfdeep_all_cmpd_boxplot_gp <- labeled_fracs %>%
 
 surfdeep_gp <- surfdeep_demo_cmpd_gp / surfdeep_all_cmpd_gp / surfdeep_all_cmpd_boxplot_gp + plot_layout(guides = "collect", heights = c(0.3, 0.5, 0.2))
 
+surfdeep_gp
 ggsave(filename = "deep_vs_surf_labeling.png", surfdeep_gp, device = "png", 
        path = "manuscript/figures", width = 6.5, height = 6.5, units = "in", dpi = 300)
 ```
