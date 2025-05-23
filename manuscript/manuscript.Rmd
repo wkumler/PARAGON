@@ -81,6 +81,9 @@ maa_names <- c("Also Palythene/Usujirene?", "Shinorine?", "Mycosporine-glycine?"
                "Mycosporine-methylamine:serine?", "Mycosporine-glutamine?",
                "Mycosporine glutaminol/Palythinol/Mycosporine-methylamine:threonine?", 
                "Palythenic acid?")
+chosen_maas <- c("Mycosporine-glycine?", "Shinorine?", "Palythine?",
+                 "Palythene/Usujirene?", "Also Palythene/Usujirene?", 
+                 "Also Porphyra-334?")
 nucleo_names <- c("5-Methylcytosine", "Adenosine", "Cytidine", "Adenine", "Guanosine",
                   "Cytosine", "Hypoxanthine/Allopurinol", "Guanine", "Deoxycytidine?",
                   "Deoxyadenosine", "Deoxyguanosine?")
@@ -648,9 +651,6 @@ ggsave(plot = all_maa_gp, filename = "supp_MAA_curves.png", device = "png",
 
 
 
-chosen_maas <- c("Mycosporine-glycine?", "Shinorine?", "Palythine?",
-                 "Palythene/Usujirene?", "Also Palythene/Usujirene?", 
-                 "Also Porphyra-334?")
 chosen_maa_data <- labeled_fracs %>%
   filter(compound_name%in%chosen_maas) %>%
   mutate(compound_name=factor(compound_name, levels=chosen_maas)) %>%
