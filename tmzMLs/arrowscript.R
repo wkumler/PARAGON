@@ -26,6 +26,30 @@ for(samp_type_i in unique(parametadata$samp_type)){
   }
 }
 
+parametadata <- fread("metadata/parametadata.csv")[
+  IS_type=="noIS"|is.na(IS_type),c("filepath", "filename", "samp_type", "amendment", "polarity")
+]
+parametadata[, .N, by=c("samp_type", "amendment", "polarity")]
+for(samp_type_i in unique(parametadata$samp_type)){
+  for(amendment_i in unique(parametadata$amendment)){
+    for(polarity_i in unique(parametadata$polarity)){
+      ms_files <- parametadata[samp_type==samp_type_i][amendment==amendment_i][polarity==polarity_i]$filepath
+      # ms_files <- head(ms_files, 3)
+      if(length(ms_files)==0)next
+      msdata <- grabMSdata(ms_files, grab_what = "MS1")
+      parq_dir <- paste0("tmzMLs/pqds",
+                         "/samp_type=", samp_type_i, 
+                         "/amendment=", amendment_i, 
+                         "/polarity=", polarity_i)
+      if(!dir.exists(parq_dir))dir.create(parq_dir, recursive = TRUE)
+      parq_name <- paste0(parq_dir, "/part-0.parquet")
+      print(parq_name)
+      write_parquet(msdata$MS1[order(mz)], parq_name)
+    }
+  }
+}
+
+
 # library(tidyverse)
 # open_dataset("tmzMLs/pqds") %>%
 #   filter(amendment=="Amm") %>%
