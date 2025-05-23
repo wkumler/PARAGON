@@ -107,6 +107,9 @@ class_levels <- c("Glutamine", "Glutamic acid", "Aspartic acid", "Asparagine", "
 class_colors <- c("#08519C", "#2171B5", "#4292C6", "#6BAED6", "#8EBAD1", 
                   "#08306B", "#006D2C", "#319B4D", "#AB0022", "#6A51A3", 
                   "#AE9AD8", "#4E1F88", "#E0C174", "#4D2B01", "grey40")
+
+heatmap_colorpal <- viridis::viridis(10, alpha=seq(0, 1, length.out=10), direction = -1)
+
 aa_ncs <- all_stans %>%
   filter(compound_type=="Amino Acid") %>%
   mutate(compound_name=str_remove(compound_name, "^L-")) %>%
@@ -259,7 +262,7 @@ xamend_metab_gp <- labeled_fracs %>%
   facet_nested(compound_class~amendment, scales = "free_x", switch="y", 
                strip=strip_nested(text_y = elem_list_text(color=class_colors, 
                                                           face=rep("bold", length(class_colors))))) +
-  scale_fill_gradientn(colours = viridis::viridis(10, alpha = seq(0, 1, length.out=10), direction = -1),
+  scale_fill_gradientn(colours = heatmap_colorpal,
                        limits=c(0, 1), breaks=c(0, 0.25, 0.5, 0.75, 1),
                        labels=c("Fully unlabeled", "", "50% labeled", "", "Fully labeled")) +
   scale_x_discrete(expand = expansion()) +
@@ -852,9 +855,7 @@ We were unfortunately unable to present the data collected from the 175 meter la
 
 ## Untargeted methods reveal widespread labeling throughout the metabolome
 
-```{r load clean_combined and make feat_shape_df}
-cleaned_combined_peaks <- readRDS("untargeted/cleaned_combined_peaks.rds")
-
+```{r make feat_shape_df}
 lmtest_output <- cleaned_combined_peaks %>%
   arrange(feature) %>%
   select(feature, filename, into) %>%
@@ -954,7 +955,7 @@ To derive biological meaning from the untargeted analysis, we performed a k-mean
 
 ```{r run kmeans and save heatmap and save clusters}
 untarg_lab_mat <- untarg_lab_fracs %>%
-  bind_rows(labeled_fracs %>% rename(feature=compound_name) %>% select(-filename)) %>%
+  bind_rows(labeled_fracs %>% rename(feature=compound_name)) %>%
   pivot_wider(names_from = "feature", values_from = "labeled_frac", values_fill=0) %>%
   column_to_rownames("shortname") %>%
   data.matrix()
@@ -982,13 +983,13 @@ kmeans_df <- data.frame(cluster=1:n_clust, n=untarg_kmeans$size) %>%
 
 # Plot clusters as heatmap
 untarg_heatmap <- untarg_lab_fracs %>%
-  bind_rows(labeled_fracs %>% rename(feature=compound_name) %>% select(-filename)) %>%
+  bind_rows(labeled_fracs %>% rename(feature=compound_name)) %>%
   left_join(kmeans_df) %>%
   summarise(labeled_frac=mean(labeled_frac), .by = c(cluster_name, shortname)) %>%
   left_join(parametadata) %>%
   ggplot() +
   geom_raster(aes(x=timepoint, y=tripl, fill=labeled_frac)) +
-  scale_fill_gradientn(colours = colorpal, limits = c(0, 1)) +
+  scale_fill_gradientn(colours = heatmap_colorpal, limits = c(0, 1)) +
   facet_wrap(cluster_name~amendment+depth+startime) +
   scale_y_discrete(expand=expansion()) +
   scale_x_discrete(guide = guide_axis(n.dodge = 5), expand=expansion()) +
@@ -1032,15 +1033,14 @@ kmeans_df %>%
 *Figure 5: Fraction of each cluster containing at least one ^15^N label during the surface seawater amendments with various substrates after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the feature signal was isotopically labeled. Three biological replicates are stacked vertically at each timepoint and the labeling within each clusters has been averaged across all the composing features. The number of features in each cluster is specified by the n in the facet name. GMP = guanosine monophosphate.*
 
 ```{r supp fig heatmap of all high-quality feats}
-colorpal <- viridis::viridis(10, alpha=seq(0, 1, length.out=10), direction = -1)
 untarg_heatmap <- untarg_lab_fracs %>%
-  bind_rows(labeled_fracs %>% rename(feature=compound_name) %>% select(-filename)) %>%
+  bind_rows(labeled_fracs %>% rename(feature=compound_name)) %>%
   complete(feature, shortname, fill=list(labeled_frac=0)) %>%
   left_join(kmeans_df) %>%
   left_join(parametadata %>% filter(IS_type=="noIS")) %>%
   ggplot() +
   geom_raster(aes(x=timepoint, y=tripl, fill=labeled_frac)) +
-  scale_fill_gradientn(colours = colorpal, limits = c(0, 1)) +
+  scale_fill_gradientn(colours = heatmap_colorpal, limits = c(0, 1)) +
   scale_y_discrete(expand=expansion()) +
   scale_x_discrete(guide = guide_axis(n.dodge = 5), expand=expansion()) +
   facet_nested(cluster_name~feature~amendment+depth+startime, 
@@ -1141,7 +1141,7 @@ heatmap_gp <- labeled_fracs %>%
   # filter(compound_class=="Other") %>%
   ggplot() +
   geom_raster(aes(x=timepoint, y=tripl, fill=labeled_frac)) +
-  scale_fill_gradientn(colours = viridis::viridis(10, alpha = seq(0, 1, length.out=10), direction = -1), limits=c(0, 1), breaks=c(0, 0.25, 0.5, 0.75, 1), labels=c("0%<br>(Unlabeled)", "", "50%", "", "100%<br>(Fully labeled)")) +
+  scale_fill_gradientn(colours = heatmap_colorpal, limits=c(0, 1), breaks=c(0, 0.25, 0.5, 0.75, 1), labels=c("0%<br>(Unlabeled)", "", "50%", "", "100%<br>(Fully labeled)")) +
   scale_y_discrete(expand=expansion()) +
   scale_x_discrete(guide = guide_axis(n.dodge = 5), expand=expansion()) +
   facet_nested(compound_class+compound_name~amendment+depth+startime, scales = "free_x", switch="y", strip=strip_nested(size = "variable")) +
