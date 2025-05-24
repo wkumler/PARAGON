@@ -193,26 +193,6 @@ Unlike the relatively well-resolved pathways for inorganic nitrogen, the use of 
 
 The lack of a comprehensive understanding of nitrogen's fate after it is assimilated makes molecular modeling difficult and undermines our ability to connect the community to the organic nitrogen it produces. Here, we trace the uptake and use of labeled ammonia, nitrate, arginine, and guanosine monophosphate in a natural community from the North Pacific Subtropical Gyre at multiple depths and diel conditions. Our application of metabolomics to these samples allows us to map the pathways and restructuring that organic nitrogen experiences in the largest biomes on the planet, quantifying the pool sizes and turnover rates for various low molecular weight compounds that serve as building blocks and intermediates of cell biology.
 
-## Other things to maybe discuss:
-
-  -	mention the expected differences with depth and diel effects
-  -	detail which compounds we chose and why?
-  -	expand on DON-PON interactions and importance?
-  - Extracellular enzymes, organic use as ammonia vs as-is?
-  -	expand on the importance of biogeochemical models and why we need pathways mapped out?
-  -	mention basic biosynthetic pathways (maybe better suited to discussion?)
-  -	new (nitrate) vs regenerated (ammonia and DON) production (maybe also discussion?)
-
-## Other soundbites:
-  - It is assumed that most fixed nitrogen becomes protein, presumably based on the large fraction of cell nitrogen in protein and previous research showing how quickly it enters the (free?) amino acid pool. However, 1) important intermediates molecules 2) doesn’t explain where biounavailable N comes from 3) makes gene-based molecular modeling really difficult.
-  - In each case, assimilation into organic matter is typically done via the glutamine synthetase (GS)/glutamate synthase (GOGAT) or glutamate dehydrogenase (GDH) pathways to produce glutamate from α-ketoglutarate [@ref, see bronk chapter]. Glutamate then serves as a nitrogen supply in an enormous number of biochemical pathways in both primary and secondary metabolism [@Walker2016].
-  - nitrate amendments typically resulting in diatom blooms while ammonia incubations favor cyanobacteria [@Glibert2016].
-  - Communities to distinguish are 1) surface (largely regenerated production) and 2) 175m (largely new production(??))
-  - use of organics vs synthesis of organics
-  - Compounds such as non-proteinogenic amino acids (e.g., ornithine, citrulline, creatine, MAAs), osmolytes like betaines, nucleobases, and sulfur-containing molecules like taurine represent significant but poorly quantified pools. Understanding the rates and pathways by which these compounds are utilized is crucial, as they form the fundamental unit linking genetic potential to elemental cycling in biogeochemical models.
-  - Nitrogen use varies significantly between the sunlit surface where productivity is largely regenerated through recycling of ammonia and organic nitrogen, and deeper waters near the base of the euphotic zone, where nitrate supports “new” production. Quantifying rates of nitrogen assimilation into ammonia and downstream products across these gradients is therefore essential for predicting marine productivity and nutrient cycling.
-  - Nonetheless, how the community uses a substrate is arguably more important than whether it can. 
-
 # Results
 
 `r wc("Do I need a 'here's what the cruise looked like' results section?")`
