@@ -1,5 +1,5 @@
 ---
-title: "Nitrogen's form determines its fate in the North Pacific Subtropical Gyre during PARAGON I"
+title: "Nitrogen's form determines its fate in the North Pacific Subtropical Gyre"
 author:
   - William Kumler
   - Laura T. Carlson
@@ -183,15 +183,15 @@ length(strsplit("", split = "")[[1]])  # ~1851 characters
 
 # Introduction
 
-In most of the surface ocean the flux of carbon is controlled by the availability of nitrogen, an element with a complex and incompletely characterized biogeochemical cycle [@Capone2008; @Moore2013; @Hutchins2022]. Organic nitrogen in particular is often treated as a black box despite substantial variability in its bioavailability and chemical nature. Turnover times for labile organic compounds like urea and amino acids can be orders of magnitude shorter than high molecular weight DON [@Aluwihare2005; @Bronk2024]. Additionally, the availability of the precious nitrogen atom is determined not only by the form of the organic material it composes but also the environment in which it's found.
+In most of the surface ocean the flux of carbon is controlled by the availability of nitrogen, an element with a complex and incompletely characterized biogeochemical cycle [@Bronk2008; @Moore2013; @Hutchins2022]. Organic nitrogen in particular is often treated as a black box despite substantial variability in its bioavailability and chemical nature. Turnover times for labile organic compounds like urea and amino acids can be orders of magnitude shorter than high molecular weight DON [@Aluwihare2005; @Bronk2024]. Additionally, the availability of the precious nitrogen atom is determined not only by the form of the organic material it composes but also the environment in which it's found.
 
-While extensive work has been done to characterize the forms and fluxes of nitrogen within the inorganic pool, the equivalent for the organic pool is woefully underdeveloped [@Zehr2011; @NME]. This is largely due to the difficulty of comprehensively measuring the many organic molecules that contain nitrogen in the marine environment [@Boysen2018; @Moran2022]. Recently, however, we have improved our understanding of community composition via genomics and transcriptomics and made progress in our ability to characterize organic matter via proteomics and metabolomics. These advancements, paired with the increased availability of pure and isotope-labeled substrates, mean that we can now apply metabolically resolved isotope tracing to resolve how organic nitrogen is transformed in the marketplace of metabolites that empower the surface ocean.
+While extensive work has been done to characterize the forms and fluxes of nitrogen within the inorganic pool, the equivalent for the organic pool is woefully underdeveloped [@Zehr2011; @NME]. This is largely due to the difficulty of comprehensively measuring the many organic molecules that contain nitrogen in the marine environment [@Boysen2018; @Moran2022]. Recently, however, we have improved our understanding of community composition via genomics and transcriptomics and made progress in our ability to characterize organic matter via proteomics and metabolomics. These advancements, paired with the increased availability of pure and isotope-labeled substrates, mean that we can now apply metabolically resolved isotope tracing to resolve how organic nitrogen is transformed in the marketplace of metabolites that empower the surface ocean [@Heal2021; @McParland2021; @Moran2022].
 
-Nitrogen assimilation is a well-documented process in the ocean after decades of research and demonstrates how biochemistry derived from non-marine organisms can be applied to the ocean. Central to the process is ammonia, which can be directly taken up from the environment by all organisms and combined with glutamate. This forms glutamine, which is then combined with alpha-ketoglutarate to form two glutamate molecules that can then be used as a nitrogen source throughout the cell [@Walker2016]. Nitrate, on the other hand, must first be reduced to ammonia in an energetically expensive process that some organisms have stripped from their genomes [@Partensky2010; @Zehr2011]. 
+Nitrogen assimilation is a well-documented process in the ocean after decades of research and demonstrates how biochemistry derived from non-marine organisms can be applied to the ocean [@Mulholland2008]. Central to the process is ammonia, which can be directly taken up from the environment by all organisms and combined with glutamate. This forms glutamine, which is then combined with alpha-ketoglutarate to form two glutamate molecules that can then be used as a nitrogen source throughout the cell [@Walker2016]. Nitrate, on the other hand, must first be reduced to ammonia in an energetically expensive process that some organisms have stripped from their genomes [@Partensky2010; @Zehr2011]. 
 
-Unlike the relatively well-resolved pathways for inorganic nitrogen, the use of organic nitrogen remains underexplored in the marine environment. Organic nitrogen is generally thought to be accessible to most organisms but the high levels of DON make it clear that this is highly substrate-specific [@Antia1991; @Bronk2007; @Aluwihare2008; @Zehr2011; @Bronk2024]. Additionally, many of the transformations possible are only active in specific communities or times of day [@Bender2012]. Linking the transformations that nitrogen undergoes to known molecular pathways documented in other organisms or in culture is a particularly promising way to understand what we observe on the global scale.
+Unlike the relatively well-resolved pathways for inorganic nitrogen, the use of organic nitrogen remains underexplored in the marine environment. Organic nitrogen is generally thought to be accessible to most organisms but the high levels of DON make it clear that this is highly substrate-specific [@Antia1991; @Bronk2007; @Aluwihare2008; @Zehr2011; @Bronk2024]. Additionally, many of the transformations possible are only active in specific communities or times of day [@Bender2012]. Linking the transformations that nitrogen undergoes to known molecular pathways from other environments or axenic cultures is a particularly promising way to understand what we observe on the global scale.
 
-The lack of a comprehensive understanding of nitrogen's fate after it is assimilated makes molecular modeling difficult and undermines our ability to connect the community to the organic nitrogen it produces. Here, we trace the uptake and use of labeled ammonia, nitrate, arginine, and guanosine monophosphate in a natural community from the North Pacific Subtropical Gyre at multiple depths and diel conditions. Our application of metabolomics to these samples allows us to map the pathways and restructuring that organic nitrogen experiences in the largest biomes on the planet, quantifying the pool sizes and turnover rates for various low molecular weight compounds that serve as building blocks and intermediates of cell biology.
+The lack of a comprehensive understanding of nitrogen's fate after it is assimilated makes molecular modeling difficult and undermines our ability to connect the community to the organic nitrogen it produces [@Jones2024]. Here, we trace the uptake and use of labeled ammonia, nitrate, arginine, and guanosine monophosphate in a natural community from the North Pacific Subtropical Gyre at multiple depths and diel conditions. Our application of metabolomics to these samples allows us to map the pathways and restructuring that organic nitrogen experiences in the largest biomes on the planet, quantifying the pool sizes and turnover rates for various low molecular weight compounds that serve as building blocks and intermediates of cell biology.
 
 # Results
 
@@ -1068,6 +1068,15 @@ ggsave("manuscript/supplement/untarg_heatmap.pdf", width = 10, height=36, units 
 [DISCUSSION: MAAs are mostly made from the 4DG core plus N-containing amino acids (glycine). How does the labeling of these compare to their substituent AAs? (it's much larger)]
 
 Incubations are imperfect metrics of the actual environment because amendments with *anything* will heavily skew the community - over what time scale though? [@Eppley1977; @Shilova2017; @Rii2018]
+
+
+Comments from Anitra:
+
+0.3nM glutamine becoming 0.8nM means that 95% of the 0.8nM was produced, not counting all the N that went through glutamine into other things. Do you know what typically happens to biomass during ALOHA + DIN incubation? How does this compare to measures of regenerated production? (Was this increase a result of more biomass or just higher gln concentrations?)
+
+
+
+
 
 # Conclusion
 
