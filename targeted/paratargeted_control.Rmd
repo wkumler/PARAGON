@@ -360,7 +360,7 @@ peak_areas %>%
 #   facet_wrap(~iso_name, ncol=2, scales="free_y")
 ```
 
-### Fix problematic areas from IS contamination
+### Fix problematic areas from IS contamination and write out
 
 ```{r}
 is_contam_shortnames <- c("Amm-Surf-Eve-T3-A", "Amm-Surf-Eve-T3-B", 
@@ -393,7 +393,10 @@ decontam_areas <- deionized_areas %>%
 ```
 
 ```{r write out}
-write_csv(decontam_areas, "targeted/all_peak_areas_w_isos.csv")
+decontam_areas %>%
+  filter(!(compound_name=="O-Acetylcarnitine" & str_detect(iso_name, "13C8"))) %>%
+  filter(!(compound_name=="Trigonelline" & str_detect(iso_name, "13C6"))) %>%
+  write_csv("targeted/all_peak_areas_w_isos.csv")
 ```
 
 ### Some visualizations
