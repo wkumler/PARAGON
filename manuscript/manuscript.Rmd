@@ -177,7 +177,7 @@ metathaa <- read_csv("thaas/metathaa.csv") %>%
 
 # Abstract
 
-Nitrogen availability controls productivity in much of the surface ocean and the form of this nitrogen controls who it is available to and how it is used. Here, we explored how four different forms of nitrogen (ammonia, nitrate, arginine, and guanosine monophosphate) were taken up and transformed in the North Pacific Subtropical Gyre using stable isotope labeling metabolomics. We repeated these experiments both at the surface and at the base of the euphotic zone as well as in the morning and evening. We found that ammonia is converted into glutamate in less than 20 minutes and results in labeling throughout the metabolome after 24 hours, though osmolytes like betaines had slow turnover rates. Nitrate amendments resulted in the labeling of only a small subset of molecules such as mycosporine-like amino acids (MAAs), whose incorporation patterns suggest that this form of nitrogen was available to a subset of the community, likely eukaryotes. The two organic nitrogen amendments labeled the metabolome more slowly than the inorganic forms of nitrogen and showed similar usage at 25 meters and 175 meters, hinting at the major role that heterotrophic bacteria play in cycling organic matter. A majority of the organic nitrogen added was converted into glutamate after 24 hours rather than used as intact substrates, though labeled arginine was incorporated into proteins directly and we were able to trace the carbon backbone from both arginine and GMP into several additional metabolites. We also show that nitrogen assimilation and use was largely the same between morning and evening with the exception of UV-sensitive compounds such as MAAs. These measurements reveal the forms and fluxes of nitrogen in the natural environment and provide constraints on biogeochemical models that require characterizing the transformations between organic and inorganic nitrogen.
+Nitrogen availability controls productivity in much of the surface ocean and the form of this nitrogen controls who it is available to and how it is used. Here, we explored how four different forms of nitrogen (ammonia, nitrate, arginine, and guanosine monophosphate) were taken up and transformed in the North Pacific Subtropical Gyre using stable isotope labeling metabolomics. We repeated these experiments both at the surface and at the base of the euphotic zone as well as in the morning and evening. We found that ammonia is converted into glutamate in less than 20 minutes and results in labeling throughout the metabolome after 24 hours, though osmolytes like betaines had slow turnover rates. Nitrate amendments resulted in the labeling of only a small subset of molecules such as mycosporine-like amino acids (MAAs), whose incorporation patterns suggest that this form of nitrogen was available to a subset of the community, likely eukaryotes. The two organic nitrogen amendments labeled the metabolome more slowly than the inorganic forms of nitrogen and showed similar usage at 25 meters and 175 meters, hinting at the major role that heterotrophic bacteria play in cycling organic matter. The organic nitrogen added was mostly converted into glutamate after 24 hours rather than used as intact substrates, though labeled arginine was incorporated into protein directly and we were able to trace the carbon backbone from both arginine and GMP into several additional metabolites. We also show that nitrogen assimilation and use was largely the same between morning and evening with the exception of UV-sensitive compounds such as MAAs. These measurements reveal the forms and fluxes of nitrogen in the natural environment and provide constraints on biogeochemical models that require characterizing the transformations between organic and inorganic nitrogen.
 
 ```{r}
 length(strsplit("", split = " ")[[1]]) # ~286 words
@@ -188,7 +188,7 @@ length(strsplit("", split = "")[[1]])  # ~1851 characters
 
 In most of the surface ocean the flux of carbon is controlled by the availability of nitrogen, an element with a complex and incompletely characterized biogeochemical cycle [@Bronk2008; @Moore2013; @Hutchins2022]. Organic nitrogen in particular is often treated as a black box despite substantial variability in its bioavailability and chemical nature. Turnover times for labile organic compounds like urea and amino acids can be orders of magnitude shorter than high molecular weight DON [@Aluwihare2005; @Bronk2024]. Additionally, the availability of the precious nitrogen atom is determined not only by the form of the organic material it composes but also the environment in which it's found.
 
-While extensive work has been done to characterize the forms and fluxes of nitrogen within the inorganic pool, the equivalent for the organic pool is woefully underdeveloped [@Zehr2011; @NME]. This is largely due to the difficulty of comprehensively measuring the many organic molecules that contain nitrogen in the marine environment [@Boysen2018; @Moran2022]. Recently, however, we have improved our understanding of community composition via genomics and transcriptomics and made progress in our ability to characterize organic matter via proteomics and metabolomics. These advancements, paired with the increased availability of pure and isotope-labeled substrates, mean that we can now apply metabolically resolved isotope tracing to resolve how organic nitrogen is transformed in the marketplace of metabolites that empower the surface ocean [@Heal2021; @McParland2021; @Moran2022].
+While extensive work has been done to characterize the forms and fluxes of nitrogen within the inorganic pool, the equivalent for the organic pool is woefully underdeveloped [@Zehr2011; @NME]. This is largely due to the difficulty of comprehensively measuring the many organic molecules that contain nitrogen in the marine environment [@Boysen2018; @Moran2022]. Recently, however, we have improved our understanding of community composition via genomics and transcriptomics and made progress in our ability to characterize organic matter via proteomics and metabolomics. These advancements, paired with the increased availability of pure and isotope-labeled substrates, mean that we can now apply metabolically resolved isotope tracing to resolve how organic nitrogen is transformed in the marketplace of metabolites that power the surface ocean [@Heal2021; @McParland2021; @Moran2022].
 
 Nitrogen assimilation is a well-documented process in the ocean after decades of research and demonstrates how biochemistry derived from non-marine organisms can be applied to the ocean [@Mulholland2008]. Central to the process is ammonia, which can be directly taken up from the environment by all organisms and combined with glutamate. This forms glutamine, which is then combined with alpha-ketoglutarate to form two glutamate molecules that can then be used as a nitrogen source throughout the cell [@Walker2016]. Nitrate, on the other hand, must first be reduced to ammonia in an energetically expensive process that some organisms have stripped from their genomes [@Partensky2010; @Zehr2011]. 
 
@@ -198,7 +198,146 @@ The lack of a comprehensive understanding of nitrogen's fate after it is assimil
 
 # Results
 
-`r wc("Do I need a 'here's what the cruise looked like' results section?")`
+Samples were taken during the 2021 SCOPE PARAGON cruise near Station ALOHA that targeted a chlorophyll bloom within an anticyclonic eddy. The bloom was initially dominated by the diatom genus *Hemiaulus* with a large surface chlorophyll signal that decayed into a more typical North Pacific Subtropical Gyre community dominated by *Prochlorococcus* and *SAR11* over the course of the two-week time series.
+
+```{r cruise metadata plots}
+sum_names <- c("station", "cast", "month", "day", "year", "time", 
+               "lat_deg", "lat_min", "lat_dir", 
+                "lon_deg", "lon_min", "lon_dir", "max_depth", "bottles")
+sum_data <- "https://scope.soest.hawaii.edu/data/scope2021/paragon1.sum" %>%
+  read_table(skip = 3, col_names = sum_names) %>%
+  mutate(datetime = strptime(paste(month, day, year, time), "%b %d %Y %H:%M:%S", tz = "UTC")) %>%
+  mutate(datetime = as.POSIXct(datetime)) %>%
+  mutate(lat_dec=(lat_deg+lat_min/60)*ifelse(lat_dir=="N", 1, -1)) %>%
+  mutate(lon_dec=(lon_deg+lon_min/60)*ifelse(lon_dir=="E", 1, -1)) %>%
+  select(station, cast, datetime, lat_dec, lon_dec, max_depth, bottles) %>%
+  filter(station==2)
+sum_data %>%
+  ggplot(aes(x=lon_dec, y=lat_dec, color=datetime)) +
+  geom_point() +
+  geom_path()
+
+gof_names <- c("station", "cast", "rosette", "lat", "lon", "pressure", "temp",
+              "sal", "ctd_oxy", "ctd_chl", "theta", "sigma", "oxy_um", "dic", "alk", "ph",
+              "po4_um", "no23_um", "sio4_um", "LLN", "LLP", "PC", "PN", "PP",
+              "PSi", "chl_ug", "phaeo_ug", "het_abund", 
+              "pro_abund", "syn_abund", "euk_abund",
+              "q1", "q2", "q3", "q4")
+qual_names <- setdiff(gof_names, c(head(gof_names, 6), tail(gof_names, 4)))
+gofReader <- function(filename){
+  raw_gof <- read_table(filename, skip = 4, col_names = gof_names,
+                        col_types = cols(.default = col_double()))
+  qual_df <- select(raw_gof, matches("^q\\d+$")) %>%
+    unite("value", sep = "") %>%
+    separate(sep = "", col = "value", into = c(NA, qual_names)) %>%
+    mutate(across(everything(), as.numeric))
+  raw_gof[,qual_names][qual_df!=2] <- NA
+  raw_gof %>% select(-matches("^q\\d+$"))
+}
+chl_data <- gofReader("https://scope.soest.hawaii.edu/FTP/scope/water/paragon1.gof") %>%
+  filter(station==2) %>%
+  filter(pressure<200) %>%
+  select(cast, depth=pressure, value=ctd_chl) %>%
+  mutate(name="ctd_chl")
+chl_data %>%
+  left_join(sum_data) %>%
+  ggplot(aes(x=value, y=-depth, color=datetime, group=cast)) +
+  geom_point() +
+  geom_path()
+# gof_data %>%
+#   filter(station==2) %>%
+#   filter(pressure<200) %>%
+#   ggplot(aes(x=datetime, y=-pressure, fill=ctd_chl)) +
+#   geom_point(size = 5, color="black", pch=21) +
+#   scale_fill_viridis_c(limits=c(0, NA)) +
+#   theme_bw()
+
+
+n_levels <- c("N+N", "TDN", "DON", "NH4", "NO2")
+nut_data <- "metadata/Karl_PAR1_High-res_organic_and_inorganic_nutrients.xlsx" %>%
+  readxl::read_excel(skip = 2) %>%
+  drop_na() %>%
+  mutate(cast=c(rep(10, 24), rep(43, 23))) %>%
+  filter(Sample!="Sample") %>%
+  select(depth=`Depth (m)`, cast, `N+N (uM)`:`Si (uM)`) %>%
+  mutate(across(everything(), as.numeric)) %>%
+  mutate(`NO3 (uM)`= `N+N (uM)`-`NO2 (uM)`) %>%
+  pivot_longer(`NO2 (uM)`:`NO3 (uM)`)
+nut_data %>%
+  mutate(name=str_remove(name, " \\(uM\\)")) %>%
+  # filter(nutrient%in%n_levels) %>%
+  # mutate(nutrient=factor(nutrient, levels=n_levels)) %>%
+  mutate(cast=factor(cast, levels=c(10, 43), labels = c("July 25", "August 3"))) %>%
+  ggplot(aes(x=value, y=-depth, color=cast)) +
+  geom_hline(yintercept = -c(25, 175)) +
+  geom_vline(xintercept = 0) +
+  geom_point() +
+  geom_path() +
+  facet_wrap(~name, scales="free_x")
+
+fcm_data <- "metadata/20220131_Paragon-1_FCM.xlsx" %>%
+  readxl::read_excel(skip = 6) %>%
+  select(cast=`Cast*`, depth=`Depth*`, pro_mL=`Conc...13`, syn_mL=`Conc...15`, peuk_mL=`Conc...17`, het_mL=`Conc...19`) %>%
+  slice(-1) %>%
+  drop_na() %>%
+  mutate(across(everything(), as.numeric)) %>%
+  mutate(pro_mL=pro_mL/1000, het_mL=het_mL/1000) %>%
+  pivot_longer(pro_mL:het_mL)
+fcm_data %>%
+  mutate(cast=factor(cast, levels = c(8, 24, 38), labels = c("July 25", "July 29", "Aug 2"))) %>%
+  ggplot(aes(x=value, y=-depth, color=cast)) +
+  geom_hline(yintercept = -c(25, 175)) +
+  geom_vline(xintercept = 0) +
+  geom_point() +
+  geom_path() +
+  facet_wrap(~name, scales="free_x", nrow=1)
+
+cnp_data <- "metadata/P1&P2 WC CNP.xlsx" %>%
+  readxl::read_excel(n_max=9) %>%
+  drop_na() %>%
+  select(depth=`Depth (m)`, PC_um=`TC value (µmol/L)`, PN_um=`N value (µmol/L)`, C2N=`C/N RATIO`) %>%
+  mutate(cast=45) %>%
+  filter(depth<250) %>%
+  pivot_longer(c(PC_um, PN_um, C2N))
+cnp_data %>%
+  ggplot(aes(x=value, y=-depth)) +
+  geom_hline(yintercept = -c(25, 175)) +
+  geom_vline(xintercept = 0) +
+  geom_point() +
+  geom_path() +
+  facet_wrap(~name, scales="free_x")
+
+bind_rows(chl_data, cnp_data, fcm_data, nut_data) %>%
+  left_join(sum_data) %>%
+  filter(name!="TDP (uM)") %>%
+  mutate(name=factor(name, levels=c(
+    "ctd_chl", "PC_um", "PN_um", "C2N",
+    "NO3 (uM)", "NO2 (uM)", "NH4 (uM)", "TDN (uM)",
+    "DON (uM)", "DOP (uM)", "SRP (uM)", "Si (uM)",
+    "pro_mL", "syn_mL", "peuk_mL", "het_mL"
+  ), labels = c(
+    "CTD fluorescence", "Particulate C (uM)", "Particulate N (uM)", "PC:PN ratio",
+    "Nitrate (uM)", "Nitrite (uM)", "Ammonia (uM)", "Total diss. nitrogen (uM)",
+    "Diss. organic N (uM)", "Diss. organic P (uM)", "Phosphate (uM)", "Silicate (uM)",
+    "Prochlorococcus\n(cells / uL)", "Synechococcus\n(cells / mL)", "Picoeukaryotes\n(cells / mL)", "Het. bacteria\n(cells / uL)"
+  ))) %>%
+  ggplot(aes(x=value, y=depth, group=cast, color=datetime)) +
+  geom_hline(yintercept = c(25, 175)) +
+  geom_vline(xintercept = 0) +
+  geom_path() +
+  geom_point() +
+  facet_wrap(~name, scales="free_x", ncol=4) +
+  scale_y_reverse() +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.1)), n.breaks = 4) +
+  labs(x=NULL, y="Depth (meters)", color=NULL) +
+  theme_bw() +
+  theme(
+    legend.position = "top", 
+    legend.key.width = unit(1, "null")
+  )
+
+ggsave("manuscript/supplement/cruise_metadata.pdf", width = 6.5, height = 9)
+```
 
 ## Differences in nitrogen labeling at the surface between amendments
 
