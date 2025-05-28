@@ -141,7 +141,10 @@ nM_labeled <- samp_areas %>%
   mutate(labeled_frac=area/sum(area), .by = c("shortname", "compound_name")) %>%
   mutate(rel_label=labeled_frac/labeled_frac[str_detect(iso_name, "13C0, 15N0")], .by = c("shortname", "compound_name")) %>%
   mutate(nM_labeled=conc_nm_in_env*rel_label) %>%
-  select(filename, compound_name, iso_name, nM_labeled)
+  select(filename, compound_name, iso_name, nM_labeled) %>%
+  filter(!str_detect(compound_name, "\\?$")) %>%
+  filter(!compound_name%in%c("Homarine", "Acetylcholine"))
+
 
 
 cleaned_combined_peaks <- readRDS("untargeted/cleaned_combined_peaks.rds")
@@ -354,13 +357,6 @@ labeled_fracs %>%
   pivot_wider(names_from=nuc_type, values_from=frac) %>%
   select(nuc_shortname, Nucleoside, Nucleobase, Deoxy)
 
-labeled_fracs %>%
-  filter(compound_name%in%betaine_names) %>%
-  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
-  filter(timepoint=="T26") %>%
-  filter(amendment=="Amm") %>%
-  summarise(frac=mean(labeled_frac), .by=c(compound_name))
-
 peak_areas %>%
   filter(compound_name%in%nucleo_names) %>%
   left_join(parametadata %>% filter(IS_type=="noIS")) %>%
@@ -374,9 +370,52 @@ peak_areas %>%
   facet_wrap(~compound_name)
 ```
 
-Other amino acids and nucleobases/nucleosides had trace amounts of labeling after 3 hours and were extensively labeled (>25%) after 24 hours (Figure 1). Cytidine (42.2% labeled) and adenosine (59.9%) were more heavily ^15^N labeled than their nucleobase constituents at T26 (22.9% and 42.1%, respectively), corresponding to the expected synthesis pathway. Guanine, however, had the inverse trend and at 44.9% labeled was 15% more labeled than guanosine (Supplemental figure XX). The deoxyribose forms were in all cases less completely labeled than their ribose counterparts (deoxycytidine = 18.9%, deoxyadenosine = 20.3%, and deoxyguanosine = 17.2%) `r wc("Maybe better as a small table?")` `r wc("Consider trying harder to get thymine/uracil/inosine values?")`. In each case, the fully ^15^N labeled nucleobase was the dominant constituent of the isotope envelope (^15^N~3~ for cytosine and ^15^N~5~ for adenine and guanine). Other compounds, including betaines (here restricted to quaternary amines with a carboxylic acid group) and choline derivatives showed very little labeling at all, with only homarine (15.0% labeled) and O-acetylcarnitine (9.9% labeled) exceeding 5% labeling after 24 hours`r wc("Expand betaine discussion and turn it into a separate paragraph? Not sure what more to say... fluxes?")`. 
+Other amino acids and nucleobases/nucleosides had trace amounts of labeling after 3 hours and were extensively labeled (>25%) after 24 hours (Figure 1). Cytidine (42.2% labeled) and adenosine (59.9%) were more heavily ^15^N labeled than their nucleobase derivatives at T26 (22.9% and 42.1%, respectively), corresponding to the expected synthesis pathway. Guanine, however, had the inverse trend with guanosine being 44.9% labeled while guanine was only 30% (Supplemental figure XX). The deoxyribose forms were in all cases less completely labeled than their ribose counterparts (deoxycytidine = 18.9%, deoxyadenosine = 20.3%, and deoxyguanosine = 17.2%) `r wc("Consider trying harder to get thymine/uracil/inosine values?")`. In each case, the fully ^15^N labeled nucleobase was the dominant constituent of the isotope envelope (^15^N~3~ for cytosine and ^15^N~5~ for adenine and guanine). 
 
-Amendments with ^15^NO~3~ showed a significantly different labeling pattern with very few metabolites incorporating the ^15^N label at the surface even after 24 hours. Glutamine and glutamate, which were labeled within 20 minutes from ammonia and are the main way in which inorganic nitrogen becomes organic, here saw only trace amounts of production from the added nitrate even after 24 hours. The most heavily labeled compound was guanine, which saw trace amounts of labeling at the T10 timepoint and reached ~40% labeling at T26. This labeling was not reflected in the other nucleobases. The only group of compounds that did see compelling degrees of label were the mycosporine-like amino acids (MAAs), a group of compounds produced under UV exposure (see below). These compounds, like guanine, were labeled in excess of the bulk glutamate/amino acid pool from which their nitrogen is sourced. This is only possible if the nitrate is assimilated by a subset of the community that is able to reduce it and prevents it from entering the environment. Metabolites specific to those organisms can then be made from the small pool of heavily-labeled organic material without affecting the fraction of glutamate or glutamine labeled in bulk.
+```{r betaine pool sizes}
+labeled_fracs %>%
+  filter(compound_name%in%betaine_names) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(timepoint=="T26") %>%
+  filter(amendment=="Amm") %>%
+  filter(depth=="Surf") %>%
+  summarise(frac=mean(labeled_frac), .by=c(compound_name))
+
+env_concs %>%
+  filter(compound_name%in%betaine_names) %>%
+  left_join(parametadata, relationship = "many-to-many") %>%
+  summarise(nM=mean(conc_nm_in_env), .by=c(compound_name, depth, amendment, timepoint, startime)) %>%
+  pivot_wider(names_from=depth, values_from=nM) %>%
+  ggplot() +
+  geom_abline(slope=1) +
+  geom_point(aes(x=Surf, y=Deep, color=compound_name)) +
+  facet_wrap(~amendment) +
+  scale_y_log10() +
+  scale_x_log10()
+
+nM_labeled %>% 
+  filter(compound_name%in%betaine_names) %>%
+  filter(!str_detect(iso_name, "13C0, 15N0")) %>%
+  left_join(parametadata %>% distinct(filename, depth, timepoint, amendment)) %>%
+  filter(depth=="Surf") %>%
+  summarise(pM=mean(nM_labeled, na.rm = TRUE)*1000, .by = c(compound_name, timepoint)) %>%
+  arrange(timepoint, desc(pM)) %>%
+  pivot_wider(names_from=timepoint, values_from=pM)
+
+nM_labeled %>% 
+  filter(compound_name%in%betaine_names) %>%
+  left_join(parametadata) %>%
+  filter(depth=="Surf") %>%
+  mutate(iso_name=str_extract(iso_name, "13C.*")) %>%
+  filter(iso_name!="13C0, 15N0") %>%
+  ggplot() +
+  geom_col(aes(x=tripl, y=nM_labeled, fill=iso_name), color="black") +
+  facet_grid(compound_name~amendment+depth+startime+timepoint, scales="free")
+```
+
+Other compounds, including betaines (here restricted to quaternary amines with a carboxylic acid group) and choline derivatives showed very little labeling at all, with only homarine (15.0% labeled) `r wc("double check these numbers after rerun")`` and O-acetylcarnitine (9.9% labeled) exceeding 5% labeling after 24 hours.
+
+Amendments with ^15^NO~3~ showed a significantly different labeling pattern with very few metabolites incorporating the ^15^N label at the surface even after 24 hours. Glutamine and glutamate, which were labeled within 20 minutes from ammonia and are the main way in which inorganic nitrogen becomes organic, here saw only trace amounts of production from the added nitrate even after 24 hours. The most heavily labeled compound was guanine, which saw trace amounts of labeling at the T10 timepoint and reached ~40% labeling at T26. This labeling was not seen in the other nucleobases. The only group of compounds that did see compelling degrees of label incorporation were the mycosporine-like amino acids (MAAs), a group of compounds whose primary function is thought to be protection from UV light (see below). These compounds, like guanine, were labeled in excess of the bulk glutamate/amino acid pool from which their nitrogen is sourced. This is only possible if the nitrate is assimilated by a subset of the community whose glutamate is a small, isolated fraction of the total glutamate pool. Metabolites specific to those organisms can then be made from the small pool of heavily-labeled organic material with only a small influence on the fraction of glutamate or glutamine labeled in bulk.
 
 ```{r arg numbers}
 labeled_fracs %>%
@@ -468,10 +507,9 @@ left_join(metab_avgs, thaa_avgs) %>%
   arrange(timepoint, compound_name)
 ```
 
+We also explored the degree of labeling incorporation into proteins by measuring the total hydrolyzable amino acids (THAAs) at both the start of each incubation and the end (Figure 2). Proteins were 30-50% of total particulate carbon pool (~2 uM) and 70-100% of the total particulate nitrogen (~0.25 uM), with free amino acids composing between 0.15% and 17% of the total THAA pool`r wc("I'm not really sure what to say here or how to dive into the variance that's of interest to us. Report the compound with the most/least in protein? Break it down by labeled vs unlabeled?")`.
 
-We also explored the degree of labeling incorporation into proteins by measuring the total hydrolyzable amino acids (THAAs) at both the start of each incubation and the end (Figure 2). Proteins were 30-50% of total particulate carbon pool (~2 uM) and 70-100% of the total particulate nitrogen (~0.25 uM), with free amino acids composing between 0.15% and 17% of the total`r wc("I'm not really sure what to say here or how to dive into the variance that's of interest to us. Report the compound with the most/least in protein? Break it down by labeled vs unlabeled?")``.
-
-There were differences in THAA labeling patterns between the amendments (Figure 2). Despite their shorter incubation time (26 hours vs 73 hours), the inorganic nitrogen amendments generally higher fractions of labeled protein. The nitrate amendments in particular were surprisingly heavily labeled given the minimal signal seen in the free metabolites, with a degree of labeling exceeding the ammonia incubation. This indicates that most of the assimilation was done by the small subset of organisms able to reduce nitrate and use it for growth and that these organisms did not share the reduced nitrogen with the rest of the community`r wc("Is this something for the discussion instead?")`.
+There were differences in THAA labeling patterns between the amendments (Figure 2). Despite their shorter incubation time (26 hours vs 73 hours), the inorganic nitrogen amendments generally had higher fractions of labeled protein. The nitrate amendments in particular were surprisingly heavily labeled given the minimal signal seen in the free metabolites, with a degree of labeling exceeding the ammonia incubation. This indicates that most of the assimilation was done by the small subset of organisms able to reduce nitrate and use it for growth and that these organisms did not share the reduced nitrogen with the rest of the community`r wc("Is this something for the discussion instead?")`.
 
 ```{r fig2 thaa data}
 all_thaa_plot <- thaa_quant %>%
@@ -572,7 +610,7 @@ ggsave("total_thaa_gp.png", total_thaa_gp, device = "png", path = "manuscript/fi
 
 We believe the organic nitrogen amendments largely resulted in metabolite labeling via remineralization to ammonia or glutamate based on the absence of a labeled carbon backbone in most of the labeled metabolites, but in the THAAs we were able to see some transformations that used the carbon backbone as-is. Proline and glutamate both had detectable ^13^C~5~ ^15^N~1~ labels in the arginine treatments. We also saw histidine ^13^C~5~ ^15^N~3~ synthesized during the guanosine monophosphate treatment, confirming again that the ribose pool must have been swamped with fully ^13^C labeled ribose cleaved from guanosine in order to enter the PRPP pathway. The ^15^N~3~ pattern also indicates that for these organisms, glutamate, glutamine, and adenine were also heavily labeled. Finally, both phenylalanine and tyrosine had significant ^13^C~4~ ^15^N~1~ labeling, likely from erythrose 4-phosphate via the pentose phosphate pathway indicating new synthesis through shikimate with nitrogen addition from a heavily labeled glutamate pool again.
 
-## Minimal diel signal observed except in the UV-reactive mycosporine-like amino acids
+## Minimal diel signal observed except in the UV-absorbing mycosporine-like amino acids
 
 ```{r maa numbers}
 labeled_fracs %>%
@@ -585,7 +623,7 @@ labeled_fracs %>%
   summarise(frac=mean(labeled_frac), .by=c(compound_name, timepoint))
 ```
 
-We performed the four nitrogen amendments at both 6AM and at 6PM to test for any diel effects in labeling patterns. Very few compounds showed a significant difference between the 6AM start time and the 6PM start time with the exception being the mycosporine-like amino acids (MAAs, Figure 3). Shinorine and palythine were confirmed via MS^2^ fragments while the other annotations remain putative, though their presence exclusively in the surface is compelling. During the ammonia incubations, six `r wc("double-check this after rerun")` MAAs showed clear ^15^N incorporation while exposed to sunlight, with the labeled fraction increasing sharply over the first 10 hours in the incubations started at 6AM. Incubations started at 6PM showed very little labeling from ammonia until a full 24 hours had passed. Shinorine, mycosporine-glycine, palythine, porphyra-334 were all clearly labeled (>20% ^15^N) as well as two of three molecular features detected at an *m/z* of 285.1445 possibly corresponding to palythene and usujirene.
+We performed experiments with each of the 4 forms of nitrogen at both 6AM and at 6PM to test for any diel effects in labeling patterns. Very few compounds showed a significant difference between the 6AM start time and the 6PM start time with the exception being the mycosporine-like amino acids (MAAs, Figure 3). Shinorine and palythine were confirmed via MS^2^ fragments while the other annotations remain putative, though their presence exclusively in the surface is compelling. During the ammonia incubations, six `r wc("double-check this after rerun")` MAAs showed clear ^15^N incorporation while exposed to sunlight, with the labeled fraction increasing sharply over the first 10 hours in the incubations started at 6AM. Incubations started at 6PM showed very little labeling from ammonia until a full 24 hours had passed. Shinorine, mycosporine-glycine, palythine, porphyra-334 were all clearly labeled (>20% ^15^N) as well as two of three molecular features detected at an *m/z* of 285.1445 likely corresponding to palythene and usujirene.
 
 ```{r fig MAA labeling new}
 all_maa_data <- labeled_fracs %>%
@@ -694,7 +732,7 @@ ggsave(plot = chosen_maa_gp, filename = "MAA_curves.png", device = "png",
 
 ![](figures/MAA_curves.png)
 
-*Figure 3: Fraction of UV-reactive mycosporine-like amino acids (MAAs) containing at least one 15N label over one day during the treatments amended with 15N labeled ammonia or nitrate. Incubations started at 6AM are shown in yellow while incubations started at 6PM are shown in blue, with grey background regions highlighting nighttime. Three replicates are included at each of the 5 timepoints and best-fit power law curves have been fit behind the data.*
+*Figure 3: Fraction of UV-absorbing mycosporine-like amino acids (MAAs) containing at least one ^15^N label over one day during the treatments amended with ^15^N labeled ammonia or nitrate. Incubations started at 6AM are shown in yellow while incubations started at 6PM are shown in blue, with grey background regions highlighting nighttime. Three replicates are included at each of the 5 timepoints and best-fit power law curves have been fit behind the data.*
 
 Nitrate data showed similar degrees of labeling which was again surprising given the reduced amount of bulk metabolite labeling in those amendments, though the synthesis of MAAs from nitrate appeared less clearly diel. Shinorine and porphyra-334 were particularly well-labeled under nitrate, approaching the values achieved in the ammonia incubations. Very little MAA labeling was observed during the arginine and GMP amendments until the 73 hour timepoint, though at that point the fraction labeled was approximately equivalent to the inorganic amendments and slightly higher for GMP than arginine.
 
@@ -713,7 +751,7 @@ labeled_fracs %>%
   arrange(compound_name)
 ```
 
-We also performed the four nitrogen amendments at both the surface (25 meters) and below the euphotic zone (175 meters) to investigate the effect of depth on organic and inorganic nitrogen use `r wc("Maybe find and include the light level at 175m?")`. We found that ammonia was used much more readily at the surface as measured by the fraction of metabolite labeled, with ^15^N incorporation for amino acids 5-25% greater in the surface than at depth (Figure 4). Glutamate, theanine, aspartate, and asparagine were among the most different with glutamate and theanine surface values about 10 times those at depth while ^15^N aspartate was undetectable until T3 and ^15^N asparagine never detected. In contrast, glutamine labeling was similar between the two depths, with the fraction labeled 10-20 percentage points higher at the surface across all timepoints; a trend which was clearly not propagated to glutamate or other amino acids and instead must have represented accumulation or protein incorporation. `r wc("Not super happy with the numeric language here - feels like I'm flipping between 'times greater' and 'percentage points higher'.")`
+We also performed the four nitrogen amendments at both the surface (25 meters) and below the euphotic zone (175 meters) to investigate the effect of depth on organic and inorganic nitrogen use `r wc("Maybe find and include the light level at 175m?")`. We found that ammonia was used much more readily at the surface as measured by the fraction of metabolite labeled, with ^15^N incorporation for amino acids 5-25% greater in the surface than at depth (Figure 4). Glutamate, theanine, aspartate, and asparagine were among the most different with glutamate and theanine surface values about 10 times those at depth while ^15^N aspartate was undetectable until hour 3 of the incubation and ^15^N asparagine was never detected. In contrast, glutamine labeling was similar between the two depths, with the fraction labeled 10-20 percentage points higher at the surface across all timepoints; a trend which was clearly not propagated to glutamate or other amino acids and instead must have represented accumulation or protein incorporation. `r wc("Not super happy with the numeric language here - feels like I'm flipping between 'times greater' and 'percentage points higher'.")`
 
 ```{r fig surface vs deep labeling rates}
 surfdeep_demo_cmpd_gp <- labeled_fracs %>%
@@ -836,9 +874,9 @@ ggsave(filename = "deep_vs_surf_labeling.png", surfdeep_gp, device = "png",
 
 *Figure 4: Plots of the metabolite fraction labeled at the surface (25 meters) and the fraction labeled at 175 meters. Incubations with added ammonia, arginine, and guanosine monophosphate (GMP) are shown. Top row of plots show the calculation of % labeled at 25 meters minus % labeled at 175 meters for three example compounds. All compounds are shown in the middle row of plots, grouped by chemical similarity and labeling pattern where positive values indicate increased synthesis in the surface samples relative to those at depth. Finally, the bottom row of plots shows the relative difference between the surface and deep as boxplots for all compounds without aggregating. Points in the first two rows are the average of six biological replicates (incubations started in the morning and the evening are combined here for additional power) while points in the bottom row denote metabolites with labeled fractions falling outside 1.5 times the interquartile range.*
 
-Other metabolites varied in their degree of labeling (Figure 4). Nucleobases and nucleosides were much more heavily labeled from ammonia at the surface, with maximum labeling 3-10 times more extensive around T3 and T10 if the isotope was measurable at both depths and infinitely more so if not. Betaines and other nitrogen-containing metabolites, however, were almost entirely unlabeled at 175 meters until the 24 hour mark, at which the fraction labeled in both was 5-20 times higher at the surface. An important exception to this rule is the osmolyte ectoine, an aspartate derivative that nonetheless was synthesized with nitrogen from ammonia at depth at rates equal to or exceeding those of the surface.
+Other metabolites varied in their degree of labeling (Figure 4). Nucleobases and nucleosides were much more heavily labeled from ammonia at the surface, with maximum labeling 3-10 times more extensive around T3 and T10 if the isotope was measurable at both depths and infinitely more so if not. Betaines and other nitrogen-containing metabolites, however, were almost entirely unlabeled at 175 meters until the 24 hour mark, at which time the fraction labeled in both was 5-20 times higher at the surface. An important exception to this rule is the osmolyte ectoine, an aspartate derivative that nonetheless was synthesized with nitrogen from ammonia at depth at rates equal to or exceeding those of the surface.
 
-We were unfortunately unable to present the data collected from the 175 meter labeled nitrate incubations here due to missed timepoints and confusion during sample collection but the raw numbers are provided in the supplement (Table XX and Supplemental Figure XX).
+We were unfortunately unable to present the data collected from the 175 meter labeled nitrate incubations here due to missed timepoints and our inability to confidently connect data to the correct timepoint for those samples but the raw numbers are provided in the supplement (Supplemental Figure XX).
 
 ^15^N use from the organic nitrogen substrates was again strikingly similar between the 25 meter and 175 meter samples aside from the direct products of the amended compounds. In both cases, uptake and use of the labeled substrate was equal or slightly higher at depth for a majority of the metabolites measured. Exceptions to this were theanine, which was 20-30 percentage points more heavily labeled at the surface by the end of the incubations, and ectoine, which was synthesized more at depth even to a larger degree than it was during the ammonia treatments, reaching nearly 50 percentage points more labeled at 175 meters than it was at 25m.
 
@@ -940,7 +978,7 @@ best_labeled %>%
 
 Of the 219 features that remained, the majority (150) had a ^15^N isotope with the correct *m/z* value and a chromatographic similarity score above 0.8 (see Methods). 80 of these 150 also showed linear increases in peak area across the timepoints, denoting likely ^15^N-labeled metabolites. We manually inspected each of these 80 metabolites and were able to identify the majority as either compounds in our list of authentic standards (19/80), an isotope of a known compound (39/80), or an in-source fragment of a known compound (12/80, with fragments from proline (70.0658), glutamic acid/glutamate (84.0449, 102.0550, and 130.0499), and the loss of ribose from nucleosides). Five compounds were putatively identified using isotope labeling patterns and literature searches: FT1362 with an *m/z* of 121.07798 and a retention time (RT) of 4.5 minutes we flagged as indoline, FT1564 with an *m/z* of 124.0524 and a 2.7 minute RT we flagged as the ^15^N isotope of nicotinamide, FT4529 with an *m/z* of 228.0979 and a 6.7 minute RT we flagged as deoxycytidine, FT5860 with an *m/z* of 282.1182 and an 11.1 minute RT we flagged as pangamic acid, and FT6622 with an *m/z* of 333.1292 and an 11.2 minute RT we flagged as shinorine. Four additional compounds could not be putatively identified but had plausible molecular formulae: FT3699 with an *m/z* of 192.0866 and 10.3 RT we assigned C~7~H~14~NO~5~, FT4598 with an *m/z* of 231.1703	and 1.9 RT we assigned C~11~H~23~N~2~O~3~, FT4733 with an *m/z* of 236.1492 and 10.0 RT we assigned C~10~H~22~NO~5~, and FT5185 with an *m/z* of 252.1441 and 10.7 RT we assigned C~10~H~22~NO~6~. One feature we were unable to annotate at all (FT5076, *m/z* 248.1258 and RT 12.0).`r wc("Is this information useful? Or should I just refer people to a supplemental table after giving the general breakdown?")`
 
-To derive biological meaning from the untargeted analysis, we performed a k-means clustering of the features across all the treatments and timepoints and included our targeted data in the clustering. Clear patterns of isotope incorporation emerged in 6 of the 10 clusters we used (Figure 5). Cluster 1, the largest with 64 molecular features, contained many of the unlabeled compounds including those without any nitrogen and all of the betaines. Cluster 2 contained most of the amino acids, the nucleobases cytosine and guanine, the and the deoxynucleosides as well as ectoine and citrulline. Cluster 3 contained homarine, beta-alanine, and O-acetylcarnitine as well as the remaining amino acids aside from aspartate, glutamate, and glutamine which fell into cluster 4. Known compounds in cluster 5 consisted of adenine, adenosine, cytidine, and hypoxanthine while guanosine fell alone into cluster 6. The MAAs were distributed across clusters 8 and 9, while clusters 7 and 10 had no known compounds.
+To derive biological meaning from the untargeted analysis, we performed a k-means clustering of the features across all the treatments and timepoints and included our targeted data in the clustering. Clear patterns of isotope incorporation emerged in 6 of the 10 clusters we used (Figure 5). Cluster 1, the largest with 64 molecular features, contained many of the unlabeled compounds including those without any nitrogen and all of the betaines. Cluster 2 contained most of the amino acids, the nucleobases cytosine and guanine, and the deoxynucleosides as well as ectoine and citrulline. Cluster 3 contained homarine, beta-alanine, and O-acetylcarnitine as well as the remaining amino acids aside from aspartate, glutamate, and glutamine which fell into cluster 4. Known compounds in cluster 5 consisted of adenine, adenosine, cytidine, and hypoxanthine while guanosine fell alone into cluster 6. The MAAs were distributed across clusters 8 and 9, while clusters 7 and 10 had no known compounds.
 
 ```{r run kmeans and save heatmap and save clusters}
 untarg_lab_mat <- untarg_lab_fracs %>%
@@ -1057,17 +1095,14 @@ ggsave("manuscript/supplement/untarg_heatmap.pdf", width = 10, height=36, units 
 
 # Discussion
 
-[DISCUSSION: surface community not "expecting" nitrate? problems with redox at surface?]
-
-[DISCUSSION: not expecting to see any C labeling from the organics via CO2 because inorganic C pool is so much larger, unlike the N pool]
-
-[DISCUSSION: What does the decrease in arginine labeling in +Arg at T26 and T73 indicate? Pulse-chase behavior? How is the labeled pool specifically decreasing?]
-
-[DISCUSSION: Contrasting the THAA +Nit with the metabolites hints at a small but rapidly churning amino acid pool that's deeply segregated]
-
-[DISCUSSION: MAAs are mostly made from the 4DG core plus N-containing amino acids (glycine). How does the labeling of these compare to their substituent AAs? (it's much larger)]
-
-Incubations are imperfect metrics of the actual environment because amendments with *anything* will heavily skew the community - over what time scale though? [@Eppley1977; @Shilova2017; @Rii2018]
+  - Discuss community progression through diatom bloom over the course of the experiments
+  - Surface community not "expecting" nitrate? problems with redox at surface?
+  - Not expecting to see any C labeling from the organics via CO2 because inorganic C pool is so much larger, unlike the N pool
+  - What does the decrease in arginine labeling in +Arg at T26 and T73 indicate? Pulse-chase behavior? How is the labeled pool specifically decreasing?
+   -  Contrasting the THAA +Nit with the metabolites hints at a small but rapidly churning amino acid pool that's deeply segregated
+   - MAAs are mostly made from the 4DG core plus N-containing amino acids (glycine). How does the labeling of these compare to their substituent AAs? (it's much larger)
+   - Ectoine - mention that it's mostly bacterial [@McParland2021]
+   - Incubations are imperfect metrics of the actual environment because amendments with *anything* will heavily skew the community - over what time scale though? [@Eppley1977; @Shilova2017; @Rii2018]
 
 
 Comments from Anitra:
