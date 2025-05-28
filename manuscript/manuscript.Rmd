@@ -1014,6 +1014,10 @@ untarg_heatmap <- untarg_lab_fracs %>%
   left_join(kmeans_df) %>%
   summarise(labeled_frac=mean(labeled_frac), .by = c(cluster_name, shortname)) %>%
   left_join(parametadata) %>%
+  mutate(amendment=factor(amendment, levels=c("Amm", "Nit", "Arg", "GMP"),
+                          labels = c("+Ammonia", "+Nitrate", "+Arginine", "+GMP"))) %>%
+  mutate(depth=factor(depth, levels=c("Surf", "Deep"), labels=c("25m", "175m"))) %>%
+  mutate(startime=factor(startime, levels=c("Morn", "Eve"), labels=c("6AM", "6PM"))) %>%
   ggplot() +
   geom_raster(aes(x=timepoint, y=tripl, fill=labeled_frac)) +
   scale_fill_gradientn(colours = heatmap_colorpal, limits = c(0, 1)) +
