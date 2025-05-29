@@ -655,7 +655,7 @@ left_join(metab_avgs, thaa_avgs) %>%
   arrange(timepoint, compound_name)
 ```
 
-We also explored the degree of labeling incorporation into proteins by measuring the total hydrolyzable amino acids (THAAs) at both the start of each incubation and the end (Figure 2). Proteins were 30-50% of total particulate carbon pool (~2 uM) and 70-100% of the total particulate nitrogen (~0.25 uM), with free amino acids composing between 0.15% and 17% of the total THAA pool`r wc("I'm not really sure what to say here or how to dive into the variance that's of interest to us. Report the compound with the most/least in protein? Break it down by labeled vs unlabeled?")`.
+We also explored the degree of labeling incorporation into proteins by measuring the total hydrolyzable amino acids (THAAs) at both the start of each incubation and the end (Figure 2). Proteins were 30-50% of total particulate carbon pool (~2 µM) and 70-100% of the total particulate nitrogen (~0.25 µM), with free amino acids composing between 0.15% and 17% of the total THAA pool`r wc("I'm not really sure what to say here or how to dive into the variance that's of interest to us. Report the compound with the most/least in protein? Break it down by labeled vs unlabeled?")`.
 
 There were differences in THAA labeling patterns between the amendments (Figure 2). Despite their shorter incubation time (26 hours vs 73 hours), the inorganic nitrogen amendments generally had higher fractions of labeled protein. The nitrate amendments in particular were surprisingly heavily labeled given the minimal signal seen in the free metabolites, with a degree of labeling exceeding the ammonia incubation. This indicates that most of the assimilation was done by the small subset of organisms able to reduce nitrate and use it for growth and that these organisms did not share the reduced nitrogen with the rest of the community`r wc("Is this something for the discussion instead?")`.
 
@@ -685,7 +685,7 @@ all_thaa_plot <- thaa_quant %>%
   # scale_x_discrete(expand = expansion(mult = c(0.05))) +
   scale_y_continuous(expand = expansion(mult=c(0, 0.05))) +
   scale_fill_manual(breaks = c("Unlabeled", "Labeled"), values=c("grey80", "grey20")) +
-  labs(x=NULL, y="Total uM N in THAAs      ", fill=NULL)
+  labs(x=NULL, y="Total µM N in THAAs      ", fill=NULL)
 
 plot_iso_levels <- c(
   "Unlabeled", 
@@ -754,7 +754,7 @@ ggsave("total_thaa_gp.png", total_thaa_gp, device = "png", path = "manuscript/fi
 
 ![](figures/total_thaa_gp.png)
 
-*Figure 2: Stacked bar plots showing the fraction of various total hydrolyzable amino acids (THAAs) labeled at the end of the incubations across the four amendments. Total uM nitrogen (N) in the protein pool is shown in the top plot while the fraction of individual amino acids labeled is shown in the rows below. Colors denote specific labeling patterns detected in the THAAs.*
+*Figure 2: Stacked bar plots showing the fraction of various total hydrolyzable amino acids (THAAs) labeled at the end of the incubations across the four amendments. Total µM nitrogen (N) in the protein pool is shown in the top plot while the fraction of individual amino acids labeled is shown in the rows below. Colors denote specific labeling patterns detected in the THAAs.*
 
 We believe the organic nitrogen amendments largely resulted in metabolite labeling via remineralization to ammonia or glutamate based on the absence of a labeled carbon backbone in most of the labeled metabolites, but in the THAAs we were able to see some transformations that used the carbon backbone as-is. Proline and glutamate both had detectable ^13^C~5~ ^15^N~1~ labels in the arginine treatments. We also saw histidine ^13^C~5~ ^15^N~3~ synthesized during the guanosine monophosphate treatment, confirming again that the ribose pool must have been swamped with fully ^13^C labeled ribose cleaved from guanosine in order to enter the PRPP pathway. The ^15^N~3~ pattern also indicates that for these organisms, glutamate, glutamine, and adenine were also heavily labeled. Finally, both phenylalanine and tyrosine had significant ^13^C~4~ ^15^N~1~ labeling, likely from erythrose 4-phosphate via the pentose phosphate pathway indicating new synthesis through shikimate with nitrogen addition from a heavily labeled glutamate pool again.
 
