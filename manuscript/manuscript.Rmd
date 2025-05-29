@@ -198,9 +198,9 @@ The lack of a comprehensive understanding of nitrogen's fate after it is assimil
 
 # Results
 
-Samples were taken during the 2021 SCOPE PARAGON cruise near Station ALOHA that targeted a chlorophyll bloom within an anticyclonic eddy. The bloom was initially dominated by the diatom genus *Hemiaulus* with a large surface chlorophyll signal that decayed into a more typical North Pacific Subtropical Gyre community dominated by *Prochlorococcus* and *SAR11* over the course of the two-week time series.
+Samples were taken during the 2021 SCOPE PARAGON cruise near Station ALOHA that targeted a chlorophyll bloom within an anticyclonic eddy. The bloom was initially dominated by the diatom genus *Hemiaulus* with a large surface chlorophyll signal that decayed into a more typical North Pacific Subtropical Gyre community dominated by *Prochlorococcus* and *SAR11* over the course of the two-week time series Supplemental figure XX). Samples collected from 25 meters were well within the mixed layer and had PAR levels of 20-35% of the surface light while the 175 meter samples had a PAR level between 0.05 and 0.1%. Nitrate, nitrite, and ammonia data indicated that inorganic N was low in the surface (<0.01 µM), while the deeper samples at 175 meters were collected in the middle of the nutricline, with a clear deep chlorophyll maximum at 125 meters, an ammonia maximum at 150 meters, and a nitrite max at 160-165 meters. Environmental nitrate concentrations were about 0.5 µM at 175 meters.
 
-```{r cruise metadata plots}
+```{r supp fig cruise metadata plots}
 sum_names <- c("station", "cast", "month", "day", "year", "time", 
                "lat_deg", "lat_min", "lat_dir", 
                 "lon_deg", "lon_min", "lon_dir", "max_depth", "bottles")
@@ -267,6 +267,7 @@ nut_data %>%
   mutate(name=str_remove(name, " \\(uM\\)")) %>%
   # filter(nutrient%in%n_levels) %>%
   # mutate(nutrient=factor(nutrient, levels=n_levels)) %>%
+  # filter(depth<150) %>%
   mutate(cast=factor(cast, levels=c(10, 43), labels = c("July 25", "August 3"))) %>%
   ggplot(aes(x=value, y=-depth, color=cast)) +
   geom_hline(yintercept = -c(25, 175)) +
@@ -306,6 +307,14 @@ cnp_data %>%
   geom_point() +
   geom_path() +
   facet_wrap(~name, scales="free_x")
+
+readxl::read_excel("metadata/Light Level at Depth as a Percentage of Surface Light.xlsx") %>%
+  filter(depth%between%c(170, 180) | depth%between%c(20, 30)) %>%
+  # filter(depth<100) %>%
+  mutate(depth=ifelse(depth>100, "Deep", "Surf")) %>%
+  ggplot() +
+  geom_jitter(aes(y=light_level, x=time, color=depth), width = 0.5) +
+  facet_wrap(~depth, nrow=1, scales="free_y")
 
 bind_rows(chl_data, cnp_data, fcm_data, nut_data) %>%
   left_join(sum_data) %>%
@@ -1239,13 +1248,17 @@ ggsave("manuscript/supplement/untarg_heatmap.pdf", width = 10, height=36, units 
 # Discussion
 
   - Discuss community progression through diatom bloom over the course of the experiments
-  - Surface community not "expecting" nitrate? problems with redox at surface?
+    - What do we know about Hemiaulus
+    - Both Pro and heterotrophic bacteria were elevated from typical St. ALOHA conditions by the end
+  - Surprising nitrate response, expected a lot more metabolite labeling
+    - Surface community not "expecting" nitrate? problems with redox at surface? Diatom growth only?
   - Not expecting to see any C labeling from the organics via CO2 because inorganic C pool is so much larger, unlike the N pool
+    - Discuss how badly we swamped the pool of nitrate, ammonia, DON, arg, GMP
   - What does the decrease in arginine labeling in +Arg at T26 and T73 indicate? Pulse-chase behavior? How is the labeled pool specifically decreasing?
    -  Contrasting the THAA +Nit with the metabolites hints at a small but rapidly churning amino acid pool that's deeply segregated
    - MAAs are mostly made from the 4DG core plus N-containing amino acids (glycine). How does the labeling of these compare to their substituent AAs? (it's much larger)
    - Ectoine - mention that it's mostly bacterial [@McParland2021]
-   - Incubations are imperfect metrics of the actual environment because amendments with *anything* will heavily skew the community - over what time scale though? [@Eppley1977; @Shilova2017; @Rii2018]
+   - Incubations are imperfect metrics of the actual environment because amendments with *anything* will heavily skew the community - over what time scale though? [@Eppley1977; @Shilova2017; @Karl2017; @Rii2018]
 
 
 Comments from Anitra:
