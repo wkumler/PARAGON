@@ -1465,3 +1465,52 @@ for(cmpd_i in setdiff(unique(thaa_quant$compound_name), c("Citrulline", "Ornithi
 }
 dev.off()
 ```
+
+```{r labeled thaa diff between amm and nit}
+simp_thaa_df <- thaa_quant %>%
+  select(filename, compound_name, iso_name, env_conc_nm) %>%
+  left_join(metathaa %>% distinct(filename, amendment, timepoint)) %>%
+  filter(amendment%in%c("Amm", "Nit")) %>%
+  filter(timepoint=="T26") %>%
+  filter(!str_detect(iso_name, "13C0, 15N0")) %>%
+  summarise(total_label=sum(env_conc_nm), .by=c(filename, compound_name, amendment))
+simp_thaa_df %>%
+  ggplot() +
+  geom_col(aes(x=filename, y=total_label, fill=compound_name), 
+           position = "fill",
+           color="black") +
+  facet_wrap(~amendment, scales="free_x")
+
+thaa_pca <- simp_thaa_df %>%
+  filter(compound_name!="Lysine") %>%
+  select(-amendment) %>%
+  mutate(prop_each=total_label/sum(total_label), .by = "filename") %>%
+  select(-total_label) %>%
+  pivot_wider(names_from=compound_name, values_from=prop_each) %>%
+  column_to_rownames("filename") %>%
+  data.matrix() %>%
+  prcomp()
+biplot(thaa_pca)
+round(thaa_pca$sdev/sum(thaa_pca$sdev)*100)
+
+thaa_pca %>%
+  pluck("x") %>%
+  as.data.frame() %>%
+  select(PC1, PC2) %>%
+  rownames_to_column("filename") %>%
+  left_join(metathaa) %>%
+  mutate(shortname=str_remove_all(filename, "240627_Smp_|-[A-C].mzML")) %>%
+  ggplot(aes(x=PC1, y=PC2, color=amendment, label=shortname)) +
+  geom_text() +
+  geom_point()
+
+
+simp_thaa_df %>%
+  filter(compound_name%in%c("Proline", "Glutamic acid", "Glycine")) %>%
+  ggplot() +
+  geom_col(aes(x=filename, y=total_label, fill=compound_name), 
+           position = "fill",
+           color="black") +
+  facet_wrap(~amendment, scales="free_x")
+```
+
