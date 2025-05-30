@@ -1,10 +1,7 @@
 ---
 title: "Nitrogen's form determines its fate in the North Pacific Subtropical Gyre"
 author:
-  - William Kumler
-  - Laura T. Carlson
-  - Anitra E. Ingalls
-  - Other SCOPE collaborators
+  - William Kumler, Laura T. Carlson, Rhea K. Foreman, Eric Grabowski, Fernanda Henderikx Freitas, Fuyan Li, Matthew J. Church, Edward F. DeLong, Angelicque E. White, David M. Karl, Anitra E. Ingalls
 output: word_document
 ---
 
@@ -177,7 +174,7 @@ metathaa <- read_csv("thaas/metathaa.csv") %>%
 
 # Abstract
 
-Nitrogen availability controls productivity in much of the surface ocean and the form of this nitrogen controls who it is available to and how it is used. Here, we explored how four different forms of nitrogen (ammonia, nitrate, arginine, and guanosine monophosphate) were taken up and transformed in the North Pacific Subtropical Gyre using stable isotope labeling metabolomics. We repeated these experiments both at the surface and at the base of the euphotic zone as well as in the morning and evening. We found that ammonia is converted into glutamate in less than 20 minutes and results in labeling throughout the metabolome after 24 hours, though osmolytes like betaines had slow turnover rates. Nitrate amendments resulted in the labeling of only a small subset of molecules such as mycosporine-like amino acids (MAAs), whose incorporation patterns suggest that this form of nitrogen was available to a subset of the community, likely eukaryotes. The two organic nitrogen amendments labeled the metabolome more slowly than the inorganic forms of nitrogen and showed similar usage at 25 meters and 175 meters, hinting at the major role that heterotrophic bacteria play in cycling organic matter. The organic nitrogen added was mostly converted into glutamate after 24 hours rather than used as intact substrates, though labeled arginine was incorporated into protein directly and we were able to trace the carbon backbone from both arginine and GMP into several additional metabolites. We also show that nitrogen assimilation and use was largely the same between morning and evening with the exception of UV-sensitive compounds such as MAAs. These measurements reveal the forms and fluxes of nitrogen in the natural environment and provide constraints on biogeochemical models that require characterizing the transformations between organic and inorganic nitrogen.
+Nitrogen availability controls productivity in much of the surface ocean and the form of this nitrogen controls which organisms it is available to and how it is used. Here, we explored how four different forms of nitrogen (ammonia, nitrate, arginine, and guanosine monophosphate) were taken up and transformed in the North Pacific Subtropical Gyre using stable isotope labeling metabolomics. We repeated these experiments both at the surface and at the base of the euphotic zone as well as in the morning and evening. We found that ammonia is converted into glutamate in less than 20 minutes and results in labeling throughout the metabolome after 24 hours, though osmolytes like betaines had slow turnover rates. Nitrate amendments resulted in the labeling of only a small selection of molecules such as mycosporine-like amino acids (MAAs), whose incorporation patterns suggest that this form of nitrogen was available to a subset of the community, likely eukaryotes. The two organic nitrogen amendments labeled the metabolome more slowly than the inorganic forms of nitrogen and showed similar usage at 25 meters and 175 meters, hinting at the major role that heterotrophic bacteria play in cycling organic matter. The organic nitrogen added was mostly converted into glutamate after 24 hours rather than used as intact substrates, though labeled arginine was incorporated into protein directly and we were able to trace the carbon backbone from both arginine and GMP into several additional metabolites. We also show that nitrogen assimilation and use was largely the same between morning and evening with the exception of UV-sensitive compounds such as MAAs. These measurements reveal the forms and fluxes of nitrogen in the natural environment and provide constraints on biogeochemical models that require characterizing the transformations between organic and inorganic nitrogen.
 
 ```{r}
 length(strsplit("", split = " ")[[1]]) # ~286 words
@@ -188,7 +185,7 @@ length(strsplit("", split = "")[[1]])  # ~1851 characters
 
 In most of the surface ocean the flux of carbon is controlled by the availability of nitrogen, an element with a complex and incompletely characterized biogeochemical cycle [@Bronk2008; @Moore2013; @Hutchins2022]. Organic nitrogen in particular is often treated as a black box despite substantial variability in its bioavailability and chemical nature. Turnover times for labile organic compounds like urea and amino acids can be orders of magnitude shorter than high molecular weight DON [@Aluwihare2005; @Bronk2024]. Additionally, the availability of the precious nitrogen atom is determined not only by the form of the organic material it composes but also the environment in which it's found.
 
-While extensive work has been done to characterize the forms and fluxes of nitrogen within the inorganic pool, the equivalent for the organic pool is woefully underdeveloped [@Zehr2011; @NME]. This is largely due to the difficulty of comprehensively measuring the many organic molecules that contain nitrogen in the marine environment [@Boysen2018; @Moran2022]. Recently, however, we have improved our understanding of community composition via genomics and transcriptomics and made progress in our ability to characterize organic matter via proteomics and metabolomics. These advancements, paired with the increased availability of pure and isotope-labeled substrates, mean that we can now apply metabolically resolved isotope tracing to resolve how organic nitrogen is transformed in the marketplace of metabolites that power the surface ocean [@Heal2021; @McParland2021; @Moran2022].
+While extensive work has been done to characterize the forms and fluxes of nitrogen within the inorganic pool, the equivalent for the organic pool is woefully underdeveloped [@Zehr2011; @NME]. This is largely due to the difficulty of comprehensively measuring the many organic molecules that contain nitrogen in the marine environment [@Boysen2018; @Moran2022]. Recently, however, we have improved our understanding of community composition via genomics and transcriptomics and made progress in our ability to characterize organic matter via proteomics and metabolomics. These advancements, paired with the increased availability of pure and isotope-labeled substrates, mean that we can now apply metabolically resolved isotope tracing to resolve how organic nitrogen is transformed in the marketplace of metabolites that powers the surface ocean [@Heal2021; @McParland2021; @Moran2022].
 
 Nitrogen assimilation is a well-documented process in the ocean after decades of research and demonstrates how biochemistry derived from non-marine organisms can be applied to the ocean [@Mulholland2008]. Central to the process is ammonia, which can be directly taken up from the environment by all organisms and combined with glutamate. This forms glutamine, which is then combined with alpha-ketoglutarate to form two glutamate molecules that can then be used as a nitrogen source throughout the cell [@Walker2016]. Nitrate, on the other hand, must first be reduced to ammonia in an energetically expensive process that some organisms have stripped from their genomes [@Partensky2010; @Zehr2011]. 
 
@@ -198,7 +195,12 @@ The lack of a comprehensive understanding of nitrogen's fate after it is assimil
 
 # Results
 
-Samples were taken during the 2021 SCOPE PARAGON cruise near Station ALOHA that targeted a chlorophyll bloom within an anticyclonic eddy. The bloom was initially dominated by the diatom genus *Hemiaulus* with a large surface chlorophyll signal that decayed into a more typical North Pacific Subtropical Gyre community dominated by *Prochlorococcus* and *SAR11* over the course of the two-week time series Supplemental figure XX). Samples collected from 25 meters were well within the mixed layer and had PAR levels of 20-35% of the surface light while the 175 meter samples had a PAR level between 0.05 and 0.1%. Nitrate, nitrite, and ammonia data indicated that inorganic N was low in the surface (<0.01 µM), while the deeper samples at 175 meters were collected in the middle of the nutricline, with a clear deep chlorophyll maximum at 125 meters, an ammonia maximum at 150 meters, and a nitrite max at 160-165 meters. Environmental nitrate concentrations were about 0.5 µM at 175 meters.
+Samples were collected from 25 meters and 175 meters during the 2021 SCOPE PARAGON cruise (KM2112, July 23rd - August 5th) near Station ALOHA that targeted a bloom within an anticyclonic eddy. The bloom was initially dominated by the diatom genus *Hemiaulus* with a large surface chlorophyll signal that decayed into a more typical North Pacific Subtropical Gyre community composed mostly of *Prochlorococcus* and SAR11. Community composition at our sampling depth below the deep chlorophyll maximum (DCM) was fairly typical of ALOHA, with a prokaryotic community dominated by SAR11, SAR282, and SAR 406, low levels of picoeukaryotes, and a microeukaryotic community equally distributed between diatoms, haptophytes, and dinoflagellates (Supplemental figure 1).
+
+Samples collected from 25 meters were within the mixed layer and had PAR levels of 20-35% of the surface light while the 175 meter samples had a PAR level between 0.05 and 0.1%. Nitrate, nitrite, and ammonia data indicated that inorganic N was low in the surface (<0.01 µM), while the deeper samples at 175 meters were collected in the middle of the nutricline, with a clear DCM at 125 meters, an ammonia maximum at 150 meters, and a nitrite max at 160-165 meters. Environmental nitrate concentrations were about 0.5 µM at 175 meters (Supplemental figure 1).
+
+We performed the incubations in succession, with the nitrate incubations first, followed by arginine, then guanosine monophosphate and finally ammonia. 6AM and 6PM data was always collected the same day and we alternated days between the surface and deep sampling depths to allow for reasonable sample processing times (Supplemental figure 1).
+
 
 ```{r supp fig cruise metadata plots}
 sum_names <- c("station", "cast", "month", "day", "year", "time", 
@@ -316,9 +318,10 @@ readxl::read_excel("metadata/Light Level at Depth as a Percentage of Surface Lig
   geom_jitter(aes(y=light_level, x=time, color=depth), width = 0.5) +
   facet_wrap(~depth, nrow=1, scales="free_y")
 
-bind_rows(chl_data, cnp_data, fcm_data, nut_data) %>%
+metadata_gp <- bind_rows(chl_data, cnp_data, fcm_data, nut_data) %>%
   left_join(sum_data) %>%
   filter(name!="TDP (uM)") %>%
+  mutate(alpha_col=ifelse(name=="ctd_chl", "yes", "no")) %>%
   mutate(name=factor(name, levels=c(
     "ctd_chl", "PC_um", "PN_um", "C2N",
     "NO3 (uM)", "NO2 (uM)", "NH4 (uM)", "TDN (uM)",
@@ -326,26 +329,102 @@ bind_rows(chl_data, cnp_data, fcm_data, nut_data) %>%
     "pro_mL", "syn_mL", "peuk_mL", "het_mL"
   ), labels = c(
     "CTD fluorescence", "Particulate C (uM)", "Particulate N (uM)", "PC:PN ratio",
-    "Nitrate (uM)", "Nitrite (uM)", "Ammonia (uM)", "Total diss. nitrogen (uM)",
-    "Diss. organic N (uM)", "Diss. organic P (uM)", "Phosphate (uM)", "Silicate (uM)",
+    "Nitrate (uM)", "Nitrite (uM)", "Ammonia (uM)", "Total dissolved\nnitrogen (uM)",
+    "Dissolved\norganic N (uM)", "Dissolved\norganic P (uM)", "Phosphate (uM)", "Silicate (uM)",
     "Prochlorococcus\n(cells / uL)", "Synechococcus\n(cells / mL)", "Picoeukaryotes\n(cells / mL)", "Het. bacteria\n(cells / uL)"
   ))) %>%
-  ggplot(aes(x=value, y=depth, group=cast, color=datetime)) +
-  geom_hline(yintercept = c(25, 175)) +
-  geom_vline(xintercept = 0) +
+  ggplot(aes(x=value, y=depth, group=cast, color=datetime, alpha=alpha_col)) +
+  geom_hline(yintercept = c(25, 175), linetype = 2) +
   geom_path() +
   geom_point() +
   facet_wrap(~name, scales="free_x", ncol=4) +
   scale_y_reverse() +
-  scale_x_continuous(expand = expansion(mult = c(0.05, 0.1)), n.breaks = 4) +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.1)), n.breaks = 4, limits = c(0, NA)) +
+  scale_alpha_manual(values=c(1, 0.5), breaks = c("no", "yes"), guide="none") +
   labs(x=NULL, y="Depth (meters)", color=NULL) +
   theme_bw() +
   theme(
     legend.position = "top", 
-    legend.key.width = unit(1, "null")
+    legend.key.width = unit(1, "null"),
+    legend.box.spacing = unit(0, "in")
   )
+metadata_gp
+```
 
-ggsave("manuscript/supplement/cruise_metadata.pdf", width = 6.5, height = 9)
+```{r sampling plan}
+treatments <- expand_grid(
+  amendment=c("Nitrate", "Ammonia", "Arginine", "Guanosine"),
+  depth=c("25m", "175m"),
+  sunlight=c("Morning", "Evening"),
+  timepoint=c(0, 1, 3, 10, 26, 73)
+) %>%
+  filter(!(amendment%in%c("Arginine", "Guanosine")&timepoint==1)) %>%
+  filter(!(amendment%in%c("Nitrate", "Ammonia")&timepoint==max(timepoint)))
+
+start_days <- treatments %>% 
+  distinct(amendment, depth) %>%
+  arrange(match(amendment, c("Nitrate", "Arginine", "Guanosine", "Ammonia"))) %>%
+  add_column(start_day=c(paste("Jul", c(24:27, 29, 31)), paste("Aug", 1:2))) %>%
+  mutate(start_day=strptime(start_day, "%b %d"))
+
+depthstartime_levels <- rev(c("25m Morning", "25m Evening", "175m Morning", "175m Evening"))
+schedule_df <- left_join(treatments, start_days, by=c("amendment", "depth")) %>%
+  mutate(start_time=if_else(sunlight=="Morning", start_day+hours(7), start_day+hours(19))) %>%
+  mutate(sample_time=start_time+hours(timepoint)) %>%
+  mutate(depthstartime=factor(paste(depth, sunlight), levels=depthstartime_levels)) %>%
+  mutate(depthstart_min=as.numeric(depthstartime)-ifelse(amendment%in%c("Ammonia", "Arginine"), 0.4, -0.4)) %>%
+  mutate(depthstart_max=as.numeric(depthstartime)) %>%
+  group_by(amendment, depth, sunlight) %>%
+  mutate(sample_time=lead(sample_time)) %>%
+  drop_na() %>%
+  mutate(timepoint=factor(timepoint, levels=rev(c(0, 1, 3, 10, 26, 73)))) %>%
+  arrange(timepoint) %>%
+  mutate(amendment=factor(amendment, levels=c("Nitrate", "Arginine", "Guanosine", "Ammonia")))
+lighting_seq <- seq(as.POSIXct("2025-07-24"), as.POSIXct("2025-08-05"), 60*60) %>%
+  data.frame(start=.) %>%
+  mutate(end=lead(start)) %>%
+  drop_na() %>%
+  mutate(sintime=sin(as.numeric(format(start, "%H"))/24*2*pi-pi/2))
+day_seq <- seq(as.POSIXct("2025-07-24"), as.POSIXct("2025-08-05"), 60*60*24)
+day_lab <- gsub("^0", "", format(day_seq, "%m/%d"))
+
+sample_plan_gp <- ggplot() +
+  geom_rect(aes(xmin=start, xmax=end, ymin=0.5, ymax=4.5, fill=sintime), data=lighting_seq) +
+  geom_hline(yintercept = seq(0.5, 4.5)) +
+  geom_rect(aes(ymin=depthstart_min, ymax=depthstart_max,
+                xmin=start_time, xmax=sample_time, color=amendment),
+            fill="white", lwd=1, data=schedule_df) +
+  scale_y_continuous(breaks = 1:4, labels = rep(c("6PM start", "6AM start"), 2),
+                     expand = c(0, 0), limits = c(NA, 4.9)) +
+  scale_x_datetime(limits = range(day_seq), breaks = day_seq, labels = day_lab, expand = c(0, 0)) +
+  scale_fill_gradient2(low = "grey80", mid = "grey90", high = "white", guide = NULL) +
+  annotate("text", x = as.POSIXct("2025-07-24 12:00:00"), y=4.6, label="Nitrate (3µM)",
+           color=scales::hue_pal()(4)[1], vjust=0, hjust=0.2) +
+  annotate("text", x = as.POSIXct("2025-07-27 12:00:00"), y=4.6, label="GMP (0.5µM)",
+           color=scales::hue_pal()(4)[2], vjust=0, hjust=0.2) +
+  annotate("text", x = as.POSIXct("2025-07-30 18:00:00"), y=4.6, label="Arginine (0.5µM)",
+           color=scales::hue_pal()(4)[3], vjust=0, hjust=0.2) +
+  annotate("text", x = as.POSIXct("2025-08-03 00:00:00"), y=4.6, label="Ammonia (3µM)",
+           color=scales::hue_pal()(4)[4], vjust=0, hjust=0.2) +
+  annotate("segment", x=min(lighting_seq$start), xend=min(lighting_seq$start),
+           y=0.5, yend=4.5) +
+  annotate("segment", x=max(lighting_seq$start), xend=max(lighting_seq$start),
+           y=0.5, yend=4.5) +
+  theme_bw() +
+  theme(legend.position = "none", 
+        panel.grid = element_blank(),
+        axis.title = element_blank(), 
+        panel.border = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x=element_blank(), 
+        plot.margin = margin())
+sample_plan_gp
+```
+
+```{r combine plan and cruise metadata}
+combined_plot <- sample_plan_gp / metadata_gp + plot_layout(heights = c(0.2, 0.8))
+
+ggsave("manuscript/supplement/cruise_metadata.png", combined_plot, width = 6.5, height = 8)
 ```
 
 ## Differences in nitrogen labeling at the surface between amendments
