@@ -453,9 +453,26 @@ nM_labeled %>%
   filter(amendment=="Amm") %>%
   summarise(conc=mean(nM_labeled), .by=c(compound_name, timepoint)) %>%
   arrange(timepoint)
+
+nM_labeled %>%
+  filter(compound_name%in%c("L-Glutamine", "L-Glutamic acid/beta-Glutamic acid")) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(depth=="Surf") %>%
+  filter(amendment=="Amm") %>%
+  ggplot(aes(x=tripl, y=nM_labeled, fill=iso_name)) +
+  geom_col(color="black") +
+  facet_nested(compound_name+startime~timepoint)
+nM_labeled %>%
+  filter(iso_name%in%c("L-Glutamine, 13C0, 15N2", "L-Glutamic acid, 13C0, 15N1")) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(depth=="Surf") %>%
+  filter(amendment=="Amm") %>%
+  ggplot(aes(x=timepoint, y=nM_labeled, color=iso_name)) +
+  geom_boxplot() +
+  ggpubr::stat_compare_means(label = "p.format")
 ```
 
-We observed significant differences in ^15^N labeling patterns between the different treatment incubations performed with ALOHA surface seawater (Figure 1). Ammonia incubations resulted in very rapid labeling, with glutamine more than 75% labeled even at the T0 timepoint, corresponding to the amount of time required to spike and immediately filter the 2 liters of seawater (~15 minutes). The dominant labeling pattern at T0 was a single ^15^N, though all later timepoints showed more doubly-^15^N labeled glutamine than singly-labeled. After 24 hours, glutamine was more than 95% labeled and had approximately doubled in pool size (initially ~0.3 nM becoming 0.8 nM).
+We observed significant differences in ^15^N labeling patterns between the different treatment incubations (Figure 1). Ammonia incubations resulted in very rapid labeling, with glutamine more than 75% labeled even at the T0 timepoint, corresponding to the amount of time required to spike and immediately filter the 2 liters of seawater (~15 minutes). The dominant labeling pattern at T0 was a single ^15^N, though all later timepoints showed more doubly-^15^N labeled glutamine than singly-labeled. After 24 hours, glutamine was more than 95% labeled and had approximately doubled in pool size (initially ~0.3 nM becoming 0.8 nM).
 
 ```{r fig1 grouped metab heatmap}
 xamend_metab_gp <- labeled_fracs %>%
