@@ -1508,7 +1508,7 @@ all_maa_gp <- ggplot(all_maa_data) +
         legend.justification = c(1, 1), 
         legend.background = element_rect(fill="#FFFFFFAA", color="black", linewidth = 0)) +
   guides(shape=guide_legend(override.aes = list(size=3, stroke=1.2, alpha=1, linetype=0)))
-ggsave(plot = all_maa_gp, filename = "supp_MAA_curves.png", device = "png", 
+ggsave(plot = all_maa_gp, filename = "supp_MAA_curves.pdf", device = "pdf", 
        path = "manuscript/supplement", width = 6.5, height = 9, units = "in", dpi = 300)
 
 ```
