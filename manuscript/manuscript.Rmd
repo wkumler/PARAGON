@@ -698,6 +698,27 @@ peak_areas %>%
 The guanosine monophosphate (GMP) incubations showed a pattern very similar to the arginine incubations in the identity, timing, and magnitude in which metabolites were labeled (Figure 1). While we were unable to measure GMP directly `r wc("I can try harder here but the data is pretty bad :(")` we saw clear labeling of fully C and N labeled guanosine (^13^C~10~, ^15^N~5~) after 3 hours that increased to a maximum of 75% after 24 hours before decreasing slightly to 64% labeled at the end of the three-day incubation. A small part of this signal was reflected in guanine, with ^13^C~5~, ^15^N~5~ guanine representing about 10% of the signal at T3 and reaching a maximum of 40% at T26. At T26 we also saw extensive labeling in adenine, adenosine, and hypoxanthine though their dominant labeling patterns (^13^C~0~ ^15^N~5~, ^13^C~5~ ^15^N~5~, and ^13^C~0~ ^15^N~4~ respectively, Supplemental figure XX) suggested that the adenine and hypoxanthine were synthesized from glutamate and that the ribose pool had been swamped by guanosine cleavage. Here, unlike the arginine incubations, we also saw some MAA labeling at the end of the 3 day incubation.
 
 ```{r thaa tables}
+thaa_quant %>%
+  filter(!str_detect(iso_name, "2H")) %>%
+  left_join(metathaa) %>%
+  filter(samp_type=="Smp") %>%
+  left_join(aa_ncs) %>%
+  select(filename, depth, compound_name, iso_name, env_conc_nm, n_C, n_N) %>%
+  mutate(n_N_lab=as.numeric(str_extract(iso_name, "(?<=15N)\\d+"))) %>%
+  mutate(n_N_unlab=n_N-n_N_lab) %>%
+  mutate(nM_N_lab=env_conc_nm*n_N_lab, nM_N_unlab=env_conc_nm*n_N_unlab) %>%
+  select(filename, depth, compound_name, iso_name, nM_N_lab, nM_N_unlab) %>%
+  pivot_longer(c(nM_N_lab, nM_N_unlab)) %>%
+  summarise(total_uM=sum(value)/1000, .by=c(filename, depth, name)) %>%
+  left_join(metathaa) %>%
+  mutate(amendment=ifelse(timepoint=="T0", "T0", amendment)) %>%
+  mutate(amendment=factor(amendment, levels = c("T0", "Amm", "Nit", "Arg", "GMP"),
+                          labels=c("Initial (T0)", "+Ammonia", "+Nitrate", "+Arginine", "+GMP"))) %>%
+  summarise(total_uM=mean(total_uM), .by=c(amendment, depth, timepoint, name)) %>%
+  pivot_wider(names_from = name, values_from = total_uM)
+
+
+
 thaa_avgs <- thaa_quant %>%
   left_join(metathaa) %>%
   filter(samp_type=="Smp") %>%
@@ -762,27 +783,37 @@ all_thaa_plot <- thaa_quant %>%
   left_join(metathaa) %>%
   filter(samp_type=="Smp") %>%
   left_join(aa_ncs) %>%
-  select(filename, compound_name, iso_name, env_conc_nm, n_C, n_N) %>%
+  select(filename, depth, compound_name, iso_name, env_conc_nm, n_C, n_N) %>%
   mutate(n_N_lab=as.numeric(str_extract(iso_name, "(?<=15N)\\d+"))) %>%
   mutate(n_N_unlab=n_N-n_N_lab) %>%
   mutate(nM_N_lab=env_conc_nm*n_N_lab, nM_N_unlab=env_conc_nm*n_N_unlab) %>%
-  select(filename, compound_name, iso_name, nM_N_lab, nM_N_unlab) %>%
+  select(filename, depth, compound_name, iso_name, nM_N_lab, nM_N_unlab) %>%
   pivot_longer(c(nM_N_lab, nM_N_unlab)) %>%
-  summarise(total_uM=sum(value)/1000, .by=c(filename, name)) %>%
+  summarise(total_uM=sum(value)/1000, .by=c(filename, depth, name)) %>%
   left_join(metathaa) %>%
   mutate(amendment=ifelse(timepoint=="T0", "T0", amendment)) %>%
   mutate(amendment=factor(amendment, levels = c("T0", "Amm", "Nit", "Arg", "GMP"),
                           labels=c("Initial (T0)", "+Ammonia", "+Nitrate", "+Arginine", "+GMP"))) %>%
-  summarise(total_uM=mean(total_uM), .by=c(amendment, timepoint, name)) %>%
+  summarise(total_uM=mean(total_uM), .by=c(depth, amendment, timepoint, name)) %>%
   mutate(name=factor(name, levels=c("nM_N_unlab", "nM_N_lab"), labels = c("Unlabeled", "Labeled"))) %>%
-  ggplot(aes(x=amendment, y=total_uM, fill=name)) +
-  geom_col(color="black", width=0.9) +
+  mutate(depth=factor(depth, levels=c("Surf", "Deep"), labels=c("25m", "175m"))) %>%
+  ggplot(aes(x=depth, y=total_uM, fill=name, pattern=depth)) +
+  geom_col_pattern(color="black", width=0.9, pattern_fill="white", pattern_color=NA,
+                   pattern_density = 0.5, pattern_spacing=0.05, pattern_angle=45) +
   geom_hline(yintercept = 0) +
   theme_bw() +
+  facet_wrap(~amendment, nrow=1, strip.position="bottom") +
   # scale_x_discrete(expand = expansion(mult = c(0.05))) +
   scale_y_continuous(expand = expansion(mult=c(0, 0.05))) +
-  scale_fill_manual(breaks = c("Unlabeled", "Labeled"), values=c("grey80", "grey20")) +
-  labs(x=NULL, y="Total µM N in THAAs      ", fill=NULL)
+  scale_fill_manual(breaks = c("Unlabeled", "Labeled"), values=c("grey80", "grey20"), guide=guide_legend(override.aes = list(pattern_fill="#FFFFFF00"))) +
+  scale_pattern_manual(breaks=c("25m", "175m"), values = c(NA, "stripe")) +
+  labs(x=NULL, y="Total uM N in THAAs      ", fill=NULL, pattern=NULL) +
+  theme(legend.key.size = unit(0.26, 'in'),
+        panel.spacing.x = unit(0, "lines"),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.background = element_blank())
+
 
 plot_iso_levels <- c(
   "Unlabeled", 
@@ -846,7 +877,7 @@ arg_glut_thaa_plot <- ggplot(thaa_plot_data) +
 total_thaa_gp <- all_thaa_plot / arg_glut_thaa_plot + plot_layout(heights = c(0.3, 0.7))
 total_thaa_gp
 ggsave("total_thaa_gp.png", total_thaa_gp, device = "png", path = "manuscript/figures",
-       width = 6.5, height = 4.5, units = "in", dpi = 300)
+       width = 6.5, height = 5, units = "in", dpi = 300)
 ```
 
 ![](figures/total_thaa_gp.png)
