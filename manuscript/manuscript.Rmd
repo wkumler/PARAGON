@@ -583,7 +583,7 @@ arrow::open_dataset("tmzMLs/pqds") %>%
   geom_boxplot(aes(x=timepoint, y=labeled_frac, color=startime))
 ```
 
-The ^15^N was then quickly propagated to glutamate and aspartate, creating a metabolite pool 40-50% labeled for each of these after a single hour. Aspartate was labeled slightly faster than glutamate, likely as a result of its smaller pool size (0.2 nM Asp versus 0.5 nM Glu). Also rapidly labeled was citrulline, reaching 20% labeled after a single hour, though arginine was not labeled until much later despite its location immediately downstream of this metabolite. Untargeted detection of other molecular features revealed an additional metabolite that was 30% labeled at the one hour timepoint with an *m/z* value of 175.1077 and a retention time of 8.2 minutes which we have putatively identified as theanine (N5-ethyl glutamine) based on *m/z* match and labeling pattern.
+The ^15^N was then quickly propagated to glutamate and aspartate, creating a metabolite pool 40-50% labeled for each of these after a single hour. Aspartate was labeled slightly faster than glutamate, likely as a result of its smaller pool size (0.2 nM Asp versus 0.5 nM Glu). Also rapidly labeled was citrulline, reaching 20% labeled after a single hour, though arginine was not labeled until much later despite its location immediately downstream of this metabolite. Untargeted detection of other molecular features revealed an additional metabolite that was 30% labeled at the one hour timepoint with an *m/z* value of 175.1077 and a retention time of 8.2 minutes which we have putatively identified as theanine (N5-ethyl glutamine) based on *m/z* match and labeling pattern (Figure 1).
 
 ```{r betaine and nucleo numbers}
 labeled_fracs %>%
@@ -707,15 +707,19 @@ thaa_quant %>%
   mutate(n_N_lab=as.numeric(str_extract(iso_name, "(?<=15N)\\d+"))) %>%
   mutate(n_N_unlab=n_N-n_N_lab) %>%
   mutate(nM_N_lab=env_conc_nm*n_N_lab, nM_N_unlab=env_conc_nm*n_N_unlab) %>%
-  select(filename, depth, compound_name, iso_name, nM_N_lab, nM_N_unlab) %>%
-  pivot_longer(c(nM_N_lab, nM_N_unlab)) %>%
-  summarise(total_uM=sum(value)/1000, .by=c(filename, depth, name)) %>%
+  mutate(n_C_lab=as.numeric(str_extract(iso_name, "(?<=13C)\\d+"))) %>%
+  mutate(n_C_unlab=n_C-n_C_lab) %>%
+  mutate(nM_C_lab=env_conc_nm*n_C_lab, nM_C_unlab=env_conc_nm*n_C_unlab) %>%
+  select(filename, depth, compound_name, iso_name, nM_N_lab, nM_N_unlab, nM_C_lab, nM_C_unlab) %>%
+  pivot_longer(c(nM_N_lab, nM_N_unlab, nM_C_lab, nM_C_unlab)) %>%
+  summarise(total_uM=sum(value), .by=c(filename, depth, name)) %>%
   left_join(metathaa) %>%
   mutate(amendment=ifelse(timepoint=="T0", "T0", amendment)) %>%
   mutate(amendment=factor(amendment, levels = c("T0", "Amm", "Nit", "Arg", "GMP"),
                           labels=c("Initial (T0)", "+Ammonia", "+Nitrate", "+Arginine", "+GMP"))) %>%
   summarise(total_uM=mean(total_uM), .by=c(amendment, depth, timepoint, name)) %>%
-  pivot_wider(names_from = name, values_from = total_uM)
+  pivot_wider(names_from = name, values_from = total_uM) %>%
+  arrange(depth, amendment, timepoint)
 
 
 
@@ -773,9 +777,9 @@ left_join(metab_avgs, thaa_avgs) %>%
   arrange(timepoint, compound_name)
 ```
 
-We also explored the degree of labeling incorporation into proteins by measuring the total hydrolyzable amino acids (THAAs) at both the start of each incubation and the end (Figure 2). Proteins were 30-50% of total particulate carbon pool (~2 µM) and 70-100% of the total particulate nitrogen (~0.25 µM), with free amino acids composing between 0.15% and 17% of the total THAA pool`r wc("I'm not really sure what to say here or how to dive into the variance that's of interest to us. Report the compound with the most/least in protein? Break it down by labeled vs unlabeled?")`.
+We also explored the degree of labeling incorporation into proteins by measuring the total hydrolyzable amino acids (THAAs) at both the start of each incubation and the end (Figure 2). 
 
-There were differences in THAA labeling patterns between the amendments (Figure 2). Despite their shorter incubation time (26 hours vs 73 hours), the inorganic nitrogen amendments generally had higher fractions of labeled protein. The nitrate amendments in particular were surprisingly heavily labeled given the minimal signal seen in the free metabolites, with a degree of labeling exceeding the ammonia incubation. This indicates that most of the assimilation was done by the small subset of organisms able to reduce nitrate and use it for growth and that these organisms did not share the reduced nitrogen with the rest of the community`r wc("Is this something for the discussion instead?")`.
+Proteins were a 33-65% of total particulate carbon pool (2.84 µM at 25 meters and 1.36 µM at 175 meters) and a large part of the total particulate nitrogen (PN, 0.36 µM at 25 meters and 0.15 µM at 175 meters), with total estimated nitrogen in the THAAs sometimes exceeding the total PN measurements. Free amino acids composed between 0.15% and 17% of the total THAA pool with the highest contributions from glutamate. There were also differences in THAA labeling patterns between the amendments (Figure 2). Despite their shorter incubation time (26 hours vs 73 hours), the inorganic nitrogen amendments generally had higher fractions of labeled protein. The nitrate amendments in particular were surprisingly heavily labeled given the minimal signal seen in the free metabolites, with a degree of labeling exceeding the ammonia incubation. This indicates that most of the assimilation was done by the small subset of organisms able to reduce nitrate and use it for growth and that these organisms did not share the reduced nitrogen with the rest of the community.
 
 ```{r fig2 thaa data}
 all_thaa_plot <- thaa_quant %>%
