@@ -3,6 +3,7 @@ title: "Nitrogen's form determines its fate in the North Pacific Subtropical Gyr
 author:
   - William Kumler, Laura T. Carlson, Rhea K. Foreman, Eric Grabowski, Fernanda Henderikx Freitas, Fuyan Li, Matthew J. Church, Edward F. DeLong, Angelicque E. White, David M. Karl, Anitra E. Ingalls
 output: word_document
+bibliography: Exported Items.bib
 ---
 
 ```{r setup, echo=FALSE, include=FALSE}
@@ -186,7 +187,7 @@ length(strsplit("", split = "")[[1]])  # ~1851 characters
 
 In most of the surface ocean the flux of carbon is controlled by the availability of nitrogen, an element with a complex and incompletely characterized biogeochemical cycle [@Bronk2008; @Moore2013; @Hutchins2022]. Organic nitrogen in particular is often treated as a black box despite substantial variability in its bioavailability and chemical nature. Turnover times for labile organic compounds like urea and amino acids can be orders of magnitude shorter than high molecular weight DON [@Aluwihare2005; @Bronk2024]. Additionally, the availability of the precious nitrogen atom is determined not only by the form of the organic material it composes but also the environment in which it's found.
 
-While extensive work has been done to characterize the forms and fluxes of nitrogen within the inorganic pool, the equivalent for the organic pool is woefully underdeveloped [@Zehr2011; @NME]. This is largely due to the difficulty of comprehensively measuring the many organic molecules that contain nitrogen in the marine environment [@Boysen2018; @Moran2022]. Recently, however, we have improved our understanding of community composition via genomics and transcriptomics and made progress in our ability to characterize organic matter via proteomics and metabolomics. These advancements, paired with the increased availability of pure and isotope-labeled substrates, mean that we can now apply metabolically resolved isotope tracing to resolve how organic nitrogen is transformed in the marketplace of metabolites that powers the surface ocean [@Heal2021; @McParland2021; @Moran2022].
+While extensive work has been done to characterize the forms and fluxes of nitrogen within the inorganic pool, the equivalent for the organic pool is woefully underdeveloped [@Zehr2011; @Bronk2008]. This is largely due to the difficulty of comprehensively measuring the many organic molecules that contain nitrogen in the marine environment [@Boysen2018; @Moran2022]. Recently, however, we have improved our understanding of community composition via genomics and transcriptomics and made progress in our ability to characterize organic matter via proteomics and metabolomics. These advancements, paired with the increased availability of pure and isotope-labeled substrates, mean that we can now apply metabolically resolved isotope tracing to resolve how organic nitrogen is transformed in the marketplace of metabolites that powers the surface ocean [@Heal2021; @McParland2021; @Moran2022].
 
 Nitrogen assimilation is a well-documented process in the ocean after decades of research and demonstrates how biochemistry derived from non-marine organisms can be applied to the ocean [@Mulholland2008]. Central to the process is ammonia, which can be directly taken up from the environment by all organisms and combined with glutamate. This forms glutamine, which is then combined with alpha-ketoglutarate to form two glutamate molecules that can then be used as a nitrogen source throughout the cell [@Walker2016]. Nitrate, on the other hand, must first be reduced to ammonia in an energetically expensive process that some organisms have stripped from their genomes [@Partensky2010; @Zehr2011]. 
 
@@ -1496,7 +1497,7 @@ The chronic nitrogen limitation of the North Pacific Subtropical Gyre (NPSG) cre
     - Typical ALOHA at 175 meters throughout
       - Big question mark on this one since we're extrapolating from a single depth profile in both cases
   - All N added in excess of normal ALOHA
-    - 1mL 6mM nitrate/ammonia into 2L bottles = 3uM (on par with other experiments @Rii2018 @Zimmermann2023 @Shilova2017)
+    - 1mL 6mM nitrate/ammonia into 2L bottles = 3uM (on par with other experiments @Rii2018 @Zimmerman2023 @Shilova2017)
       - Nitrate background @ surface < 0.01 uM? (Typical ALOHA is 0-5nM @Rii2018)
       - Nitrate background @ 175m = 0.46-0.57 uM
       - Ammonia background @ surface ~ 0.01 (58nM in @Shilova2017)
