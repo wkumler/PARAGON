@@ -166,9 +166,7 @@ untarg_lab_fracs <- cleaned_combined_peaks %>%
   left_join(parametadata %>% distinct(filename, shortname)) %>%
   select(feature, shortname, labeled_frac)
 
-thaa_quant <- read_csv("thaas/quant_data.csv") %>%
-  filter(iso_name!="Proline, 13C3, 15N1") %>%
-  filter(iso_name!="Proline, 13C4, 15N1")
+thaa_quant <- read_csv("thaas/quant_data.csv")
 metathaa <- read_csv("thaas/metathaa.csv") %>%
   mutate(depth=factor(depth, levels=c("Surf", "Deep"))) %>%
   mutate(startime=factor(startime, levels=c("Morn", "Eve")))
@@ -779,7 +777,7 @@ left_join(metab_avgs, thaa_avgs) %>%
 
 We also explored the degree of labeling incorporation into proteins by measuring the total hydrolyzable amino acids (THAAs) at both the start of each incubation and the end (Figure 2). 
 
-Proteins were a 33-65% of total particulate carbon pool (2.84 µM at 25 meters and 1.36 µM at 175 meters) and a large part of the total particulate nitrogen (PN, 0.36 µM at 25 meters and 0.15 µM at 175 meters), with total estimated nitrogen in the THAAs sometimes exceeding the total PN measurements. Free amino acids composed between 0.15% and 17% of the total THAA pool with the highest contributions from glutamate. There were also differences in THAA labeling patterns between the amendments (Figure 2). Despite their shorter incubation time (26 hours vs 73 hours), the inorganic nitrogen amendments generally had higher fractions of labeled protein. The nitrate amendments in particular were surprisingly heavily labeled given the minimal signal seen in the free metabolites, with a degree of labeling exceeding the ammonia incubation. This indicates that most of the assimilation was done by the small subset of organisms able to reduce nitrate and use it for growth and that these organisms did not share the reduced nitrogen with the rest of the community.
+Proteins were 26-52% of total particulate carbon pool (2.84 µM at 25 meters and 1.36 µM at 175 meters) at T0 and a large part of the total particulate nitrogen (PN, 0.36 µM at 25 meters and 0.15 µM at 175 meters), with total estimated nitrogen in the THAAs sometimes exceeding the total PN measurements. Free amino acids composed between 0.15% and 17% of the total THAA pool with the highest contributions from glutamate. There were also differences in THAA labeling patterns between the amendments (Figure 2). Despite their shorter incubation time (26 hours vs 73 hours), the inorganic nitrogen amendments generally had higher fractions of labeled protein. The nitrate amendments in particular were surprisingly heavily labeled given the minimal signal seen in the free metabolites, with a degree of labeling exceeding the ammonia incubation. This indicates that most of the assimilation was done by the small subset of organisms able to reduce nitrate and use it for growth and that these organisms did not share the reduced nitrogen with the rest of the community.
 
 ```{r fig2 thaa data}
 all_thaa_plot <- thaa_quant %>%
@@ -1529,7 +1527,7 @@ The chronic nitrogen limitation of the North Pacific Subtropical Gyre (NPSG) cre
         - The nitrogen in MAAs comes from amino acids (glycine = M-gly, gly+ser=shinorine, gly+thr = porphyra334/palythine/palythene/usujirene)
       - Important differences in labeling between THAAs and metabolites
         - Super rapidly turning over subset of the pool segregated from rest of the community
-        - Note that nitrate resulted in more labeling at depth than surface while opposite true for ammonia
+        - Note that nitrate resulted in more labeling at depth than surface while opposite true for ammonia for THAAs
       - Surface community likely not "expecting" nitrate
         - How much time would it take to "turn on" NR and NiR genes?
         - Clear upward propagation of nitrate -> nitrite -> ammonia in water column data

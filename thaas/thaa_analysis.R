@@ -5,8 +5,8 @@ thaa_mzs <- read_csv("thaas/AminoAcid_masses_paragon1.csv") %>%
   mutate(compound_name=str_replace(compound_name, "Phenylalaine", "Phenylalanine"))
 
 ms_files <- list.files("thaas/mzMLs", pattern = "mzML", full.names = TRUE)
-msdata <- grabMSdata(ms_files, grab_what=c("EIC", "metadata"), mz = thaa_mzs$cmpd_mz, ppm = 20)
-msdata$BPC %>% qplotMS1data(color_col="filename")
+msdata <- grabMSdata(ms_files, grab_what=c("EIC", "metadata", "BPC"), mz = thaa_mzs$cmpd_mz, ppm = 20)
+msdata$BPC %>% qplotMS1data(color_col="filename") + theme(legend.position = "none")
 
 metathaa <- data.frame(filename=basename(ms_files)) %>%
   mutate(samp_type=str_extract(filename, "Blk|Smp|Std|Poo")) %>%
@@ -35,7 +35,7 @@ write_csv(metathaa, "thaas/metathaa.csv")
 
 thaa_mzs %>%
   pwalk(function(compound_name, cmpd_mz, cmpd_rt){
-    gp <- msdata$MS1[mz%between%pmppm(cmpd_mz, ppm = 10)] %>%
+    gp <- msdata$EIC[mz%between%pmppm(cmpd_mz, ppm = 10)] %>%
       filter(rt%between%c(cmpd_rt-0.5, cmpd_rt+0.5)) %>%
       qplotMS1data() +
       geom_vline(xintercept = cmpd_rt, color="red") +
@@ -70,7 +70,7 @@ compound_bounds <- tribble(
 # Check for integration bounds quality using all data
 compound_bounds %>%
   pwalk(function(compound_name, rtstart, rtend, cmpd_mz){
-    gp <- msdata$MS1[mz%between%pmppm(cmpd_mz, ppm = 10)] %>%
+    gp <- msdata$EIC[mz%between%pmppm(cmpd_mz, ppm = 10)] %>%
       filter(rt%between%c(rtstart-0.2, rtend+0.2)) %>%
       qplotMS1data() +
       geom_vline(xintercept = c(rtstart, rtend), color=c("green", "red")) +
@@ -107,11 +107,13 @@ iso_mzs <- compound_bounds %>%
   mutate(iso_mz=cmpd_mz+1.003355*n_C+0.997035*n_N) %>%
   mutate(iso_name = paste0(compound_name, ", 13C", n_C, ", 15N", n_N))
 
+iso_msdata <- grabMSdata(ms_files, grab_what=c("EIC", "metadata", "BPC"), mz = iso_mzs$iso_mz, ppm = 20)
+
 all_iso_areas <- iso_mzs %>%
   left_join(compound_bounds) %>%
   select(iso_name, rtstart, rtend, iso_mz) %>%
   pmap(function(iso_name, rtstart, rtend, iso_mz){
-    msdata$MS1[mz%between%pmppm(iso_mz, ppm = 10)] %>%
+    iso_msdata$EIC[mz%between%pmppm(iso_mz, ppm = 10)] %>%
       filter(rt%between%c(rtstart, rtend)) %>%
       slice_max(int, by=c(filename, rt)) %>%
       summarise(area=trapz(rt, int), .by = filename) %>%
@@ -123,7 +125,7 @@ all_iso_areas <- iso_mzs %>%
 # iso_mzs %>%
 #   filter() %>%
 #   left_join(compound_bounds)
-# msdata$MS1[mz%between%pmppm(289.1229, ppm = 10) | mz%between%pmppm(286.1192, ppm = 10)] %>%
+# iso_msdata$EIC[mz%between%pmppm(289.1229, ppm = 10) | mz%between%pmppm(286.1192, ppm = 10)] %>%
 #   filter(str_detect(filename, "T0")) %>%
 #   mutate(mz=round(mz)) %>%
 #   filter(rt%between%c(3.5, 4)) %>%
@@ -132,6 +134,7 @@ all_iso_areas <- iso_mzs %>%
 
 all_iso_areas %>%
   filter(str_detect(iso_name, "Arginine")) %>%
+  left_join(metathaa) %>%
   ggplot() +
   geom_col(aes(x=filename, y=area, fill=iso_name)) +
   facet_wrap(~amendment, ncol=1, scales="free_x")
@@ -164,6 +167,16 @@ all_iso_areas %>%
 all_iso_areas %>%
   filter(str_detect(iso_name, "13C0, 15N0")) %>%
   mutate(iso_name=str_remove(iso_name, ", 13C0, 15N0")) %>%
+  left_join(metathaa) %>%
+  filter(!(amendment=="Amm" & startime=="Morn" & depth=="Deep" & tripl=="B")) %>%
+  drop_na() %>%
+  ggplot() +
+  geom_col(aes(x=tripl, y=area, fill=iso_name), color="black", position="fill") +
+  facet_nested(startime+depth~amendment+timepoint)
+all_iso_areas %>%
+  filter(!str_detect(iso_name, "13C0, 15N0")) %>%
+  filter(!str_detect(iso_name, "Proline")) %>%
+  mutate(iso_name=str_remove(iso_name, ", 13C\\d, 15N\\d")) %>%
   left_join(metathaa) %>%
   filter(!(amendment=="Amm" & startime=="Morn" & depth=="Deep" & tripl=="B")) %>%
   drop_na() %>%
@@ -240,6 +253,22 @@ cal_curves <- stan_curve_data %>%
   select(compound_name, slope=estimate)
 
 
+hist_areas <- all_iso_areas %>% 
+  filter(str_detect(filename, "Smp")) %>%
+  left_join(is_areas) %>%
+  mutate(area=area/norm_factor) %>%
+  filter(iso_name=="Proline, 13C0, 15N0") %>% 
+  pull(area)
+stan_curve_data %>%
+  filter(iso_name=="Proline, 13C0, 15N0") %>%
+  ggplot(aes(x=conc, y=area)) +
+  geom_point(aes(color=rep)) +
+  geom_smooth(method=lm, formula=y~x) +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = hist_areas) +
+  facet_wrap(~iso_name, scales="free_y", ncol=3)
+
+
 quant_data <- all_iso_areas %>%
   left_join(is_areas) %>%
   mutate(norm_area=area/norm_factor, .by = iso_name) %>%
@@ -247,11 +276,15 @@ quant_data <- all_iso_areas %>%
   mutate(compound_name=str_remove(iso_name, ", .*")) %>%
   left_join(cal_curves) %>%
   mutate(conc_um_in_vial=norm_area/slope) %>%
-  mutate(env_conc_nm=conc_um_in_vial/100*1000) %>%
+  # 200uL vial, 250mL filtered, 10x diluted during derivatization
+  mutate(env_conc_nm=conc_um_in_vial*200/250000*10*1000) %>%
   filter(iso_name!="Proline, 13C2, 15N1") %>%
   filter(iso_name!="Proline, 13C3, 15N1") %>%
   filter(iso_name!="Proline, 13C4, 15N1") %>%
-  filter(compound_name!="Lysine")
+  filter(compound_name!="Lysine") %>%
+  select(compound_name, iso_name, filename, env_conc_nm) %>%
+  filter(!compound_name%in%c("Taurine", "Ornithine", "Citrulline"))
+
 write_csv(quant_data, "thaas/quant_data.csv")
 
 
@@ -290,7 +323,7 @@ for(cmpd_i in setdiff(unique(quant_data$compound_name), c("Citrulline", "Ornithi
   print(cmpd_i)
   gp <- quant_data %>%
     filter(compound_name==cmpd_i) %>%
-    left_join(metathaa) %>%
+    left_join(metathaa, by = join_by(filename)) %>%
     drop_na() %>%
     ggplot() +
     geom_col(aes(x=tripl, y=env_conc_nm, fill=iso_name), 
@@ -332,14 +365,14 @@ quant_data %>%
 # 4 carbons from PPP (E4P), 15N from highly labeled pool of glutamate?
 
 iso_mzs %>% filter(iso_name=="Phenylalanine, 13C4, 15N1")
-msdata$MS1[mz%between%pmppm(341.1453, ppm = 10) | mz%between%pmppm(336.1348, ppm = 10)] %>%
+iso_msdata$EIC[mz%between%pmppm(341.1453, ppm = 10) | mz%between%pmppm(336.1348, ppm = 10)] %>%
   filter(str_detect(filename, "GMP")) %>%
   mutate(mz=round(mz)) %>%
   filter(rt%between%c(5.2, 5.5)) %>%
   qplotMS1data() +
   facet_wrap(~mz, ncol=1, scales="free_y")
 iso_mzs %>% filter(iso_name=="Tyrosine, 13C4, 15N1")
-msdata$MS1[mz%between%pmppm(357.1402, ppm = 10) | mz%between%pmppm(352.1297, ppm = 10)] %>%
+iso_msdata$EIC[mz%between%pmppm(357.1402, ppm = 10) | mz%between%pmppm(352.1297, ppm = 10)] %>%
   filter(str_detect(filename, "GMP")) %>%
   mutate(mz=round(mz)) %>%
   filter(rt%between%c(4, 4.5)) %>%
@@ -350,7 +383,7 @@ msdata$MS1[mz%between%pmppm(357.1402, ppm = 10) | mz%between%pmppm(352.1297, ppm
 
 
 iso_mzs %>% filter(iso_name=="Histidine, 13C5, 15N3")
-msdata$MS1[mz%between%pmppm(334.1332, ppm = 10) | mz%between%pmppm(326.1253, ppm = 10)] %>%
+iso_msdata$EIC[mz%between%pmppm(334.1332, ppm = 10) | mz%between%pmppm(326.1253, ppm = 10)] %>%
   filter(str_detect(filename, "GMP")) %>%
   mutate(mz=round(mz)) %>%
   filter(rt%between%c(1, 2)) %>%
