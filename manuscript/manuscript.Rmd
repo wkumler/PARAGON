@@ -1342,29 +1342,225 @@ untarg_heatmap <- untarg_lab_fracs %>%
 ggsave("manuscript/supplement/untarg_heatmap.pdf", width = 10, height=36, units = "in")
 ```
 
+```{r untargeted zimmermann plot}
+untarg_rel_synth_df <- feat_shape_df %>%
+  filter(peak_qual=="Good") %>%
+  # filter(feature=="FT1305") %>%
+  left_join(cleaned_combined_peaks) %>%
+  left_join(parametadata %>% distinct(filename, samp_type, timepoint, amendment, depth, startime)) %>%
+  filter(samp_type=="Smp") %>%
+  summarise(time_total=mean(unlab_area), .by=c(feature, timepoint, amendment, depth, startime)) %>%
+  pivot_wider(names_from=timepoint, values_from=time_total) %>%
+  pivot_longer(T1:last_col(), names_to="timepoint", values_to="time_mean") %>%
+  mutate(rel_change=log2(time_mean/T0)) %>%
+  select(feature, amendment, depth, startime, timepoint, rel_change)
+
+untarg_frac_labeled_df <- untarg_lab_fracs %>%
+  # filter(compound_name=="L-Glutamine") %>%
+  # filter(str_detect(shortname, "Amm-Surf-Morn")) %>%
+  # filter(compound_name=="Guanine") %>%
+  left_join(parametadata %>% distinct(shortname, timepoint, timepoint_num, amendment, depth, startime)) %>%
+  summarise(labeled_frac=mean(labeled_frac), .by=c(feature, amendment, depth, startime, timepoint, timepoint_num))
+
+left_join(untarg_rel_synth_df, untarg_frac_labeled_df) %>%
+  filter(!(amendment%in%c("Amm", "Nit") & timepoint=="T73")) %>%
+  filter(!(amendment%in%c("Arg", "GMP") & timepoint=="T1")) %>%
+  filter(!(amendment!="Arg" & timepoint=="T18")) %>%
+  # filter(if_any(everything(), is.na))
+  mutate(timepoint=factor(timepoint, levels=paste0("T", c(1,3,10,18,26,73)))) %>%
+  left_join(feat_shape_df %>% select(feature, mzmed)) %>%
+  ggplot(aes(x=rel_change, y=labeled_frac, color=timepoint, label=feature)) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  geom_point() +
+  scale_y_continuous(labels = scales::label_percent()) +
+  scale_x_continuous(labels = function(x)paste0("2<sup>", x, "</sup>")) +
+  facet_nested(depth+startime~amendment) +
+  labs(x="Relative concentration change from T0", y="Fraction labeled") +
+  theme_bw() +
+  theme(axis.text.x=element_markdown())
+
+```
+
+```{r targeted zimmermann plot}
+rel_synth_df <- nM_labeled %>%
+  # filter(compound_name=="Glycine betaine") %>%
+  # filter(str_detect(filename, "GMP-.*-Morn")) %>%
+  left_join(parametadata %>% distinct(filename, timepoint, amendment, depth, startime)) %>%
+  summarise(total_nM=sum(nM_labeled), .by=c(compound_name, filename, timepoint, amendment, depth, startime)) %>%
+  summarise(time_total=mean(total_nM), .by=c(compound_name, timepoint, amendment, depth, startime)) %>%
+  pivot_wider(names_from=timepoint, values_from=time_total) %>%
+  pivot_longer(T1:last_col(), names_to="timepoint", values_to="time_mean") %>%
+  mutate(rel_change=log2(time_mean/T0)) %>%
+  select(compound_name, amendment, depth, startime, timepoint, rel_change) %>%
+  left_join(parametadata %>% distinct(timepoint, timepoint_num)) %>%
+  mutate(change_per_hour=rel_change/timepoint_num)
+
+frac_labeled_df <- labeled_fracs %>%
+  # filter(compound_name=="L-Glutamine") %>%
+  # filter(str_detect(shortname, "Amm-Surf-Morn")) %>%
+  # filter(compound_name=="Guanine") %>%
+  left_join(parametadata %>% distinct(shortname, timepoint, timepoint_num, amendment, depth, startime)) %>%
+  summarise(labeled_frac=mean(labeled_frac), .by=c(compound_name, amendment, depth, startime, timepoint, timepoint_num)) %>%
+  mutate(label_per_hour=labeled_frac/timepoint_num) %>%
+  filter(timepoint!="T0")
+
+# # Direct zimmermann comparison
+# left_join(rel_synth_df, frac_labeled_df) %>%
+#   filter(!(amendment%in%c("Amm", "Nit") & timepoint=="T73")) %>%
+#   filter(!(amendment%in%c("Arg", "GMP") & timepoint=="T1")) %>%
+#   mutate(timepoint=factor(timepoint, levels=paste0("T", c(1,3,10,18,26,73)))) %>%
+#   ggplot(aes(x=change_per_hour, y=label_per_hour, color=amendment, label=compound_name)) +
+#   geom_hline(yintercept = 0) +
+#   geom_vline(xintercept = 0) +
+#   geom_text() +
+#   scale_y_continuous(labels = scales::label_percent()) +
+#   scale_x_continuous(labels = function(x)paste0("2<sup>", x, "</sup>")) +
+#   labs(x="Relative concentration change from T<sub>0</sub> per hour", y="Fraction labeled per hour") +
+#   theme_bw() +
+#   theme(axis.text.x=element_markdown(),
+#         axis.title = element_markdown())
+
+
+# Broken down by env
+left_join(rel_synth_df, frac_labeled_df) %>%
+  mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
+  mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
+  mutate(compound_class=case_when(
+    compound_name%in%c("Glutamine", "Aspartic acid", "Asparagine", "Glutamic acid", "Ectoine", "Theanine?", "Citrulline", "Guanine", "Guanosine", "Arginine") ~ compound_name,
+    compound_name%in%maa_names~"MAAs",
+    compound_name%in%aa_names~"Other amino acids",
+    compound_name%in%nucleo_names~"Other nucleic acids",
+    compound_name%in%betaine_names~"Betaines",
+    TRUE~"All others"
+  )) %>%
+  # filter(timepoint=="T26") %>%
+  # filter(compound_name=="Ectoine") %>%
+  filter(!(amendment%in%c("Amm", "Nit") & timepoint=="T73")) %>%
+  filter(!(amendment%in%c("Arg", "GMP") & timepoint=="T1")) %>%
+  # filter(if_any(everything(), is.na))
+  mutate(timepoint=factor(timepoint, levels=paste0("T", c(1,3,10,18,26,73)))) %>%
+  ggplot(aes(x=rel_change, y=labeled_frac, color=compound_class, label=compound_name)) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  geom_point() +
+  scale_y_continuous(labels = scales::label_percent()) +
+  scale_x_continuous(labels = function(x)paste0("2<sup>", x, "</sup>")) +
+  scale_color_manual(breaks=class_levels, values = class_colors) +
+  facet_nested(depth+startime~amendment) +
+  labs(x="Relative concentration change from T0", y="Fraction labeled") +
+  theme_bw() +
+  theme(axis.text.x=element_markdown())
+
+left_join(rel_synth_df, frac_labeled_df) %>%
+  select(compound_name, amendment, depth, startime, timepoint, timepoint_num, rel_change, labeled_frac) %>%
+  pivot_longer(c(rel_change, labeled_frac)) %>%
+  mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
+  filter(compound_name%in%c("Methionine", "Adenosine", "Glutamine", "Guanine", "Glycine betaine", "Ectoine")) %>%
+  filter(!is.na(value)) %>%
+  ggplot(aes(x=timepoint_num, y=value, color=compound_name, shape=depth, fill=startime)) +
+  geom_hline(yintercept = 0) +
+  geom_line() + 
+  geom_point() +
+  facet_nested(name~amendment, scales="free_y") +
+  scale_x_log10() +
+  scale_shape_manual(breaks=c("Surf", "Deep"), values = c(24, 25)) +
+  scale_fill_manual(breaks=c("Morn", "Eve"), values = c("grey80", "grey30")) +
+  theme_bw()
+```
+
+```{r excessive methionine synthesis at T26 and T73 from organics}
+open_dataset("tmzMLs/pqds") %>%
+  filter(samp_type=="Smp") %>%
+  filter(polarity=="pos") %>%
+  filter(mz%between%pmppm(150.0584, 2)) %>%
+  filter(rt%between%c(5, 10)) %>%
+  collect() %>%
+  left_join(parametadata) %>%
+  # ggplot() + geom_point(aes(x=rt, y=mz))
+  qplotMS1data(color_col="timepoint") +
+  facet_nested(timepoint~amendment+depth)
+```
+
+
 # Discussion
 
-  - Discuss community progression through diatom bloom over the course of the experiments
-    - What do we know about Hemiaulus
-    - Both Pro and heterotrophic bacteria were elevated from typical St. ALOHA conditions by the end
-  - Surprising nitrate response, expected a lot more metabolite labeling
-    - Surface community not "expecting" nitrate? problems with redox at surface? Diatom growth only?
-  - Not expecting to see any C labeling from the organics via CO2 because inorganic C pool is so much larger, unlike the N pool
-    - Discuss how badly we swamped the pool of nitrate, ammonia, DON, arg, GMP
-  - What does the decrease in arginine labeling in +Arg at T26 and T73 indicate? Pulse-chase behavior? How is the labeled pool specifically decreasing?
-   -  Contrasting the THAA +Nit with the metabolites hints at a small but rapidly churning amino acid pool that's deeply segregated
-   - MAAs are mostly made from the 4DG core plus N-containing amino acids (glycine). How does the labeling of these compare to their substituent AAs? (it's much larger)
-   - Ectoine - mention that it's mostly bacterial [@McParland2021]
-   - Incubations are imperfect metrics of the actual environment because amendments with *anything* will heavily skew the community - over what time scale though? [@Eppley1977; @Shilova2017; @Karl2017; @Rii2018]
+The chronic nitrogen limitation of the North Pacific Subtropical Gyre (NPSG) creates fierce competition for this element, yet clearly not all nitrogen is equally available. Instead, a grand marketplace of metabolites exists in which organisms attempt to match high-affinity uptake transporters and catabolic enzymes to the available dissolved nitrogen while minimizing energy costs [@Moran2016]. Here, we directly measured the uptake and use of four forms of nitrogen using stable isotope metabolomics.
 
+  - We sampled from a decaying DDA bloom
+    - Biogeochemically looked super similar to ALOHA
+    - Enriched in Hemiaulus at the surface at the beginning and pretty typical ALOHA conditions at the end
+      - Elevated pro and het. bact at the end
+      - Does Hemiaulus respond to nitrate amendments? or is it another diatom that usually grows in?
+        - Hemiaulus has diazotrophs, do they get all their nitrogen from fixation or any from environment?
+    - Typical ALOHA at 175 meters throughout
+      - Big question mark on this one since we're extrapolating from a single depth profile in both cases
+  - All N added in excess of normal ALOHA
+    - 1mL 6mM nitrate/ammonia into 2L bottles = 3uM (on par with other experiments @Rii2018 @Zimmermann2023 @Shilova2017)
+      - Nitrate background @ surface < 0.01 uM? (Typical ALOHA is 0-5nM @Rii2018)
+      - Nitrate background @ 175m = 0.46-0.57 uM
+      - Ammonia background @ surface ~ 0.01 (58nM in @Shilova2017)
+      - Ammonia background @ 175m ~ 0.01
+        - Excessive ammonia add means that there was probably less competition, everyone got what they wanted
+    - 1mL 0.1mM arginine/GMP into 2L bottles = 50nM
+      - DON @ surface ~ 4.7 uM, @ depth = 4.2 uM
+      - Arginine concentration @ ALOHA ~ at most nanomolar, lower @ depth
+      - GMP concentration @ ALOHA ~ unknown, lower @ depth
+        - GMP potentially used for phosphate and created guanosine (SRP = 0.16uM @ 175m, <0.05uM @ surface?)
+        - E. hux can clearly grow well on purines though this requires nickel (?) and urease (@Palenik1997)
+    - Unclear how much of this was USED, Rii2018 measured 100-500nM NO3/NH4 uptake per day
+      - Implies mine was probably not drawn all the way down
+    - Likelihood of inducing a community shift in 24 hours? 72 hours from organics?
+      - @Shilova2017 got a BIG growth in of random Alteromonadaceae after 1 day, growth in of picoeuks from ammonia, @Bradley2010 showed that het. bact. can grow on inorganics
+      - @Rii2018 found diatoms and pelagophytes growing in after 48 hours
+      - @Alexander2015 found diatoms and haptophytes
+  
+  - Contrasting the inorganics
+    - Ammonia transporters clearly "active" and the entire community ready to take it up
+      - Glutamine 2x labeling maybe faster than glutamate
+      - Citrulline labeling from ammonia is a surprise and indicates a "broken" urea cycle
+      - Surprising how quickly the nucleobases were labeled given the length of that pathway
+        - indicates high demand / storage / replication triggered?
+        - All of them being mostly fully-labeled means new synthesis rather than recycling
+        - Implications of DNA vs RNA labeling differences?
+    - Nitrate use by only a subset of the community while ammonia appears to be universal
+      - Aligns with Zimmermann data
+      - MAAs and guanine labeling hints at euks, nitrate likely resulted in diatoms -> biomarkers?
+        - The nitrogen in MAAs comes from amino acids (glycine = M-gly, gly+ser=shinorine, gly+thr = porphyra334/palythine/palythene/usujirene)
+      - Important differences in labeling between THAAs and metabolites
+        - Super rapidly turning over subset of the pool segregated from rest of the community
+        - Note that nitrate resulted in more labeling at depth than surface while opposite true for ammonia
+      - Surface community likely not "expecting" nitrate
+        - How much time would it take to "turn on" NR and NiR genes?
+        - Clear upward propagation of nitrate -> nitrite -> ammonia in water column data
 
-Comments from Anitra:
+  - Contrasting the organics
+    - Surface = phototrophs + heterotrophs, deep = just heterotrophs
+      - Not a lot of surf/deep differences implies mostly het. using these at surface?
+        - Kinda surprising since most phytos can eat organics
+      - Are things generally slower at 175m? Or is this only in the absolute sense because there's less biomass?
+        - Fraction labeled nicely cancels out the biomass problem
+    - How widespread are arginine/GMP transporters? Generic AA/NB transporters?
+    - Not expecting to see 13C labeling from Arg/GMP because C pool is much larger
+    - What does the decrease in arginine labeling in +Arg at T26 and T73 indicate? 
+      - Pulse-chase behavior? 
+      - How is the labeled pool specifically decreasing?
+    - Clear backbone use for protein that's not really seen in the metabolites - dedicated pathways again?
+  - Ectoine - mention that it's mostly bacterial [@McParland2021]
 
-0.3nM glutamine becoming 0.8nM means that 95% of the 0.8nM was produced, not counting all the N that went through glutamine into other things. Do you know what typically happens to biomass during ALOHA + DIN incubation? How does this compare to measures of regenerated production? (Was this increase a result of more biomass or just higher gln concentrations?)
+Need more discussion of betaines and cholines? Ask Anitra
+  - Large pool sizes
+  - What does a very slow osmolyte turnover mean for the cell?
+  - Ref Angie's paper about GBT use and how it's mostly just held onto
+  - Relative or absolute is really hard to tell because they're below detection limits
 
+No diel differences agrees well with Waldbauer (Zimmermann) 15N paper except they saw a bunch in Pro
+  - How well does overall protein inclusion agree with Zimmermann? 
+  - Nitrate much slower in their data implying that the extra 12 hours (they incubated for 11) was necessary?
 
+How representative is Station ALOHA and the bloom of the open ocean more generally?
 
-
+What would have happened at the DCM? Or deeper?
 
 # Conclusion
 
