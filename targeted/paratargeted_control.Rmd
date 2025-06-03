@@ -821,7 +821,6 @@ write_csv(is_areas, "targeted/IS_areas.csv")
 wIS_bounds <- readxl::read_xlsx("targeted/peak_bounds.xlsx") %>%
   filter(rtstart>0) %>%
   filter(is.na(notes) | notes!="Remove") %>%
-  filter(compound_name!="Homarine") %>% # Can't separate from Adenine IS sufficiently
   select(amendment, polarity, compound_name, mz, rtstart, rtend)
 
 wIS_eics <- wIS_bounds %>%
@@ -885,7 +884,7 @@ IS_mix_one <- c("Thymine, 2H4", "Uracil, 15N2, 2H2", "Adenine, 15N2",
                 "Guanine, 13C, 15N2", "Homarine, 2H3")
 
 fixed_IS <- parametadata %>%
-  filter(samp_type%in%c("Smp", "Poo", "Blk")) %>%
+  filter(samp_type%in%c("Smp", "Poo", "Blk", "Bad")) %>%
   filter(IS_type=="wIS") %>%
   distinct(filename, shortname, timestamp) %>%
   left_join(is_areas %>% select(filename, amendment, IS_name, IS_area)) %>%
@@ -1051,16 +1050,14 @@ rf_df <- read_csv("targeted/rf_df.csv")
 
 env_concs <- wIS_areas %>%
   filter(!str_detect(compound_name, "\\?$")) %>%
-  filter(!compound_name%in%c("Urea", "L-Valine", "Oxalic acid", "Malic acid", 
-                             "Acetylcholine", "Homarine")) %>%
-  inner_join(parametadata %>% filter(samp_type=="Smp") %>% distinct(filename)) %>%
+  inner_join(parametadata %>% filter(samp_type%in%c("Smp", "Bad")) %>% distinct(filename)) %>%
   left_join(chosen_IS) %>%
   left_join(IS_areas) %>%
   mutate(norm_area=area/IS_area*mean(IS_area), .by = c(amendment, compound_name)) %>%
   left_join(rf_df) %>%
   mutate(conc_um_in_vial=norm_area/rf) %>%
-  select(compound_name, filename, conc_um_in_vial) %>%
-  mutate(conc_nm_in_env=conc_um_in_vial*400/2e6*1000)
+  mutate(conc_nm_in_env=conc_um_in_vial*400/2e6*1000) %>%
+  select(compound_name, filename, conc_nm_in_env)
 write_csv(env_concs, "targeted/final_env_concs.csv")
 ```
 
@@ -1090,5 +1087,49 @@ env_concs %>%
   ggplot() +
   geom_boxplot(aes(x=conc_nm_in_env, y=compound_name, color=depth)) +
   scale_x_log10(breaks=c(0.000001, 0.001, 1), labels=c("1 fM", "1 pM", "1 nM"))
+```
+
+
+
+## Putting it all together nicely and saving into a clean state
+
+```{r}
+iso_areas <- read_csv("targeted/all_peak_areas_w_isos.csv") %>%
+  left_join(parametadata %>% distinct(filename, samp_type, amendment)) %>%
+  filter(samp_type%in%c("Smp", "Bad")) %>%
+  select(-samp_type) %>%
+  # filter(compound_name%in%c("Glycine betaine", "Guanine", "L-Glutamine")) %>%
+  group_by(compound_name, amendment) %>%
+  complete(filename, iso_name, fill = list(area=0)) %>%
+  group_by(filename, compound_name) %>%
+  mutate(rel_area=area/sum(area)) %>%
+  mutate(rel_area=rel_area/rel_area[str_detect(iso_name, "13C0, 15N0")]) %>%
+  ungroup() %>%
+  select(filename, compound_name, iso_name, area, rel_area) %>%
+  left_join(parametadata %>% distinct(filename, shortname)) %>%
+  select(-filename)
+
+env_concs <- read_csv("targeted/final_env_concs.csv") %>%
+  left_join(parametadata %>% distinct(filename, shortname)) %>%
+  select(-filename)
+
+bad_cmpds <- c("Melamine", "Uridine", "Itaconic acid?", "Inosine", "Dexpanthenol", 
+               "Choline sulfate", "5-Hydroxyectoine", "L-Tyrosine", "Urea", "Homarine",
+               "Acetylcholine", "L-Valine", "Oxalic acid", "Malic acid")
+maa_names <- c("Also Palythene/Usujirene?", "Shinorine?", "Mycosporine-glycine?", 
+               "Palythine?", "Another Palythene/Usujirene?", "Porphyra-334?", 
+               "Also Porphyra-334?", "Asterina-330?", "Palythene/Usujirene?",
+               "Mycosporine-2-glycine?", "Mycosporine-alanine/Mycosporine-beta alanine?",
+               "Mycosporine-methylamine:serine?", "Mycosporine-glutamine?",
+               "Mycosporine glutaminol/Palythinol/Mycosporine-methylamine:threonine?", 
+               "Palythenic acid?")
+clean_complete <- left_join(iso_areas, env_concs) %>%
+  mutate(conc_nm_in_env=conc_nm_in_env*rel_area) %>%
+  select(shortname, compound_name, iso_name, area, conc_nm_in_env) %>%
+  filter(!compound_name%in%bad_cmpds) %>%
+  left_join(parametadata %>% distinct(shortname, depth)) %>%
+  filter(!(compound_name%in%maa_names & depth=="Deep")) %>%
+  select(-depth)
+write_csv(clean_complete, "targeted/clean_complete.csv")
 ```
 
