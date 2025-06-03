@@ -1564,7 +1564,132 @@ What would have happened at the DCM? Or deeper?
 
 # Methods
 
-[explain chromatographic similarity scoring as pearson's correlation coefficient]
+## Cruise information
+
+The PARAGON cruise (KM2112) departed Honolulu, HI on July 22nd, 2021 and returned on August 5th. Satellite chlorophyll and sea level anomaly estimates were used to target an anticyclonic eddy with a large bloom signal. Samples were collected during the CTD upcast between 21.4 °N, 155.1 °W and 25.5 °N, 156.6 °W.
+
+## Biogeochemical data
+
+Biogeochemical measurements were collected following protocols used by the HOT program (http://hahana.soest.hawaii.edu/hot/methods/results.html). Particulate carbon and particulate nitrogen were measured using an elemental analyzer`wc("Confirm @Eric")`. Nitrate + nitrite (N+N) was measured on an autoanalyzer while ammonia and nitrite were measured via `wc("Methods @Rhea?")`. Soluble reactive phosphorus (phosphate, PO$_4^{3-}$) was measured on an autoanalyzer or following the magnesium induced coprecipitation method`wc("@Rhea please confirm")`.
+
+## Community composition data
+
+Water column community composition was estimated for the initial community via flow cytometry (FCM), imaging flowcytobot (IFCB), and amplicon sequence variants (ASVs). FCM was done via `wc("Methods? @Angel?")` three times during the cruise on July 25th, July 29th, and August 2nd at six depths from 5 to 125 meters. Depth profiles from the IFCB were collected twice via `wc("Methods? @Angel?")`. The first IFCB profile took place on July 27th at nine depths from 5 to 300 meters and the second on August 5th at four depths from 5 to 125 meters. Annotation of the selected particles was done via a convolutional neural net`wc("Reference? @Angel")`. One ASV depth profile was collected during the PARAGON cruise on July 30th, also at nine depths from 5 meters down to 500 meters and processed according to the methods detailed in @Li2023`wc("@Fuyan Want to add anything to this?")`.
+
+## ^15^N incubations
+
+Morning CTD casts were returned to the surface between 6:40 and 7:15AM, with amendments happening ~20 minutes after the CTD surfaced. Evening casts were sometimes delayed, with most incubations beginning between 7:15 and 7:45PM but the nitrate 175m cast amended at 9:30PM, the arginine 175m cast amended at 8:30PM, and the guanosine monophosphate 25m cast amended at 8:25PM. ~30 liters of water from multiple CTD bottles were distributed into 15 prewashed (3x DI, 3x with sampled seawater) polycarbonate 2L bottles (3x biological triplicates at each of 5 timepoints) for metabolites and 6 250 mL bottles for THAAs (3x triplicates of initial and final conditions). Clean 53 µm mesh was used when transferring from CTD to incubations bottles to exclude zooplankton and large aggregates from the incubations.
+
+2L samples were given a 1 mL spike with 6 mM Na^15^NO~3~, 6 mM ^15^NH~4~Cl, 0.1 mM ^13^C~5~ ^15^N~4~ arginine, or ^13^C~10~ ^15^N~5~ guanosine monophosphate to obtain a 3 µM final concentration of the inorganics and a 50 nM final concentration of the organics. 250 mL samples were given a 125 µL spike to the same final concentrations. T0 samples were then immediately filtered using a peristaltic pump and Masterflex tubing onto 47 mm 0.2 µm Omnipore (PTFE) filters held by polycarbonate holders. We tried to filter the entire sample in less than 20 minutes (flow rate ~6 L/hour) but some samples took up to an hour. All 250 mL THAA samples finished within 5 minutes and were filtered onto Durapore (PVDF) instead. Filters were then removed using ethanol-washed tweezers and placed into pre-combusted foil packets before flash-freezing in liquid nitrogen and then stored at -80 °C until processing. 
+
+Later timepoints followed the same process but were stored in flow-through incubators with blue shading to match mixed layer light and temperature conditions. Inorganic amendments were sampled after 1, 3, 10, and 26 hours to avoid sampling overlap with the next set. The organic amendments were sampled at 3, 10, 26, and 73 hours except for the arginine 25 meter 6AM samples, where the T3 timepoint was missed and sampled after 18 hours instead. 175 meter samples were stored in black trash bags to minimize light exposure during the incubations as well.
+
+## Incubation sample processing
+
+### Metabolite extractions
+
+A modified Bligh & Dyer dichloromethane:water/methanol extraction was used as detailed in @Boysen2018. Sample filters were removed from the freezer and randomly assigned to PTFE centrifuge tubes with a 1:1 mix of 100 µm and 400 µm silica beads, approximately 2 mL -20 °C Optima-grade dichloromethane, and approximately 3 mL -20 °C 1:1 methanol/water solution (both also Optima-grade). Samples were then run through a bead-beater and had the aqueous layer removed and replaced three times. The aqueous fraction was then warmed and dried under clean nitrogen gas before reconstitution into 300 µL of Optima-grade water. 
+
+At this point the samples were split into two 30 µL aliquot for analysis both with and without a full suite of isotope-labeled internal standards. Samples that received the internal standards were used for quantification of the unlabeled metabolite while those that did not were used to estimate the isotope distributions though they still received an internal standard mix of ^2^H~8~ phenylalanine and ^2^H~4~ taurine to ensure all samples were successfully injected. The full list of internal standards can be found in the Supplemental Information (Table XX).
+
+A pooled sample was created from 5-10 µL of each sample for a total volume of 300-600 µL that was used to assess matrix suppression and obscuring variation. We also ran samples of pure, unlabeled compounds split into two mixes in the pooled sample used to estimate the response factor of the instrument for quantification [@Boysen2018]. Samples were then placed directly into the autosampler for injection.
+
+```{r supp table 1 standards list}
+clean_stans_supp <- read_csv("../metadata/clean_stans.csv")
+bmis_info <- read_csv("../targeted/made_data/BMIS_areas.csv") %>%
+  distinct(compound_name, cruise, BMIS, polarity)
+
+IS_table <- clean_stans_supp %>%
+  filter(compound_type=="Internal Standard") %>%
+  select(compound_name, formula, stan_mz, stan_rt, conc_um, date_added, polarity) %>%
+  mutate(ms_run=case_when(
+    date_added<180205~"All",
+    date_added<=180821~"MESO-SCOPE Eddy Transect and HEE",
+    date_added<=190715~"HEE only",
+    TRUE~"None"
+  )) %>%
+  filter(ms_run!="None") %>%
+  mutate(polarity=ifelse(polarity=="pos", "Positive", "Negative")) %>% 
+  mutate(stan_type=case_when(
+    compound_name%in%c("L-Cysteic acid, 2H3", "3-Sulfolactate, 13C3", "Sulfoacetic acid, 13C2", "Isethionic acid, 13C2", "Taurine, 2H4")~"Extraction",
+    TRUE~"Internal"
+  )) %>%
+  arrange(stan_mz) %>%
+  select(`Compound name`=compound_name, `Molecular formula`=formula,
+         `m/z ratio`=stan_mz, `Retention time (min)`=stan_rt,
+         `Concentration (uM)`=conc_um, `Polarity integrated`=polarity,
+         `Which runs`=ms_run, `Extraction or internal`=stan_type)
+
+Auth_table <- clean_stans_supp %>%
+  mutate(ms_run=case_when(
+    date_added<180205~"All",
+    date_added<=180821~"MESO-SCOPE Eddy Transect and HEE",
+    date_added<=190715~"HEE only",
+    TRUE~"None"
+  )) %>%
+  filter(ms_run!="None") %>%
+  left_join(raafay_notes) %>%
+  left_join(bmis_info) %>%
+  mutate(polarity=ifelse(polarity=="pos", "Positive", "Negative")) %>%
+  arrange(stan_mz) %>%
+  select(`Compound name`=compound_name, `Molecular formula`=formula,
+         `m/z ratio`=stan_mz, `Retention time (min)`=stan_rt,
+         `Concentration (uM)`=conc_um, `Polarity integrated`=polarity,
+         `Standard mix`=mix, `Which runs`=ms_run, `Good quality`=in_samps,
+         `MS run`=cruise, `Best-matched IS`=BMIS)
+
+wb <- loadWorkbook("supplement/Supplemental Tables.xlsx")
+addWorksheet(wb, sheetName = "Table XX Internal Standards")
+writeData(x=IS_table, wb = wb, sheet = "Table XX Internal Standards")
+
+addWorksheet(wb, sheetName = "Table XX Authentic Standards")
+writeData(x=Auth_table, wb = wb, sheet = "Table XX Authentic Standards")
+
+saveWorkbook(wb, file = "manuscript/supplement/Supplemental Tables.xlsx", overwrite = TRUE)
+```
+
+### Total hydrolyzable amino acid extractions
+
+
+
+### HPLC-MS methods
+
+  - separate runs per incubation (with GMP/Arg right after each other)
+
+## Data analysis
+
+Raw files were converted to mzML format via Proteowizard's MSConvert command line tool with vendor centroiding and separated into positive and negative mode files.
+
+### Targeted analysis
+
+We used the RaMS R package (version 1.4.3, @RaMS) to extract ion chromatograms from the samples without internal standards for each of the ~200 compounds for which we had a pure standard available. Each chromatogram was then visualized and the start and end retention times manually entered for each compound and MS run that had a high-quality mass feature that matched the pure standard in retention time. We then calculated all the possible isotopes for each known compound and extracted those EICs as well, using the same retention time bounds as for the unlabeled feature. We integrated each of those peak areas using a trapezoidal Riemann sum (`trapz` function in the RaMS package) if the unlabeled and labeled chromatograms shared more than 5 scans and had a correlation coefficient above 0.8 `wc("Confirm this")` to remove interfering ions. Samples which accidentally received isotope-labeled internal standards had the peak areas for that specific isotopologue set to zero. After the untargeted analysis we repeated this process for any compounds for which we were confident of an annotation (e.g. theanine and the MAAs).
+
+The same process was used for the samples with internal standards except that the isotopes were not considered. These peak areas were then normalized to their best-matched internal standard [@Boysen2018] and quantified using the response factors estimated from the standards in the pooled sample. Samples that accidentally did not receive isotope-labeled internal standards had their peak areas interpolated as the average value of the samples immediately preceding and following.
+
+### Untargeted analysis
+
+We used the R package xcms (version 4.6.0) to perform an untargeted analysis on the positive-mode pooled and environmental samples without internal standards across all four MS runs simultaneously (282 files). We used the CentWave algorithm with default settings except for `ppm` which was set to 5, `peakwidth` which was set to between 20 and 80, `prefilter` which was set to 5 scans above 10,000, `snthresh` which we set to 5, and `integrate` which we set to 2. We also enabled `verboseColumns` and `extendLengthMSW`. We did not perform retention time correction since manual inspection of the TIC and a few selected compounds did not reveal significant retention time drift. We then performed correspondence via peak density with each set of replicates counting as a sample group, the `bandwidth` set to 12, `minFraction` set to 1, `binSize` set to 0.001, and all other settings kept at their defaults. Finally, we filled peaks using the original `xcms` algorithm and default settings.
+
+Once features were identified, we then re-integrated the
+
+## Statistics
+
+```{r}
+parametadata %>%
+  filter(IS_type=="noIS") %>%
+  filter(samp_type=="Smp") %>%
+  filter(amendment=="GMP") %>%
+  filter(timepoint=="T26") %>%
+  distinct(shortname)
+parametadata %>%
+  filter(IS_type=="noIS") %>%
+  filter(samp_type=="Smp") %>%
+  filter(amendment=="Nit") %>%
+  filter(timepoint=="T10") %>%
+  distinct(shortname)
+```
+
+Statistics were run in R version 4.5.0 [@R2025]. We fit logistic regression curves to the fraction of the metabolite peak area labeled using R's `glm` function to model labeling fractions and error distributions except where only the final timepoint had signal, in which case we used a one-sample t-test to determine whether the labeling was significantly different from zero using only the final timepoint's data. When testing whether untargeted compounds were increased over time we used Type-I linear models (`lm` in R) with a false-discovery rate correction (`p.adjust`, @Benjamini1995) and log-scaled time and peak area. Analyses were performed on triplicate data points across the 5 timepoints for a sample size of 15 with the exception of the 175 meter 6PM nitrate incubations for which T10 was removed due to anomalous labeling patterns and unclear sampling timing (resulting in n=12) and replicate B in the 25 meter 6AM guanosine monophosphate amendments at T26 which was lost during sample processing (n=14). k-means clustering was performed via `kmeans` from the `stats` package with 10 clusters after no clear jump in variance explained was observed with other cluster numbers, indicating the labeling patterns likely exist as a gradient instead of discrete groups.
 
 # Acknowledgements
 
