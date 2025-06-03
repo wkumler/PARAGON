@@ -63,6 +63,11 @@ parametadata <- read_csv("metadata/parametadata.csv") %>%
   mutate(timepoint=factor(timepoint, levels=c("T0", "T1", "T3", "T10", "T18", "T26", "T73")))
 
 all_stans <- read_csv("metadata/all_stans.csv")
+aa_ncs <- all_stans %>%
+  filter(compound_type=="Amino Acid") %>%
+  mutate(compound_name=str_remove(compound_name, "^L-")) %>%
+  distinct(compound_name, n_C, n_N) %>%
+  add_row(compound_name="Phenylalanine", n_C=9, n_N=1)
 stan_patched <- all_stans %>%
   filter(!compound_name=="beta-Glutamic acid") %>%
   mutate(compound_name=str_replace(compound_name, "L-Glutamic acid", "L-Glutamic acid/beta-Glutamic acid")) %>%
@@ -97,8 +102,6 @@ aa_names <- c("Glutamine", "Aspartic acid", "Glutamic acid/beta-Glutamic acid",
               "Asparagine", "Alanine", "Methionine", "Arginine", "Proline",
               "Lysine", "Threonine/Homoserine", "Serine", "Glycine", "Histidine",
               "Leucine/Isoleucine", "Valine", "Arginine")
-bad_cmpds <- c("Melamine", "Uridine", "Itaconic acid?", "Inosine", "Dexpanthenol", 
-               "Choline sulfate", "5-Hydroxyectoine", "L-Tyrosine")
 class_levels <- c("Glutamine", "Glutamic acid", "Aspartic acid", "Asparagine", "Arginine", 
                   "Other amino acids", "Theanine?", "Citrulline", "Ectoine", "Guanine", 
                   "Guanosine", "Other nucleic acids", "MAAs", "Betaines", "All others")
@@ -108,41 +111,13 @@ class_colors <- c("#08519C", "#2171B5", "#4292C6", "#6BAED6", "#8EBAD1",
 
 heatmap_colorpal <- viridis::viridis(10, alpha=seq(0, 1, length.out=10), direction = -1)
 
-aa_ncs <- all_stans %>%
-  filter(compound_type=="Amino Acid") %>%
-  mutate(compound_name=str_remove(compound_name, "^L-")) %>%
-  distinct(compound_name, n_C, n_N) %>%
-  add_row(compound_name="Phenylalanine", n_C=9, n_N=1)
-
-peak_areas <- read_csv("targeted/all_peak_areas_w_isos.csv") %>%
-  left_join(parametadata %>% distinct(filename, shortname))
-samp_areas <- parametadata %>%
-  filter(samp_type=="Smp") %>%
-  distinct(shortname, depth) %>%
-  left_join(peak_areas) %>%
-  mutate(shortname=fct_inorder(shortname)) %>%
-  filter(!compound_name%in%bad_cmpds) %>%
-  filter(!(depth=="Deep" & compound_name%in%maa_names)) %>%
-  select(-depth)
+samp_areas <- read_csv("targeted/clean_complete.csv")
 labeled_fracs <- samp_areas %>%
   mutate(labeled_frac=1-area/sum(area), .by = c("shortname", "compound_name")) %>%
   select(compound_name, iso_name, shortname, labeled_frac) %>%
   filter(str_detect(iso_name, "13C0, 15N0")) %>%
-  select(-iso_name)
-
-env_concs <- read_csv("targeted/final_env_concs.csv") %>%
-  select(-conc_um_in_vial) %>%
-  left_join(parametadata %>% distinct(filename, shortname)) %>%
-  select(-filename)
-nM_labeled <- samp_areas %>%
-  left_join(env_concs) %>%
-  mutate(labeled_frac=area/sum(area), .by = c("shortname", "compound_name")) %>%
-  mutate(rel_label=labeled_frac/labeled_frac[str_detect(iso_name, "13C0, 15N0")], .by = c("shortname", "compound_name")) %>%
-  mutate(nM_labeled=conc_nm_in_env*rel_label) %>%
-  select(filename, compound_name, iso_name, nM_labeled) %>%
-  filter(!str_detect(compound_name, "\\?$")) %>%
-  filter(!compound_name%in%c("Homarine", "Acetylcholine"))
-
+  select(-iso_name) %>%
+  filter(!is.na(labeled_frac))
 
 
 cleaned_combined_peaks <- readRDS("untargeted/cleaned_combined_peaks.rds")
@@ -1570,11 +1545,11 @@ The PARAGON cruise (KM2112) departed Honolulu, HI on July 22nd, 2021 and returne
 
 ## Biogeochemical data
 
-Biogeochemical measurements were collected following protocols used by the HOT program (http://hahana.soest.hawaii.edu/hot/methods/results.html). Particulate carbon and particulate nitrogen were measured using an elemental analyzer`wc("Confirm @Eric")`. Nitrate + nitrite (N+N) was measured on an autoanalyzer while ammonia and nitrite were measured via `wc("Methods @Rhea?")`. Soluble reactive phosphorus (phosphate, PO$_4^{3-}$) was measured on an autoanalyzer or following the magnesium induced coprecipitation method`wc("@Rhea please confirm")`.
+Biogeochemical measurements were collected following protocols used by the HOT program (http://hahana.soest.hawaii.edu/hot/methods/results.html). Particulate carbon and particulate nitrogen were measured using an elemental analyzer`r wc("Confirm \\@Eric")`. Nitrate + nitrite (N+N) was measured on an autoanalyzer while ammonia and nitrite were measured via `r wc("Methods \\@Rhea?")`. Soluble reactive phosphorus (phosphate, PO$_4^{3-}$) was measured on an autoanalyzer or following the magnesium induced coprecipitation method`r wc("\\@Rhea please confirm")`.
 
 ## Community composition data
 
-Water column community composition was estimated for the initial community via flow cytometry (FCM), imaging flowcytobot (IFCB), and amplicon sequence variants (ASVs). FCM was done via `wc("Methods? @Angel?")` three times during the cruise on July 25th, July 29th, and August 2nd at six depths from 5 to 125 meters. Depth profiles from the IFCB were collected twice via `wc("Methods? @Angel?")`. The first IFCB profile took place on July 27th at nine depths from 5 to 300 meters and the second on August 5th at four depths from 5 to 125 meters. Annotation of the selected particles was done via a convolutional neural net`wc("Reference? @Angel")`. One ASV depth profile was collected during the PARAGON cruise on July 30th, also at nine depths from 5 meters down to 500 meters and processed according to the methods detailed in @Li2023`wc("@Fuyan Want to add anything to this?")`.
+Water column community composition was estimated for the initial community via flow cytometry (FCM), imaging flowcytobot (IFCB), and amplicon sequence variants (ASVs). FCM was done via `r wc("Methods? \\@Angel?")` three times during the cruise on July 25th, July 29th, and August 2nd at six depths from 5 to 125 meters. Depth profiles from the IFCB were collected twice via `r wc("Methods? \\@Angel?")`. The first IFCB profile took place on July 27th at nine depths from 5 to 300 meters and the second on August 5th at four depths from 5 to 125 meters. Annotation of the selected particles was done via a convolutional neural net`r wc("Reference? \\@Angel")`. One ASV depth profile was collected during the PARAGON cruise on July 30th, also at nine depths from 5 meters down to 500 meters and processed according to the methods detailed in @Li2023 `r wc("\\@Fuyan Want to add anything to this?")`.
 
 ## ^15^N incubations
 
@@ -1650,11 +1625,11 @@ saveWorkbook(wb, file = "manuscript/supplement/Supplemental Tables.xlsx", overwr
 
 ### Total hydrolyzable amino acid extractions
 
-
+`r wc("\\@Laura")`
 
 ### HPLC-MS methods
 
-  - separate runs per incubation (with GMP/Arg right after each other)
+`r wc("\\@Laura")`
 
 ## Data analysis
 
@@ -1662,7 +1637,7 @@ Raw files were converted to mzML format via Proteowizard's MSConvert command lin
 
 ### Targeted analysis
 
-We used the RaMS R package (version 1.4.3, @RaMS) to extract ion chromatograms from the samples without internal standards for each of the ~200 compounds for which we had a pure standard available. Each chromatogram was then visualized and the start and end retention times manually entered for each compound and MS run that had a high-quality mass feature that matched the pure standard in retention time. We then calculated all the possible isotopes for each known compound and extracted those EICs as well, using the same retention time bounds as for the unlabeled feature. We integrated each of those peak areas using a trapezoidal Riemann sum (`trapz` function in the RaMS package) if the unlabeled and labeled chromatograms shared more than 5 scans and had a correlation coefficient above 0.8 `wc("Confirm this")` to remove interfering ions. Samples which accidentally received isotope-labeled internal standards had the peak areas for that specific isotopologue set to zero. After the untargeted analysis we repeated this process for any compounds for which we were confident of an annotation (e.g. theanine and the MAAs).
+We used the RaMS R package (version 1.4.3, @RaMS) to extract ion chromatograms from the samples without internal standards for each of the ~200 compounds for which we had a pure standard available. Each chromatogram was then visualized and the start and end retention times manually entered for each compound and MS run that had a high-quality mass feature that matched the pure standard in retention time. We then calculated all the possible isotopes for each known compound and extracted those EICs as well, using the same retention time bounds as for the unlabeled feature. We integrated each of those peak areas using a trapezoidal Riemann sum (`trapz` function in the RaMS package) if the unlabeled and labeled chromatograms shared more than 5 scans and had a correlation between the ^14^N and ^15^N peak intensities with a p-value below 0.01 to remove interfering ions. Samples which accidentally received isotope-labeled internal standards had the peak areas for that specific isotopologue set to zero. After the untargeted analysis we repeated this process for any compounds for which we were confident of an annotation (e.g. theanine and the MAAs).
 
 The same process was used for the samples with internal standards except that the isotopes were not considered. These peak areas were then normalized to their best-matched internal standard [@Boysen2018] and quantified using the response factors estimated from the standards in the pooled sample. Samples that accidentally did not receive isotope-labeled internal standards had their peak areas interpolated as the average value of the samples immediately preceding and following.
 
@@ -1670,24 +1645,9 @@ The same process was used for the samples with internal standards except that th
 
 We used the R package xcms (version 4.6.0, @xcms) to perform an untargeted analysis on the positive-mode pooled and environmental samples without internal standards across all four MS runs simultaneously (282 files). We used the CentWave algorithm with default settings except for `ppm` which was set to 5, `peakwidth` which was set to between 20 and 80, `prefilter` which was set to 5 scans above 10,000, `snthresh` which we set to 5, and `integrate` which we set to 2. We also enabled `verboseColumns` and `extendLengthMSW`. We did not perform retention time correction since manual inspection of the TIC and a few selected compounds did not reveal significant retention time drift. We then performed correspondence via peak density with each set of replicates counting as a sample group, the `bandwidth` set to 12, `minFraction` set to 1, `binSize` set to 0.001, and all other settings kept at their defaults. Finally, we filled peaks using the original `xcms` algorithm and default settings.
 
-Once features were identified, we then re-integrated the individual peaks and used the same retention time bounds to integrate any data at a mass difference of -0.997035, in essence assuming that the peak detected by xcms was a ^15^N peak for which a ^14^N peak should exist to get high-quality isotope ratios.
+Once features were identified, we then re-integrated the individual peaks and used the same retention time bounds to integrate any data at a mass difference of -0.997035, in essence assuming that the peak detected by xcms was a ^15^N peak for which a ^14^N peak should exist to get high-quality isotope ratios. High quality features were those with a retention time above 2 minutes and a median `beta_snr` value larger than the median `beta_snr` value times -50 plus 50, thus drawing a diagonal line through the `med_snr`:`med_cor` space above which high quality features are more likely to be found [@Kumler2023]. Additionally, high-quality features were only considered to be isotopes if the correlation between the intensity values of the ^14^N and ^15^N peaks was above 0.8. We also removed peaks that eluted between 14 and 14.5 minutes because many of them appeared to be adducts or in-source transformations of bisulfate.
 
 ## Statistics
-
-```{r}
-parametadata %>%
-  filter(IS_type=="noIS") %>%
-  filter(samp_type=="Smp") %>%
-  filter(amendment=="GMP") %>%
-  filter(timepoint=="T26") %>%
-  distinct(shortname)
-parametadata %>%
-  filter(IS_type=="noIS") %>%
-  filter(samp_type=="Smp") %>%
-  filter(amendment=="Nit") %>%
-  filter(timepoint=="T10") %>%
-  distinct(shortname)
-```
 
 Statistics were run in R version 4.5.0 [@R2025]. We fit logistic regression curves to the fraction of the metabolite peak area labeled using R's `glm` function to model labeling fractions and error distributions except where only the final timepoint had signal, in which case we used a one-sample t-test to determine whether the labeling was significantly different from zero using only the final timepoint's data. When testing whether untargeted compounds were increased over time we used Type-I linear models (`lm` in R) with a false-discovery rate correction (`p.adjust`, @Benjamini1995) and log-scaled time and peak area. Analyses were performed on triplicate data points across the 5 timepoints for a sample size of 15 with the exception of the 175 meter 6PM nitrate incubations for which T10 was removed due to anomalous labeling patterns and unclear sampling timing (resulting in n=12) and replicate B in the 25 meter 6AM guanosine monophosphate amendments at T26 which was lost during sample processing (n=14). k-means clustering was performed via `kmeans` from the `stats` package with 10 clusters after no clear jump in variance explained was observed with other cluster numbers, indicating the labeling patterns likely exist as a gradient instead of discrete groups.
 
