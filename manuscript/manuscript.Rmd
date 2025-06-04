@@ -1138,23 +1138,22 @@ draw_key_splitrect <- function(data, params, size) {
 }
 
 top_cmpds <- samp_concs %>%
-  mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
+  mutate(compound_name=str_remove_all(compound_name, "^L-|/L-")) %>%
   mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
   summarise(total_nm=sum(conc_nm_in_env, na.rm=TRUE), .by=compound_name) %>%
   filter(total_nm>0) %>%
   arrange(desc(total_nm)) %>%
-  slice(1:14) %>%
   pull(compound_name)
 abs_metab_conc_gp <- samp_concs %>%
   left_join(parametadata %>% distinct(shortname, samp_type)) %>%
   filter(samp_type=="Smp") %>%
-  mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
+  mutate(compound_name=str_remove_all(compound_name, "^L-|/L-")) %>%
   mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
   mutate(lab_stat=ifelse(str_detect(iso_name, "13C0, 15N0"), "Unlabeled", "Labeled")) %>%
   summarise(conc_nm=sum(conc_nm_in_env, na.rm=TRUE), .by=c(compound_name, lab_stat, shortname)) %>%
-  mutate(compound_name=ifelse(compound_name%in%top_cmpds, compound_name, "Other")) %>%
+  mutate(compound_name=ifelse(compound_name%in%top_cmpds[1:9], compound_name, "Other")) %>%
   summarise(total_nm=sum(conc_nm), .by=c(compound_name, lab_stat, shortname)) %>%
-  mutate(compound_name=factor(compound_name, levels=c(top_cmpds, "Other"))) %>%
+  mutate(compound_name=factor(compound_name, levels=c(top_cmpds[1:9], "Other"))) %>%
   left_join(parametadata %>% distinct(shortname, amendment, depth, startime, timepoint, tripl),
             by = join_by(shortname)) %>%
   group_by(compound_name, lab_stat, amendment, depth, timepoint) %>%
@@ -1169,7 +1168,7 @@ abs_metab_conc_gp <- samp_concs %>%
   geom_col(aes(x=timepoint, y=mean_nm, fill=compound_name, alpha=lab_stat), color="black", 
            linewidth=0.2, key_glyph=draw_key_splitrect) +
   facet_grid(depth~amendment, scales="free_x") +
-  scale_fill_manual(breaks=c(top_cmpds, "Other"), values = c(splividis(14), "grey50")) +
+  scale_fill_manual(breaks=c(top_cmpds[1:9], "Other"), values = c(splividis(9), "grey50")) +
   scale_alpha_manual(breaks=c("Labeled", "Unlabeled"), values = c(0.5, 1)) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
   theme_bw() +
@@ -1180,6 +1179,9 @@ abs_metab_conc_gp
 ggsave("manuscript/figures/abs_metab_concs.png", abs_metab_conc_gp, width=6.5, height=5, dpi = 300)
 ```
 
+![](figures/abs_metab_concs.png)
+
+*Figure ∞: Quantified metabolite concentrations in nanomolar throughout the incubations for the 9 most abundant metabolites as distinguished by color. Concentrations have been broken down by whether they are fully unlabeled or contain any amount of ^15^N (or ^13^C in the case of the arginine and GMP amendments). Compounds other than the top 9 have been averaged and are shown in grey. Totals for all four amendments are shown here in the order they were done during the cruise, with separate panels for the 25 meter samples and the 175 meter samples.*
 
 ## Untargeted methods reveal widespread labeling throughout the metabolome
 
@@ -1932,13 +1934,13 @@ ggsave(plot = all_maa_gp, filename = "supp_MAA_curves.pdf", device = "pdf",
 
 ```{r}
 samp_concs %>%
-  mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
+  mutate(compound_name=str_remove_all(compound_name, "^L-|/L-")) %>%
   mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
   mutate(lab_stat=ifelse(str_detect(iso_name, "13C0, 15N0"), "Unlabeled", "Labeled")) %>%
   summarise(conc_nm=sum(conc_nm_in_env, na.rm=TRUE), .by=c(compound_name, lab_stat, shortname)) %>%
-  mutate(compound_name=ifelse(compound_name%in%top_cmpds, compound_name, "Other")) %>%
+  mutate(compound_name=ifelse(compound_name%in%top_cmpds[1:14], compound_name, "Other")) %>%
   summarise(total_nm=sum(conc_nm), .by=c(compound_name, lab_stat, shortname)) %>%
-  mutate(compound_name=factor(compound_name, levels=c(top_cmpds, "Other"))) %>%
+  mutate(compound_name=factor(compound_name, levels=c(top_cmpds[1:14], "Other"))) %>%
   left_join(parametadata %>% distinct(shortname, amendment, depth, startime, timepoint, tripl),
             by = join_by(shortname)) %>%
   mutate(amendment=factor(amendment, levels=c("Nit", "Arg", "GMP", "Amm"))) %>%
@@ -1949,7 +1951,6 @@ samp_concs %>%
   scale_alpha_manual(breaks=c("Labeled", "Unlabeled"), values = c(0.5, 1)) +
   theme_bw()
 ggsave("manuscript/supplement/top_cmpd_stackplot.pdf", width = 14, height = 10)
-
 ```
 
 
