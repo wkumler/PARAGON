@@ -1756,31 +1756,6 @@ knitr::write_bib(packages_used[nchar(packages_used)>0], file = "manuscript/r-pac
 
 # Supplement
 
-## Supp fig: quant concentrations for top 15 across all treatments and timepoints
-
-```{r}
-samp_concs %>%
-  mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
-  mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
-  mutate(lab_stat=ifelse(str_detect(iso_name, "13C0, 15N0"), "Unlabeled", "Labeled")) %>%
-  summarise(conc_nm=sum(conc_nm_in_env, na.rm=TRUE), .by=c(compound_name, lab_stat, shortname)) %>%
-  mutate(compound_name=ifelse(compound_name%in%top_cmpds, compound_name, "Other")) %>%
-  summarise(total_nm=sum(conc_nm), .by=c(compound_name, lab_stat, shortname)) %>%
-  mutate(compound_name=factor(compound_name, levels=c(top_cmpds, "Other"))) %>%
-  left_join(parametadata %>% distinct(shortname, amendment, depth, startime, timepoint, tripl),
-            by = join_by(shortname)) %>%
-  mutate(amendment=factor(amendment, levels=c("Nit", "Arg", "GMP", "Amm"))) %>%
-  ggplot() +
-  geom_col(aes(x=tripl, y=total_nm, fill=compound_name, alpha=lab_stat), color="black", linewidth=0.2) +
-  facet_nested(depth+startime~amendment+timepoint) +
-  scale_fill_manual(breaks=c(top_cmpds, "Other"), values = c(splividis(14), "grey50")) +
-  scale_alpha_manual(breaks=c("Labeled", "Unlabeled"), values = c(0.5, 1)) +
-  theme_bw()
-ggsave("manuscript/supplement/top_cmpd_stackplot.pdf", width = 14, height = 10)
-
-```
-
-
 ## Supp fig: full heatmap of all compounds and timepoints
 
 ```{r suppfig full heatmap}
@@ -1951,4 +1926,30 @@ ggsave(plot = all_maa_gp, filename = "supp_MAA_curves.pdf", device = "pdf",
        path = "manuscript/supplement", width = 6.5, height = 9, units = "in", dpi = 300)
 
 ```
+
+
+## Supp fig: All quant concentrations for top 15 across all treatments and timepoints
+
+```{r}
+samp_concs %>%
+  mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
+  mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
+  mutate(lab_stat=ifelse(str_detect(iso_name, "13C0, 15N0"), "Unlabeled", "Labeled")) %>%
+  summarise(conc_nm=sum(conc_nm_in_env, na.rm=TRUE), .by=c(compound_name, lab_stat, shortname)) %>%
+  mutate(compound_name=ifelse(compound_name%in%top_cmpds, compound_name, "Other")) %>%
+  summarise(total_nm=sum(conc_nm), .by=c(compound_name, lab_stat, shortname)) %>%
+  mutate(compound_name=factor(compound_name, levels=c(top_cmpds, "Other"))) %>%
+  left_join(parametadata %>% distinct(shortname, amendment, depth, startime, timepoint, tripl),
+            by = join_by(shortname)) %>%
+  mutate(amendment=factor(amendment, levels=c("Nit", "Arg", "GMP", "Amm"))) %>%
+  ggplot() +
+  geom_col(aes(x=tripl, y=total_nm, fill=compound_name, alpha=lab_stat), color="black", linewidth=0.2) +
+  facet_nested(depth+startime~amendment+timepoint) +
+  scale_fill_manual(breaks=c(top_cmpds, "Other"), values = c(splividis(14), "grey50")) +
+  scale_alpha_manual(breaks=c("Labeled", "Unlabeled"), values = c(0.5, 1)) +
+  theme_bw()
+ggsave("manuscript/supplement/top_cmpd_stackplot.pdf", width = 14, height = 10)
+
+```
+
 
