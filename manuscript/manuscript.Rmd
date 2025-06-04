@@ -176,8 +176,7 @@ Samples collected from 25 meters were within the mixed layer and had PAR levels 
 
 We performed the incubations in succession, with the nitrate incubations first, followed by arginine, then guanosine monophosphate and finally ammonia. 6AM and 6PM data was always collected the same day and we alternated days between the surface and deep sampling depths to allow for reasonable sample processing times (Supplemental figure 1).
 
-
-```{r supp fig cruise metadata plots}
+```{r cruise metadata prep}
 sum_names <- c("station", "cast", "month", "day", "year", "time", 
                "lat_deg", "lat_min", "lat_dir", 
                 "lon_deg", "lon_min", "lon_dir", "max_depth", "bottles")
@@ -292,20 +291,20 @@ readxl::read_excel("metadata/Light Level at Depth as a Percentage of Surface Lig
   ggplot() +
   geom_jitter(aes(y=light_level, x=time, color=depth), width = 0.5) +
   facet_wrap(~depth, nrow=1, scales="free_y")
+```
 
+```{r fig cruise metadata plots}
 metadata_gp <- bind_rows(chl_data, cnp_data, fcm_data, nut_data) %>%
   left_join(sum_data) %>%
-  filter(name!="TDP (uM)") %>%
+  filter(!name%in%c("TDP (uM)", "C2N", "NO2 (uM)", "TDN (uM)", "DOP (uM)")) %>%
   mutate(alpha_col=ifelse(name=="ctd_chl", "yes", "no")) %>%
   mutate(name=factor(name, levels=c(
-    "ctd_chl", "PC_um", "PN_um", "C2N",
-    "NO3 (uM)", "NO2 (uM)", "NH4 (uM)", "TDN (uM)",
-    "DON (uM)", "DOP (uM)", "SRP (uM)", "Si (uM)",
+    "ctd_chl", "PC_um", "PN_um", "DON (uM)",
+    "NO3 (uM)", "NH4 (uM)", "SRP (uM)", "Si (uM)",
     "pro_mL", "syn_mL", "peuk_mL", "het_mL"
   ), labels = c(
-    "CTD fluorescence", "Particulate C (uM)", "Particulate N (uM)", "PC:PN ratio",
-    "Nitrate (uM)", "Nitrite (uM)", "Ammonia (uM)", "Total dissolved\nnitrogen (uM)",
-    "Dissolved\norganic N (uM)", "Dissolved\norganic P (uM)", "Phosphate (uM)", "Silicate (uM)",
+    "CTD fluorescence", "Particulate C (uM)", "Particulate N (uM)", "Dissolved\norganic N (uM)", 
+    "Nitrate (uM)", "Ammonia (uM)", "Phosphate (uM)", "Silicate (uM)",
     "Prochlorococcus\n(cells / uL)", "Synechococcus\n(cells / mL)", "Picoeukaryotes\n(cells / mL)", "Het. bacteria\n(cells / uL)"
   ))) %>%
   ggplot(aes(x=value, y=depth, group=cast, color=datetime, alpha=alpha_col)) +
@@ -324,9 +323,9 @@ metadata_gp <- bind_rows(chl_data, cnp_data, fcm_data, nut_data) %>%
     legend.box.spacing = unit(0, "in")
   )
 metadata_gp
-```
 
-```{r sampling plan}
+
+
 treatments <- expand_grid(
   amendment=c("Nitrate", "Ammonia", "Arginine", "Guanosine"),
   depth=c("25m", "175m"),
@@ -368,19 +367,20 @@ sample_plan_gp <- ggplot() +
   geom_hline(yintercept = seq(0.5, 4.5)) +
   geom_rect(aes(ymin=depthstart_min, ymax=depthstart_max,
                 xmin=start_time, xmax=sample_time, color=amendment),
-            fill="white", lwd=1, data=schedule_df) +
+            fill="white", lwd=0.4, data=schedule_df) +
   scale_y_continuous(breaks = 1:4, labels = rep(c("6PM start", "6AM start"), 2),
-                     expand = c(0, 0), limits = c(NA, 4.9)) +
+                     expand = c(0, 0), limits = c(NA, 5.2)) +
+  scale_color_brewer(palette = "Set1") +
   scale_x_datetime(limits = range(day_seq), breaks = day_seq, labels = day_lab, expand = c(0, 0)) +
   scale_fill_gradient2(low = "grey80", mid = "grey90", high = "white", guide = NULL) +
-  annotate("text", x = as.POSIXct("2025-07-24 12:00:00"), y=4.6, label="Nitrate (3µM)",
-           color=scales::hue_pal()(4)[1], vjust=0, hjust=0.2) +
-  annotate("text", x = as.POSIXct("2025-07-27 12:00:00"), y=4.6, label="GMP (0.5µM)",
-           color=scales::hue_pal()(4)[2], vjust=0, hjust=0.2) +
-  annotate("text", x = as.POSIXct("2025-07-30 18:00:00"), y=4.6, label="Arginine (0.5µM)",
-           color=scales::hue_pal()(4)[3], vjust=0, hjust=0.2) +
-  annotate("text", x = as.POSIXct("2025-08-03 00:00:00"), y=4.6, label="Ammonia (3µM)",
-           color=scales::hue_pal()(4)[4], vjust=0, hjust=0.2) +
+  annotate("text", x = as.POSIXct("2025-07-24 12:00:00"), y=4.6, label="Nitrate (3 µM)",
+           color=RColorBrewer::brewer.pal(4, "Set1")[1], vjust=0, hjust=0.2) +
+  annotate("text", x = as.POSIXct("2025-07-27 12:00:00"), y=4.6, label="GMP (50 nM)",
+           color=RColorBrewer::brewer.pal(4, "Set1")[2], vjust=0, hjust=0.2) +
+  annotate("text", x = as.POSIXct("2025-07-30 18:00:00"), y=4.6, label="Arginine (50 nM)",
+           color=RColorBrewer::brewer.pal(4, "Set1")[3], vjust=0, hjust=0.2) +
+  annotate("text", x = as.POSIXct("2025-08-03 00:00:00"), y=4.6, label="Ammonia (3 µM)",
+           color=RColorBrewer::brewer.pal(4, "Set1")[4], vjust=0, hjust=0.2) +
   annotate("segment", x=min(lighting_seq$start), xend=min(lighting_seq$start),
            y=0.5, yend=4.5) +
   annotate("segment", x=max(lighting_seq$start), xend=max(lighting_seq$start),
@@ -394,13 +394,16 @@ sample_plan_gp <- ggplot() +
         axis.ticks.x=element_blank(), 
         plot.margin = margin())
 sample_plan_gp
+
+
+combined_plot <- sample_plan_gp / metadata_gp + plot_layout(heights = c(0.25, 0.75))
+combined_plot
+ggsave("manuscript/figures/cruise_metadata.png", combined_plot, width = 6.5, height = 5)
 ```
 
-```{r combine plan and cruise metadata}
-combined_plot <- sample_plan_gp / metadata_gp + plot_layout(heights = c(0.2, 0.8))
+![](figures/cruise_metadata.png)
 
-ggsave("manuscript/supplement/cruise_metadata.png", combined_plot, width = 6.5, height = 8)
-```
+*Figure 0: Biogeochemical and community composition data collected during the PARAGON cruise alongside the incubation sampling plan. The top plot shows the start and end times of each incubation as rectangles aligned with the dates of the cruise in the middle color bar, with each rectangle representing a biological triplicate sacrificed at the given time. Grey shading in the background denotes light levels with grey corresponding to nighttime. The four amendments are shown as different colors. The lower panels show various biogeochemical and flow cytometry measurements colored by the date they were collected during the cruise. Note that Prochlorococcus and heterotrophic bacteria (Het. bacteria) are reported in cells per microliter while Synechococcus and picoeukaryotes are reported per milliliter. The 25 meter and 175 meter sampling depths have been added as dashed lines. C = carbon, N = nitrogen, GMP = guanosine monophosphate.*
 
 ## Differences in nitrogen labeling at the surface between amendments
 
