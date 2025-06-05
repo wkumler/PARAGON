@@ -14,6 +14,7 @@ library(patchwork)
 library(ggtext)
 library(minpack.lm)
 library(RaMS)
+library(ggpattern)
 options(pillar.sigfig = 7)
 options(pillar.print_min = 100)
 
@@ -175,11 +176,6 @@ samp_concs %>%
 
 
 Nitrogen (N) availability limits the growth of many surface ocean microbial communities, particularly in the ocean gyres. Yet, even before growth is limited, some metabolic pathways or specific taxa ma experience lower than optimal N flux due to cellular allocation and competition for various forms of N. Here, we present a stable isotope probing metabolomics study that illustrates the metabolic pathways taken by four different forms of nitrogen: ammonia, nitrate, arginine, and guanosine monophosphate. In the moning and evening, we followed isotope labeled substrates through metabolic pathways for 26 (inorganic N additions) and 73 (organic N additions) hours in both surface (25m) and deep (175m) microbial communities in the North Pacific Subtropical Gyre. We found that nearly the entire surface glutamine pool (1-2 nM) is labeled by ammonia in less than an hour and goes on to label the metabolome more broadly after 24 hours, though abundant osmolytes like betaines (e.g. glycine betaine, 0.4-0.5 nM) had slow turnover rates (<5% in 24 hours). Nitrate amendments resulted in the labeling of only a small selection of molecules such as ultraviolet light absorbing compounds (mycosporine-like amino acids, or MAAs), whose incorporation patterns suggest that this form of nitrogen was available to a subset of the community, likely eukaryotes. The two organic nitrogen amendments labeled the metabolome more slowly than the inorganic forms of nitrogen and showed similar usage at 25 meters and 175 meters, hinting at the major role that heterotrophic bacteria play in cycling organic matter. The organic nitrogen added was mostly converted into glutamate after 24 hours rather than used as intact substrates, though labeled arginine was incorporated into protein directly and we were able to trace the carbon backbone from both arginine and GMP into several additional metabolites. We also show that nitrogen assimilation and use was largely the same between morning and evening with the exception of MAAs. These measurements reveal the forms and fluxes of nitrogen in the natural environment and provide constraints on biogeochemical models that require characterizing the transformations between organic and inorganic nitrogen.
-
-```{r}
-length(strsplit("", split = " ")[[1]]) # ~286 words
-length(strsplit("", split = "")[[1]])  # ~1851 characters
-```
 
 # Introduction
 
@@ -440,7 +436,7 @@ labeled_fracs %>%
   filter(depth=="Surf") %>%
   filter(amendment=="Amm") %>%
   summarise(frac=mean(labeled_frac), .by=c(compound_name, timepoint))
-peak_areas %>%
+samp_concs %>%
   filter(compound_name=="L-Glutamine") %>%
   left_join(parametadata %>% filter(IS_type=="noIS")) %>%
   filter(depth=="Surf") %>%
@@ -448,28 +444,28 @@ peak_areas %>%
   ggplot(aes(x=tripl, y=area, fill=iso_name)) +
   geom_col(color="black") +
   facet_grid(startime~timepoint)
-nM_labeled %>%
+samp_concs %>%
   filter(compound_name%in%c("L-Glutamine")) %>%
   left_join(parametadata %>% filter(IS_type=="noIS")) %>%
   filter(depth=="Surf") %>%
   filter(amendment=="Amm") %>%
-  summarise(conc=mean(nM_labeled), .by=c(compound_name, timepoint)) %>%
+  summarise(conc=mean(conc_nm_in_env), .by=c(compound_name, timepoint)) %>%
   arrange(timepoint)
 
-nM_labeled %>%
+samp_concs %>%
   filter(compound_name%in%c("L-Glutamine", "L-Glutamic acid/beta-Glutamic acid")) %>%
   left_join(parametadata %>% filter(IS_type=="noIS")) %>%
   filter(depth=="Surf") %>%
   filter(amendment=="Amm") %>%
-  ggplot(aes(x=tripl, y=nM_labeled, fill=iso_name)) +
+  ggplot(aes(x=tripl, y=conc_nm_in_env, fill=iso_name)) +
   geom_col(color="black") +
   facet_nested(compound_name+startime~timepoint)
-nM_labeled %>%
+samp_concs %>%
   filter(iso_name%in%c("L-Glutamine, 13C0, 15N2", "L-Glutamic acid, 13C0, 15N1")) %>%
   left_join(parametadata %>% filter(IS_type=="noIS")) %>%
   filter(depth=="Surf") %>%
   filter(amendment=="Amm") %>%
-  ggplot(aes(x=timepoint, y=nM_labeled, color=iso_name)) +
+  ggplot(aes(x=timepoint, y=conc_nm_in_env, color=iso_name)) +
   geom_boxplot() +
   ggpubr::stat_compare_means(label = "p.format")
 ```
@@ -546,7 +542,7 @@ labeled_fracs %>%
   filter(depth=="Surf") %>%
   filter(amendment=="Amm") %>%
   summarise(frac=mean(labeled_frac), .by=c(compound_name))
-env_concs %>%
+samp_concs %>%
   filter(compound_name%in%c("L-Glutamic acid/beta-Glutamic acid", "L-Aspartic acid",
                             "Citrulline", "L-Arginine")) %>%
   left_join(parametadata %>% filter(IS_type=="wIS")) %>%
@@ -627,7 +623,7 @@ labeled_fracs %>%
   filter(depth=="Surf") %>%
   summarise(frac=mean(labeled_frac), .by=c(compound_name))
 
-env_concs %>%
+samp_concs %>%
   filter(compound_name%in%betaine_names) %>%
   left_join(parametadata, relationship = "many-to-many") %>%
   summarise(nM=mean(conc_nm_in_env), .by=c(compound_name, depth, amendment, timepoint, startime)) %>%
@@ -658,7 +654,6 @@ samp_concs %>%
 #   geom_col(aes(x=tripl, y=conc_nm_in_env, fill=iso_name), color="black") +
 #   facet_grid(compound_name~amendment+depth+startime+timepoint, scales="free")
 ```
-
 
 Other amino acids and nucleobases/nucleosides had trace amounts of labeling after 3 hours and were extensively labeled (>25%) after 24 hours (Figure 2). Cytidine (42.2% labeled) and adenosine (59.9% labeled) were more heavily ^15^N labeled than their nucleobase derivatives at T26 (22.9% for cytidine and 42.1% for adenosine), corresponding to the expected synthesis pathway. Guanine, however, had the inverse trend with guanosine being 44.9% labeled while guanine was only 30% labeled. The deoxyribose forms were in all cases less completely labeled than their ribose counterparts (deoxycytidine = 18.9%, deoxyadenosine = 20.3%, and deoxyguanosine = 17.2%). In each case, the fully ^15^N labeled nucleobase was the dominant constituent of the isotope envelope (^15^N~3~ for cytosine and ^15^N~5~ for adenine and guanine). Other compounds, including betaines (here restricted to quaternary amines with a carboxylic acid group) and choline derivatives showed very little labeling at all (<10%).
 
@@ -697,7 +692,7 @@ labeled_fracs %>%
   summarise(frac=mean(labeled_frac), .by=c(compound_name, timepoint)) %>%
   pivot_wider(names_from=compound_name, values_from=frac) %>%
   arrange(timepoint)
-peak_areas %>%
+samp_concs %>%
   filter(compound_name%in%c("Guanosine", "Guanine", "Adenine", "Adenosine", "Hypoxanthine/Allopurinol")) %>%
   left_join(parametadata %>% filter(IS_type=="noIS")) %>%
   filter(amendment=="GMP") %>%
@@ -753,7 +748,7 @@ thaa_avgs <- thaa_quant %>%
   summarise(thaa_nM=sum(thaa_nM), .by=c(compound_name, iso_name, amendment, timepoint))
 
 
-metab_avgs <- nM_labeled %>%
+metab_avgs <- samp_concs %>%
   mutate(compound_name=str_remove_all(compound_name, "L-")) %>%
   mutate(iso_name=str_remove(iso_name, ".*(?=13)")) %>%
   filter(compound_name%in%aa_names) %>%
@@ -765,7 +760,7 @@ metab_avgs <- nM_labeled %>%
     compound_name=="Leucine/Isoleucine"~"Leucine + isoleucine",
     TRUE~compound_name
   )) %>%
-  summarise(nM_labeled=sum(nM_labeled), .by = c(compound_name, iso_name, filename)) %>%
+  summarise(nM_labeled=sum(conc_nm_in_env), .by = c(compound_name, iso_name, shortname)) %>%
   left_join(parametadata %>% filter(IS_type=="noIS")) %>%
   mutate(final_timepoint=ifelse(amendment%in%c("Amm", "Nit"), "T26", "T73")) %>%
   filter(timepoint%in%c("T0", final_timepoint)) %>%
@@ -778,7 +773,7 @@ left_join(metab_avgs, thaa_avgs) %>%
             thaa_nM=sum(thaa_nM, na.rm=TRUE),
             .by=c(compound_name, timepoint, amendment)) %>%
   filter(!(timepoint=="T26" & amendment%in%c("Arg", "GMP"))) %>%
-  mutate(perc_in_free=metab_nM/(metab_nM+thaa_nM)*100) %>%
+  mutate(perc_in_free=round(metab_nM/(metab_nM+thaa_nM)*100, 1)) %>%
   select(amendment, compound_name, timepoint, perc_in_free) %>%
   pivot_wider(names_from=timepoint, values_from=perc_in_free) %>%
   arrange(amendment, compound_name)
@@ -905,7 +900,7 @@ ggsave("total_thaa_gp.png", total_thaa_gp, device = "png", path = "manuscript/fi
 We believe the organic nitrogen amendments largely resulted in metabolite labeling via remineralization to ammonia or glutamate based on the absence of a labeled carbon backbone in most of the labeled metabolites, but in the THAAs we were able to see some transformations that used the carbon backbone as-is. Proline and glutamate both had detectable ^13^C~5~ ^15^N~1~ labels in the arginine treatments. We also saw histidine ^13^C~5~ ^15^N~3~ synthesized during the guanosine monophosphate treatment, confirming again that the ribose pool must have been swamped with fully ^13^C labeled ribose cleaved from guanosine in order to enter the phosphoribosyl pyrophosphate pathway. The ^15^N~3~ pattern also indicates that for these organisms, glutamate, glutamine, and adenine were also heavily labeled. Finally, both phenylalanine and tyrosine had significant ^13^C~4~ ^15^N~1~ labeling, likely from erythrose 4-phosphate via the pentose phosphate pathway indicating new synthesis through shikimate with nitrogen addition from a heavily labeled glutamate pool again.
 
 ```{r shikimate check}
-open_dataset("tmzMLs/pqds") %>%
+arrow::open_dataset("tmzMLs/pqds") %>%
   filter(samp_type=="Poo" | samp_type=="Std") %>%
   filter(polarity=="neg") %>%
   filter(mz%between%pmppm(173.045, 10)) %>%
@@ -1416,40 +1411,6 @@ kmeans_df %>%
 
 *Figure 7: Fraction of each cluster containing at least one ^15^N label during the surface seawater amendments with various substrates after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the feature signal was isotopically labeled. Three biological replicates are stacked vertically at each timepoint and the labeling within each clusters has been averaged across all the composing features. The number of features in each cluster is specified by the n in the facet name. GMP = guanosine monophosphate.*
 
-```{r supp fig heatmap of all high-quality feats}
-untarg_heatmap <- untarg_lab_fracs %>%
-  bind_rows(labeled_fracs %>% rename(feature=compound_name)) %>%
-  complete(feature, shortname, fill=list(labeled_frac=0)) %>%
-  left_join(kmeans_df) %>%
-  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
-  ggplot() +
-  geom_raster(aes(x=timepoint, y=tripl, fill=labeled_frac)) +
-  scale_fill_gradientn(colours = heatmap_colorpal, limits = c(0, 1)) +
-  scale_y_discrete(expand=expansion()) +
-  scale_x_discrete(guide = guide_axis(n.dodge = 5), expand=expansion()) +
-  facet_nested(cluster_name~feature~amendment+depth+startime, 
-               scales = "free_x", switch="y", strip=strip_nested(size = "variable")) +
-  labs(x="Timepoint", y=NULL, fill="Fraction\nlabeled") +
-  theme_bw() +
-  theme(panel.spacing.x=unit(0.2, "lines"), 
-        panel.spacing.y = unit(0, "lines"),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        strip.text.y.left = element_text(angle=0, hjust = 1),
-        panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        legend.position = "top", 
-        legend.key.width = unit(1, "null")) +
-  guides(
-    fill=guide_colorbar(theme=theme(
-      legend.frame = element_rect(color = "black"),
-      legend.ticks = element_line(color="black"),
-      legend.text = ggtext::element_markdown(hjust=c(0, 0.5, 0.5, 0.5, 1)))
-    )
-  )
-ggsave("manuscript/supplement/untarg_heatmap.pdf", width = 10, height=36, units = "in")
-```
-
 ```{r untargeted zimmermann plot}
 untarg_rel_synth_df <- feat_shape_df %>%
   filter(peak_qual=="Good") %>%
@@ -1491,11 +1452,11 @@ left_join(untarg_rel_synth_df, untarg_frac_labeled_df) %>%
 ```
 
 ```{r targeted zimmermann plot}
-rel_synth_df <- nM_labeled %>%
+rel_synth_df <- samp_concs %>%
   # filter(compound_name=="Glycine betaine") %>%
   # filter(str_detect(filename, "GMP-.*-Morn")) %>%
-  left_join(parametadata %>% distinct(filename, timepoint, amendment, depth, startime)) %>%
-  summarise(total_nM=sum(nM_labeled), .by=c(compound_name, filename, timepoint, amendment, depth, startime)) %>%
+  left_join(parametadata %>% distinct(shortname, timepoint, amendment, depth, startime)) %>%
+  summarise(total_nM=sum(conc_nm_in_env), .by=c(compound_name, shortname, timepoint, amendment, depth, startime)) %>%
   summarise(time_total=mean(total_nM), .by=c(compound_name, timepoint, amendment, depth, startime)) %>%
   pivot_wider(names_from=timepoint, values_from=time_total) %>%
   pivot_longer(T1:last_col(), names_to="timepoint", values_to="time_mean") %>%
@@ -1578,7 +1539,7 @@ left_join(rel_synth_df, frac_labeled_df) %>%
 ```
 
 ```{r excessive methionine synthesis at T26 and T73 from organics}
-open_dataset("tmzMLs/pqds") %>%
+arrow::open_dataset("tmzMLs/pqds") %>%
   filter(samp_type=="Smp") %>%
   filter(polarity=="pos") %>%
   filter(mz%between%pmppm(150.0584, 2)) %>%
@@ -1885,11 +1846,6 @@ ggsave(plot = heatmap_gp, "manuscript/supplement/para_heatmap.pdf", device = "pd
        width = 10, height = 12)
 ```
 
-```{r, eval=TRUE}
-knitr::include_graphics("manuscript/supplement/para_heatmap.pdf")
-```
-
-
 ## Supp fig: THAA labeling broken down by triplicate
 
 ```{r thaa supplement figures}
@@ -1912,10 +1868,6 @@ for(cmpd_i in setdiff(unique(thaa_quant$compound_name), c("Citrulline", "Ornithi
   print(gp)
 }
 dev.off()
-```
-
-```{r, eval=TRUE}
-knitr::include_graphics("manuscript/supplement/THAA_labeling.pdf")
 ```
 
 ```{r labeled thaa diff between amm and nit}
@@ -1956,7 +1908,6 @@ thaa_pca %>%
   geom_text() +
   geom_point()
 ```
-
 
 ## Supp fig: All MAA labeling
 
@@ -1999,14 +1950,9 @@ ggsave(plot = all_maa_gp, filename = "supp_MAA_curves.pdf", device = "pdf",
 
 ```
 
-```{r, eval=TRUE}
-knitr::include_graphics("manuscript/supplement/supp_MAA_curves.pdf")
-```
-
-
 ## Supp fig: All quant concentrations for top 15 across all treatments and timepoints
 
-```{r}
+```{r all quant concs}
 samp_concs %>%
   mutate(compound_name=str_remove_all(compound_name, "^L-|/L-")) %>%
   mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
@@ -2027,5 +1973,39 @@ samp_concs %>%
 ggsave("manuscript/supplement/top_cmpd_stackplot.pdf", width = 14, height = 10)
 ```
 
-![](supplement/top_cmpd_stackplot.pdf)
+## Supp fig: untargeted heatmap
+
+```{r supp fig heatmap of all high-quality feats}
+untarg_heatmap <- untarg_lab_fracs %>%
+  bind_rows(labeled_fracs %>% rename(feature=compound_name)) %>%
+  complete(feature, shortname, fill=list(labeled_frac=0)) %>%
+  left_join(kmeans_df) %>%
+  left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  ggplot() +
+  geom_raster(aes(x=timepoint, y=tripl, fill=labeled_frac)) +
+  scale_fill_gradientn(colours = heatmap_colorpal, limits = c(0, 1)) +
+  scale_y_discrete(expand=expansion()) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 5), expand=expansion()) +
+  facet_nested(cluster_name~feature~amendment+depth+startime, 
+               scales = "free_x", switch="y", strip=strip_nested(size = "variable")) +
+  labs(x="Timepoint", y=NULL, fill="Fraction\nlabeled") +
+  theme_bw() +
+  theme(panel.spacing.x=unit(0.2, "lines"), 
+        panel.spacing.y = unit(0, "lines"),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        strip.text.y.left = element_text(angle=0, hjust = 1),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position = "top", 
+        legend.key.width = unit(1, "null")) +
+  guides(
+    fill=guide_colorbar(theme=theme(
+      legend.frame = element_rect(color = "black"),
+      legend.ticks = element_line(color="black"),
+      legend.text = ggtext::element_markdown(hjust=c(0, 0.5, 0.5, 0.5, 1)))
+    )
+  )
+ggsave("manuscript/supplement/untarg_heatmap.pdf", width = 10, height=36, units = "in")
+```
 
