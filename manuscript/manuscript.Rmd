@@ -17,39 +17,6 @@ library(RaMS)
 library(ggpattern)
 options(pillar.sigfig = 7)
 options(pillar.print_min = 100)
-
-wc <- function(
-  comment, 
-  highlight = "", 
-  author = "Will", 
-  time = Sys.time(),
-  id = "0"
-) {
-  if (isTRUE(knitr:::pandoc_to() == "docx")) {
-    return(
-      sprintf(
-        '[%s]{.comment-start id="%s" author="%s" date="%s"} %s []{.comment-end id="%s"}',
-        comment,
-        id,
-        author,
-        time,
-        highlight,
-        id
-      )
-    )
-  } else {
-    return(
-      sprintf(
-        "*%s* **[Comment id %s by %s at time %s: %s]**", 
-        highlight,
-        id,
-        author, 
-        time, 
-        comment
-      )
-    )
-  }
-}
 ```
 
 ```{r load data, eval=FALSE}
@@ -1724,11 +1691,11 @@ The PARAGON cruise (KM2112) departed Honolulu, HI on July 22nd, 2021 and returne
 
 ## Biogeochemical data
 
-Biogeochemical measurements were collected following protocols used by the HOT program (http://hahana.soest.hawaii.edu/hot/methods/results.html). Particulate carbon and particulate nitrogen were measured using an elemental analyzer`r wc("Confirm \\@Eric")`. Nitrate + nitrite (N+N) was measured on an autoanalyzer while ammonia and nitrite were measured via `r wc("Methods \\@Rhea?")`. Soluble reactive phosphorus (phosphate, PO$_4^{3-}$) was measured on an autoanalyzer or following the magnesium induced coprecipitation method`r wc("\\@Rhea please confirm")`.
+Biogeochemical measurements were collected following protocols used by the HOT program (http://hahana.soest.hawaii.edu/hot/methods/results.html). Particulate carbon and particulate nitrogen were measured using an elemental analyzer. Nitrate + nitrite (N+N) was measured on an autoanalyzer while ammonia and nitrite were measured via. Soluble reactive phosphorus (phosphate, PO$_4^{3-}$) was measured on an autoanalyzer or following the magnesium induced coprecipitation method.
 
 ## Community composition data
 
-Water column community composition was estimated for the initial community via flow cytometry (FCM), imaging flowcytobot (IFCB), and amplicon sequence variants (ASVs). FCM was done via `r wc("Methods? \\@Angel?")` three times during the cruise on July 25th, July 29th, and August 2nd at six depths from 5 to 125 meters. Depth profiles from the IFCB were collected twice via `r wc("Methods? \\@Angel?")`. The first IFCB profile took place on July 27th at nine depths from 5 to 300 meters and the second on August 5th at four depths from 5 to 125 meters. Annotation of the selected particles was done via a convolutional neural net`r wc("Reference? \\@Angel")`. One ASV depth profile was collected during the PARAGON cruise on July 30th, also at nine depths from 5 meters down to 500 meters and processed according to the methods detailed in @Li2023 `r wc("\\@Fuyan Want to add anything to this?")`.
+Water column community composition was estimated for the initial community via flow cytometry (FCM), imaging flowcytobot (IFCB), and amplicon sequence variants (ASVs). FCM was done via XXX three times during the cruise on July 25th, July 29th, and August 2nd at six depths from 5 to 125 meters. Depth profiles from the IFCB were collected twice via XXX. The first IFCB profile took place on July 27th at nine depths from 5 to 300 meters and the second on August 5th at four depths from 5 to 125 meters. Annotation of the selected particles was done via a convolutional neural net. One ASV depth profile was collected during the PARAGON cruise on July 30th, also at nine depths from 5 meters down to 500 meters and processed according to the methods detailed in @Li2023.
 
 ## ^15^N incubations
 
