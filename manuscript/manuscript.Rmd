@@ -700,6 +700,7 @@ thaa_quant %>%
 
 
 thaa_avgs <- thaa_quant %>%
+  filter(!str_detect(iso_name, "2H")) %>%
   left_join(metathaa) %>%
   filter(samp_type=="Smp") %>%
   filter(depth=="Surf") %>%
@@ -713,8 +714,6 @@ thaa_avgs <- thaa_quant %>%
   )) %>%
   mutate(iso_name=str_remove(iso_name, ".*(?=13)")) %>%
   summarise(thaa_nM=sum(thaa_nM), .by=c(compound_name, iso_name, amendment, timepoint))
-
-
 metab_avgs <- samp_concs %>%
   mutate(compound_name=str_remove_all(compound_name, "L-")) %>%
   mutate(iso_name=str_remove(iso_name, ".*(?=13)")) %>%
@@ -729,33 +728,27 @@ metab_avgs <- samp_concs %>%
   )) %>%
   summarise(nM_labeled=sum(conc_nm_in_env), .by = c(compound_name, iso_name, shortname)) %>%
   left_join(parametadata %>% filter(IS_type=="noIS")) %>%
+  filter(depth=="Surf") %>%
   mutate(final_timepoint=ifelse(amendment%in%c("Amm", "Nit"), "T26", "T73")) %>%
   filter(timepoint%in%c("T0", final_timepoint)) %>%
   select(compound_name, iso_name, amendment, timepoint, depth, startime, nM_labeled) %>%
   summarise(metab_nM=mean(nM_labeled), .by = c(compound_name, iso_name, amendment, timepoint))
 
-# Fraction of THAA that's DFAA at T0 and T26
-left_join(metab_avgs, thaa_avgs) %>%
-  summarise(metab_nM=sum(metab_nM, na.rm=TRUE), 
-            thaa_nM=sum(thaa_nM, na.rm=TRUE),
-            .by=c(compound_name, timepoint, amendment)) %>%
-  filter(!(timepoint=="T26" & amendment%in%c("Arg", "GMP"))) %>%
-  mutate(perc_in_free=round(metab_nM/(metab_nM+thaa_nM)*100, 1)) %>%
-  select(amendment, compound_name, timepoint, perc_in_free) %>%
-  pivot_wider(names_from=timepoint, values_from=perc_in_free) %>%
-  arrange(amendment, compound_name)
 
-# Breakdown of THAA isotope labeling
 left_join(metab_avgs, thaa_avgs) %>%
-  mutate(perc_in_free=metab_nM/(metab_nM+thaa_nM)*100) %>%
-  arrange(amendment, compound_name) %>%
-  filter(perc_in_free<100) %>%
-  arrange(timepoint, compound_name)
+  mutate(timepoint=ifelse(timepoint=="T0", "T0", "Tfinal")) %>%
+  mutate(lab_type=ifelse(iso_name=="13C0, 15N0", "Unlabeled", "Labeled")) %>%
+  pivot_longer(c(metab_nM, thaa_nM), names_to = "metab_or_thaa", values_to = "nM") %>%
+  summarise(nM=sum(nM), .by=c(compound_name, lab_type, amendment, timepoint, metab_or_thaa)) %>%
+  mutate(nM=ifelse(is.na(nM), 0, nM)) %>%
+  pivot_wider(names_from = metab_or_thaa, values_from=nM) %>%
+  mutate(frac_metab=metab_nM/(metab_nM+thaa_nM)) %>%
+  left_join(aa_ncs)
 ```
 
 We also explored the degree of labeling incorporation into proteins by measuring the total hydrolyzable amino acids (THAAs) at both the start of each incubation and the end (Figure 3). THAAs come from protein (which can be in living biomass or detritus) and include minor contributions from metabolites and peptides with hydrolyzable amino acid moieties (e.g. MAAs and glutathione).
 
-THAAs were 26-52% of the total particulate carbon pool (2.84 µM at 25 meters and 1.36 µM at 175 meters) at T0 and a large part of the total particulate nitrogen (PN, 0.36 µM at 25 meters and 0.15 µM at 175 meters), with total estimated nitrogen in the THAAs sometimes exceeding the total PN measurements. Free amino acids composed between 0.15% and 17% of the total THAA pool with the highest contributions from free glutamate. There were also differences in THAA labeling patterns between the amendments (Figure 3). Despite their shorter incubation time (26 hours vs 73 hours), the inorganic nitrogen amendments generally had higher fractions of labeled protein. The nitrate amendments in particular were surprisingly heavily labeled given the minimal signal seen in free metabolites, with a degree of labeling exceeding the ammonia incubation.
+THAAs were 26-52% of the total particulate carbon pool (2.84 µM C at 25 meters and 1.36 µM C at 175 meters) at T0 and 55-132% of the particulate nitrogen (PN, 0.36 µM N at 25 meters and 0.15 µM N at 175 meters), with total estimated nitrogen in the THAAs exceeding the single PN measurement at 175 meters. Free amino acids composed between 0.15% and 17% of the total THAA pool with the highest contributions from free glutamate. There were also differences in THAA labeling patterns between the amendments (Figure 3). Despite their shorter incubation time (26 hours vs 73 hours), the inorganic nitrogen amendments generally had higher fractions of labeled protein. The nitrate amendments in particular were surprisingly heavily labeled given the minimal signal seen in free metabolites.
 
 ```{r fig thaa data}
 all_thaa_plot <- thaa_quant %>%
@@ -764,6 +757,7 @@ all_thaa_plot <- thaa_quant %>%
   filter(!str_detect(iso_name, "2H")) %>%
   left_join(metathaa) %>%
   filter(samp_type=="Smp") %>%
+  filter(depth=="Surf") %>%
   left_join(aa_ncs) %>%
   select(filename, depth, compound_name, iso_name, env_conc_nm, n_C, n_N) %>%
   mutate(n_N_lab=as.numeric(str_extract(iso_name, "(?<=15N)\\d+"))) %>%
@@ -787,9 +781,10 @@ all_thaa_plot <- thaa_quant %>%
   facet_wrap(~amendment, nrow=1, strip.position="bottom") +
   # scale_x_discrete(expand = expansion(mult = c(0.05))) +
   scale_y_continuous(expand = expansion(mult=c(0, 0.05))) +
-  scale_fill_manual(breaks = c("Unlabeled", "Labeled"), values=c("grey80", "grey20"), guide=guide_legend(override.aes = list(pattern_fill="#FFFFFF00"))) +
-  scale_pattern_manual(breaks=c("25m", "175m"), values = c(NA, "stripe")) +
-  labs(x=NULL, y="Total uM N in THAAs      ", fill=NULL, pattern=NULL) +
+  scale_fill_manual(breaks = c("Unlabeled", "Labeled"), values=c("grey80", "grey20"),
+                    guide=guide_legend(override.aes = list(pattern_fill="#FFFFFF00"))) +
+  scale_pattern_manual(breaks=c("25m", "175m"), values = c(NA, "stripe"), guide="none") +
+  labs(x=NULL, y="Total µM N in THAAs      ", fill=NULL, pattern=NULL) +
   theme(legend.key.size = unit(0.26, 'in'),
         panel.spacing.x = unit(0, "lines"),
         axis.text.x = element_blank(),
