@@ -1386,7 +1386,7 @@ best_labeled %>%
 
 Of the 219 features that remained, the majority (150) had a ^15^N isotope with the correct *m/z* value and a chromatographic similarity score between the unlabeled and labeled data above 0.8 (see Methods). 80 of these 150 also showed linear increases in peak area across the timepoints, denoting likely ^15^N-labeled metabolites. We manually inspected each of these 80 metabolites and were able to identify the majority as either compounds in our list of authentic standards (19/80), an isotope of a known compound (39/80), or an in-source fragment of a known compound (12/80, consisting of fragments from proline (70.0658), glutamic acid/glutamate (84.0449, 102.0550, and 130.0499), and the loss of ribose from nucleosides). Five compounds were putatively identified using isotope labeling patterns and literature searches: FT1362 with an *m/z* of 121.07798 and a retention time (RT) of 4.5 minutes we flagged as indoline, FT1564 with an *m/z* of 124.0524 and a 2.7 minute RT we flagged as the ^15^N isotope of nicotinamide, FT4529 with an *m/z* of 228.0979 and a 6.7 minute RT we flagged as deoxycytidine, FT5860 with an *m/z* of 282.1182 and an 11.1 minute RT we flagged as pangamic acid, and FT6622 with an *m/z* of 333.1292 and an 11.2 minute RT we flagged as shinorine. Four additional compounds could not be putatively identified but had plausible molecular formulae: FT3699 with an *m/z* of 192.0866 and 10.3 RT we assigned C~7~H~14~NO~5~, FT4598 with an *m/z* of 231.1703	and 1.9 RT we assigned C~11~H~23~N~2~O~3~, FT4733 with an *m/z* of 236.1492 and 10.0 RT we assigned C~10~H~22~NO~5~, and FT5185 with an *m/z* of 252.1441 and 10.7 RT we assigned C~10~H~22~NO~6~. One feature we were unable to annotate at all (FT5076, *m/z* 248.1258 and RT 12.0).
 
-To derive biological meaning from the untargeted analysis, we performed a k-means clustering of the features across all the treatments and timepoints and included our targeted data in the clustering. Clear patterns of isotope incorporation emerged in 6 of the 10 clusters we used (Figure 7). Cluster 1, the largest with 64 molecular features, contained many of the unlabeled compounds including those without any nitrogen and all of the betaines. Cluster 2 contained most of the amino acids, the nucleobases cytosine and guanine, and the deoxynucleosides as well as ectoine and citrulline. Cluster 3 contained homarine, beta-alanine, and O-acetylcarnitine as well as the remaining amino acids aside from aspartate, glutamate, and glutamine which fell into cluster 4. Known compounds in cluster 5 consisted of adenine, adenosine, cytidine, and hypoxanthine while guanosine fell alone into cluster 6. The MAAs were distributed across clusters 8 and 9, while clusters 7 and 10 had no known compounds.
+To derive biological meaning from the untargeted analysis, we performed a k-means clustering of the features across all the treatments and timepoints and included our targeted data in the clustering. Clear patterns of isotope incorporation emerged in 6 of the 10 clusters we used (Figure 8). Cluster 1, the largest with 64 molecular features, contained many of the unlabeled compounds including those without any nitrogen and all of the betaines. Cluster 2 contained most of the amino acids and beta-alanine. Cluster 3 contained the nucleobases other than cytosine and the ribose nucleosides as well as asparagine and proline, while cluster 5 contained the deoxyribose nucleosides and cytosine which did not get labeled as rapidly in the ammonia treatment. Cluster 4 contained 27 rapidly-labeled compounds including glutamine, glutamic acid, and aspartic acid. The sole known compound in cluster 6 was guanosine, with heavy labeling in the GMP incubations and mild labeling elsewhere. Cluster 7 consisted exclusively of the MAAs for the known compounds and 9 other unknowns. Finally, cluster 8 contained arginine, citrulline, ectoine, theanine, and N-acetyllysine, all of which had significant labeling in the arginine amendment. None of the 7 compounds in clusters 9 or 10 had known metabolites and these appear to be largely noise signals with 50% or more labeled at T0.
 
 ```{r run kmeans and save heatmap and save clusters}
 untarg_lab_mat <- untarg_lab_fracs %>%
@@ -1517,7 +1517,8 @@ left_join(untarg_rel_synth_df, untarg_frac_labeled_df) %>%
 rel_synth_df <- samp_concs %>%
   # filter(compound_name=="Glycine betaine") %>%
   # filter(str_detect(filename, "GMP-.*-Morn")) %>%
-  left_join(parametadata %>% distinct(shortname, timepoint, amendment, depth, startime)) %>%
+  left_join(parametadata %>% distinct(shortname, samp_type, timepoint, amendment, depth, startime)) %>%
+  filter(samp_type=="Smp") %>%
   summarise(total_nM=sum(conc_nm_in_env), .by=c(compound_name, shortname, timepoint, amendment, depth, startime)) %>%
   summarise(time_total=mean(total_nM), .by=c(compound_name, timepoint, amendment, depth, startime)) %>%
   pivot_wider(names_from=timepoint, values_from=time_total) %>%
@@ -1554,7 +1555,7 @@ frac_labeled_df <- labeled_fracs %>%
 
 
 # Broken down by env
-left_join(rel_synth_df, frac_labeled_df) %>%
+zimm_data <- left_join(rel_synth_df, frac_labeled_df) %>%
   mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
   mutate(compound_name=str_remove(compound_name, "/beta-Glutamic acid")) %>%
   mutate(compound_class=case_when(
@@ -1565,54 +1566,72 @@ left_join(rel_synth_df, frac_labeled_df) %>%
     compound_name%in%betaine_names~"Betaines",
     TRUE~"All others"
   )) %>%
-  # filter(timepoint=="T26") %>%
+  filter(timepoint=="T26") %>%
   # filter(compound_name=="Ectoine") %>%
   filter(!(amendment%in%c("Amm", "Nit") & timepoint=="T73")) %>%
   filter(!(amendment%in%c("Arg", "GMP") & timepoint=="T1")) %>%
   # filter(if_any(everything(), is.na))
   mutate(timepoint=factor(timepoint, levels=paste0("T", c(1,3,10,18,26,73)))) %>%
-  ggplot(aes(x=rel_change, y=labeled_frac, color=compound_class, label=compound_name)) +
+  mutate(amendment=factor(amendment, levels=c("Nit", "Arg", "GMP", "Amm"),
+                          labels=c("+Nitrate", "+Arginine", "+GMP", "+Ammonia"))) %>%
+  mutate(depth=factor(depth, levels=c("Surf", "Deep"), labels=c("25 meters", "175 meters"))) %>%
+  mutate(startime=factor(startime, levels=c("Morn", "Eve"), labels=c("6AM", "6PM")))
+zimm_labs <- zimm_data %>%
+  filter(compound_name%in%c("Glutamine", "Methionine", "Adenosine")) %>%
+  select(compound_name, amendment, depth, startime, rel_change, labeled_frac) %>%
+  mutate(lab_placement_x=case_when(
+    compound_name=="Glutamine"~4,
+    compound_name=="Methionine"~7.5,
+    compound_name=="Adenosine"~-3
+  )) %>%
+  mutate(lab_placement_y=case_when(
+    compound_name=="Glutamine"~1,
+    compound_name=="Methionine"~0.35,
+    compound_name=="Adenosine"~0.6
+  ))
+  
+zimm_mimic_gp <- zimm_data %>%
+  ggplot(aes(x=rel_change, y=labeled_frac, color=amendment, label=compound_name)) +
   geom_hline(yintercept = 0) +
   geom_vline(xintercept = 0) +
+  geom_segment(aes(xend=lab_placement_x, yend=lab_placement_y), data=zimm_labs) +
   geom_point() +
-  scale_y_continuous(labels = scales::label_percent()) +
-  scale_x_continuous(labels = function(x)paste0("2<sup>", x, "</sup>")) +
-  scale_color_manual(breaks=class_levels, values = class_colors) +
-  facet_nested(depth+startime~amendment) +
-  labs(x="Relative concentration change from T0", y="Fraction labeled") +
+  geom_label(aes(x=lab_placement_x, y=lab_placement_y), color="black", 
+             label.r = unit(0, "in"), label.padding = unit(0.1, "lines"),
+             data=zimm_labs %>% distinct(compound_name, lab_placement_x, lab_placement_y)) +
+  scale_y_continuous(labels = scales::label_percent(), expand=expansion(mult = c(0.05, 0.15)),
+                     breaks = c(0, 0.5, 1)) +
+  scale_x_continuous(labels = function(x)paste0("2<sup>", x, "</sup>"), expand=expansion(mult=c(0.15, 0.05))) +
+  # scale_color_manual(breaks=class_levels, values = class_colors) +
+  scale_color_brewer(palette = "Set1") +
+  facet_nested(depth+startime~.) +
+  labs(x="Relative concentration change from T0", y="Fraction labeled", color="Amendment") +
   theme_bw() +
   theme(axis.text.x=element_markdown())
 
-left_join(rel_synth_df, frac_labeled_df) %>%
-  select(compound_name, amendment, depth, startime, timepoint, timepoint_num, rel_change, labeled_frac) %>%
-  pivot_longer(c(rel_change, labeled_frac)) %>%
-  mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
-  filter(compound_name%in%c("Methionine", "Adenosine", "Glutamine", "Guanine", "Glycine betaine", "Ectoine")) %>%
-  filter(!is.na(value)) %>%
-  ggplot(aes(x=timepoint_num, y=value, color=compound_name, shape=depth, fill=startime)) +
-  geom_hline(yintercept = 0) +
-  geom_line() + 
-  geom_point() +
-  facet_nested(name~amendment, scales="free_y") +
-  scale_x_log10() +
-  scale_shape_manual(breaks=c("Surf", "Deep"), values = c(24, 25)) +
-  scale_fill_manual(breaks=c("Morn", "Eve"), values = c("grey80", "grey30")) +
-  theme_bw()
+# left_join(rel_synth_df, frac_labeled_df) %>%
+#   select(compound_name, amendment, depth, startime, timepoint, timepoint_num, rel_change, labeled_frac) %>%
+#   pivot_longer(c(rel_change, labeled_frac)) %>%
+#   mutate(compound_name=str_remove_all(compound_name, "^L-")) %>%
+#   filter(compound_name%in%c("Methionine", "Adenosine", "Glutamine", "Guanine", "Glycine betaine", "Ectoine")) %>%
+#   filter(!is.na(value)) %>%
+#   ggplot(aes(x=timepoint_num, y=value, color=compound_name, shape=depth, fill=startime)) +
+#   geom_hline(yintercept = 0) +
+#   geom_line() +
+#   geom_point() +
+#   facet_nested(name~amendment, scales="free_y") +
+#   scale_x_log10() +
+#   scale_shape_manual(breaks=c("Surf", "Deep"), values = c(24, 25)) +
+#   scale_fill_manual(breaks=c("Morn", "Eve"), values = c("grey80", "grey30")) +
+#   theme_bw()
+
+ggsave("zimm_mimic.png", zimm_mimic_gp, path="manuscript/figures",
+       width=6.5, height=5, units = "in")
 ```
 
-```{r excessive methionine synthesis at T26 and T73 from organics}
-arrow::open_dataset("tmzMLs/pqds") %>%
-  filter(samp_type=="Smp") %>%
-  filter(polarity=="pos") %>%
-  filter(mz%between%pmppm(150.0584, 2)) %>%
-  filter(rt%between%c(5, 10)) %>%
-  collect() %>%
-  left_join(parametadata) %>%
-  # ggplot() + geom_point(aes(x=rt, y=mz))
-  qplotMS1data(color_col="timepoint") +
-  facet_nested(timepoint~amendment+depth)
-```
+![](figures/zimm_mimic.png)
 
+*Figure 9: Turnover vs new synthesis of metabolites after ~24 hours. Points correspond to individual metabolites with the x-coordinate indicating the log<sub>2</sub>-fold change difference between the compound's initial concentration and its final amount and the y-coordinate indicating the fraction of the metabolite labeled at T26. Points near zero on the x-axis but with large y-axis values underwent significant turnover without much synthesis, while values sloping up to the right are the result of net growth. Colors denote each of the four amendments and the 6AM/6PM and 25m/175m incubations are in separate panels. The three outermost metabolites have been manually labeled, though zero methionine signal was detected at T0 for the 175 meter samples in the 6AM nitrate and ammonia incubations as well as the 6PM ammonia incubation, so no points can be annotated.*
 
 # Discussion
 
