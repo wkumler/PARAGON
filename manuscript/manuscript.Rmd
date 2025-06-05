@@ -792,6 +792,8 @@ THAAs were 26-52% of the total particulate carbon pool (2.84 µM at 25 meters an
 
 ```{r fig thaa data}
 all_thaa_plot <- thaa_quant %>%
+  filter(filename!="240627_Smp_Nit-Deep-Eve-T26-C.mzML") %>%
+  filter(filename!="240627_Smp_Amm-Deep-Morn-T0-B.mzML") %>%
   filter(!str_detect(iso_name, "2H")) %>%
   left_join(metathaa) %>%
   filter(samp_type=="Smp") %>%
@@ -909,7 +911,6 @@ arrow::open_dataset("tmzMLs/pqds") %>%
   qplotMS1data() +
   facet_wrap(~samp_type, scales="free_y", ncol=1)
 ```
-
 
 ## Minimal diel signal observed except in the UV-absorbing mycosporine-like amino acids
 
@@ -1227,6 +1228,65 @@ ggsave("manuscript/figures/abs_metab_concs.png", abs_metab_conc_gp, width=6.5, h
 ![](figures/abs_metab_concs.png)
 
 *Figure 6: Quantified metabolite concentrations in nanomolar throughout the incubations for the 9 most abundant metabolites as distinguished by color. Concentrations have been broken down by whether they are fully unlabeled or contain any amount of ^15^N (or ^13^C in the case of the arginine and GMP amendments). Compounds other than the top 9 have been averaged and are shown in grey. Totals for all four amendments are shown here in the order they were done during the cruise, with separate panels for the 25 meter samples and the 175 meter samples.*
+
+```{r total nM in metabs and THAAs}
+total_lab_metab_gp <- samp_concs %>%
+  left_join(parametadata %>% distinct(shortname, amendment, depth, startime, timepoint, samp_type)) %>%
+  filter(samp_type!="Bad") %>%
+  mutate(lab_type=ifelse(!str_detect(iso_name, "13C0, 15N0"), "Labeled", "Unlabeled")) %>%
+  mutate(lab_type=factor(lab_type, levels=c("Unlabeled", "Labeled"))) %>%
+  mutate(depth=factor(depth, levels=c("Surf", "Deep"), labels=c("25 meters", "175 meters"))) %>%
+  mutate(amendment=factor(amendment, levels=c("Nit", "Arg", "GMP", "Amm"),
+                          labels=c("+Nitrate", "+Arginine", "+GMP", "+Ammonia"))) %>%
+  left_join(stan_patched %>% distinct(compound_name, n_N)) %>%
+  mutate(nM_N=conc_nm_in_env*n_N) %>%
+  group_by(amendment, shortname, depth, timepoint, startime, lab_type) %>%
+  summarise(total_nM_N_lab=sum(nM_N, na.rm = TRUE)) %>%
+  ggplot() +
+  geom_boxplot(aes(x=timepoint, y=total_nM_N_lab, color=lab_type)) +
+  facet_grid(depth~amendment, scales="free_x", space="free_x") +
+  scale_color_manual(breaks = c("Labeled", "Unlabeled"), values=c("#a41118", "black")) +
+  theme_bw() +
+  theme(strip.text.y = element_blank(), strip.background.y = element_blank(),
+        # legend.position = "inside", legend.position.inside = c(0.02, 0.45),
+        legend.justification = c(0, 1), legend.background = element_rect(color="black", fill="#FFFFFFAA"),
+        legend.position="none", plot.subtitle = element_markdown()) +
+  labs(x=NULL, y="Total N (nM)", title="Summed total of N in metabolites",
+       subtitle = "<strong>Unlabeled</strong> vs <span style='color:#a41118'><strong><sup>15</sup>N labeled</strong></span>")
+
+total_lab_thaa_gp <- thaa_quant %>%
+  filter(filename!="240627_Smp_Nit-Deep-Eve-T26-C.mzML") %>%
+  filter(filename!="240627_Smp_Amm-Deep-Morn-T0-B.mzML") %>%
+  filter(!str_detect(iso_name, "2H")) %>%
+  left_join(metathaa) %>%
+  filter(samp_type=="Smp") %>%
+  mutate(lab_type=ifelse(!str_detect(iso_name, "13C0, 15N0"), "Labeled", "Unlabeled")) %>%
+  mutate(lab_type=factor(lab_type, levels=c("Unlabeled", "Labeled"))) %>%
+  mutate(depth=factor(depth, levels=c("Surf", "Deep"), labels=c("25 meters", "175 meters"))) %>%
+  mutate(amendment=factor(amendment, levels=c("Nit", "Arg", "GMP", "Amm"),
+                          labels=c("+Nit", "+Arg", "+GMP", "+Amm"))) %>%
+  left_join(aa_ncs %>% distinct(compound_name, n_N)) %>%
+  mutate(nM_N=env_conc_nm*n_N) %>%
+  group_by(amendment, filename, depth, timepoint, startime, lab_type) %>%
+  summarise(total_nM_N_lab=sum(nM_N, na.rm = TRUE)) %>%
+  ggplot() +
+  geom_boxplot(aes(x=timepoint, y=total_nM_N_lab, color=lab_type)) +
+  facet_nested(depth~amendment, scales="free_x") +
+  scale_color_manual(breaks = c("Labeled", "Unlabeled"), values=c("#a41118", "black")) +
+  theme_bw() +
+  theme(legend.position = "none", plot.subtitle = element_markdown()) +
+  labs(x=NULL, y=NULL, title="Total N in THAAs",
+       subtitle = "<strong>Unlabeled</strong> vs <span style='color:#a41118'><strong><sup>15</sup>N labeled</strong></span>")
+
+thaa_metab_lab_concs_gp <- total_lab_metab_gp + total_lab_thaa_gp + plot_layout(widths = c(0.7, 0.3))
+
+ggsave("manuscript/figures/thaa_metab_lab_concs.png", thaa_metab_lab_concs_gp, width=6.5, height=4, dpi = 300)
+```
+
+![](figures/thaa_metab_lab_concs.png)
+
+*Figure 7: Quantified metabolite concentrations in nanomolar throughout the incubations for both metabolites and THAAs. Colors denote whether they are fully unlabeled or contain any amount of ^15^N (or ^13^C in the case of the arginine and GMP amendments). Totals for all four amendments are shown here in the order they were done during the cruise.*
+
 
 ## Untargeted methods reveal widespread labeling throughout the metabolome
 
