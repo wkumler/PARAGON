@@ -674,10 +674,11 @@ samp_concs %>%
 The guanosine monophosphate (GMP) incubations showed a pattern very similar to the arginine incubations in the identity, timing, and magnitude in which metabolites were labeled (Figure 2). While we were unable to measure GMP directly we saw clear labeling of fully C and N labeled guanosine (^13^C~10~, ^15^N~5~) after 3 hours that increased to a maximum of 75% after 24 hours before decreasing slightly to 64% labeled at the end of the three-day incubation. A small part of this signal was reflected in guanine, with ^13^C~5~, ^15^N~5~ guanine representing about 10% of the signal at T3 and reaching a maximum of 40% at T26. At T26 we also saw extensive labeling in adenine, adenosine, and hypoxanthine though their dominant labeling patterns (^13^C~0~ ^15^N~5~, ^13^C~5~ ^15^N~5~, and ^13^C~0~ ^15^N~4~ respectively, Supplemental figure XX) suggested that the adenine and hypoxanthine were synthesized from glutamate and that the ribose pool had been swamped by guanosine cleavage. Here, unlike the arginine incubations, we also saw some MAA labeling at the end of the 3 day incubation.
 
 ```{r thaa tables}
-thaa_quant %>%
+total_nM_CN_thaas <- thaa_quant %>%
   filter(!str_detect(iso_name, "2H")) %>%
   left_join(metathaa) %>%
   filter(samp_type=="Smp") %>%
+  filter(depth=="Surf") %>%
   left_join(aa_ncs) %>%
   select(filename, depth, compound_name, iso_name, env_conc_nm, n_C, n_N) %>%
   mutate(n_N_lab=as.numeric(str_extract(iso_name, "(?<=15N)\\d+"))) %>%
@@ -688,14 +689,20 @@ thaa_quant %>%
   mutate(nM_C_lab=env_conc_nm*n_C_lab, nM_C_unlab=env_conc_nm*n_C_unlab) %>%
   select(filename, depth, compound_name, iso_name, nM_N_lab, nM_N_unlab, nM_C_lab, nM_C_unlab) %>%
   pivot_longer(c(nM_N_lab, nM_N_unlab, nM_C_lab, nM_C_unlab)) %>%
-  summarise(total_uM=sum(value), .by=c(filename, depth, name)) %>%
+  summarise(total_uM=sum(value)/1000, .by=c(filename, depth, name)) %>%
   left_join(metathaa) %>%
   mutate(amendment=ifelse(timepoint=="T0", "T0", amendment)) %>%
   mutate(amendment=factor(amendment, levels = c("T0", "Amm", "Nit", "Arg", "GMP"),
-                          labels=c("Initial (T0)", "+Ammonia", "+Nitrate", "+Arginine", "+GMP"))) %>%
-  summarise(total_uM=mean(total_uM), .by=c(amendment, depth, timepoint, name)) %>%
-  pivot_wider(names_from = name, values_from = total_uM) %>%
-  arrange(depth, amendment, timepoint)
+                          labels=c("Initial (T0)", "+Ammonia", "+Nitrate", "+Arginine", "+GMP")))
+  
+total_nM_CN_thaas %>%
+  filter(timepoint=="T0") %>% filter(str_detect(name, "unlab")) %>% 
+  summarise(mean_uM=mean(total_uM), sd_uM=sd(total_uM), n=n(), .by=name) %>%
+  left_join(data.frame(
+    name=c("nM_N_unlab", "nM_C_unlab"),
+    total_part=c(0.36, 2.84)
+  )) %>%
+  mutate(perc_mean=round(mean_uM/total_part*100, 2), perc_sd=round(sd_uM/total_part*100, 2))
 
 
 
@@ -734,21 +741,67 @@ metab_avgs <- samp_concs %>%
   select(compound_name, iso_name, amendment, timepoint, depth, startime, nM_labeled) %>%
   summarise(metab_nM=mean(nM_labeled), .by = c(compound_name, iso_name, amendment, timepoint))
 
-
-left_join(metab_avgs, thaa_avgs) %>%
+free_nM_cols <- metab_avgs %>%
+  filter(!(amendment%in%c("Arg", "GMP") & timepoint=="T26")) %>%
   mutate(timepoint=ifelse(timepoint=="T0", "T0", "Tfinal")) %>%
-  mutate(lab_type=ifelse(iso_name=="13C0, 15N0", "Unlabeled", "Labeled")) %>%
-  pivot_longer(c(metab_nM, thaa_nM), names_to = "metab_or_thaa", values_to = "nM") %>%
-  summarise(nM=sum(nM), .by=c(compound_name, lab_type, amendment, timepoint, metab_or_thaa)) %>%
-  mutate(nM=ifelse(is.na(nM), 0, nM)) %>%
-  pivot_wider(names_from = metab_or_thaa, values_from=nM) %>%
-  mutate(frac_metab=metab_nM/(metab_nM+thaa_nM)) %>%
-  left_join(aa_ncs)
+  summarise(total_nM=sum(metab_nM), .by=c(compound_name, amendment, timepoint)) %>%
+  summarise(mean_free=mean(total_nM), .by=c(compound_name, timepoint))
+thaa_nM_cols <- thaa_avgs %>%
+  filter(!(amendment%in%c("Arg", "GMP") & timepoint=="T26")) %>%
+  mutate(timepoint=ifelse(timepoint=="T0", "T0", "Tfinal")) %>%
+  summarise(total_nM=sum(thaa_nM), .by=c(compound_name, amendment, timepoint)) %>%
+  summarise(mean_thaa=mean(total_nM), .by=c(compound_name, timepoint))
+tribble_data <- left_join(thaa_nM_cols, free_nM_cols) %>%
+  filter(!is.na(mean_free))
 ```
 
-We also explored the degree of labeling incorporation into proteins by measuring the total hydrolyzable amino acids (THAAs) at both the start of each incubation and the end (Figure 3). THAAs come from protein (which can be in living biomass or detritus) and include minor contributions from metabolites and peptides with hydrolyzable amino acid moieties (e.g. MAAs and glutathione).
+We also explored the degree of labeling incorporation into proteins by measuring the total hydrolyzable amino acids (THAAs) at both the start of each incubation and the end (Figure 3). THAAs come from protein (which can be in living biomass or detritus) and include minor contributions from metabolites and peptides with hydrolyzable amino acid moieties (e.g. MAAs and glutathione). THAAs were 26% (±6.5%, SD, n=24) of the total surface particulate carbon pool (PC = 2.84 µM in mixed layer) at T0 and 55% (±14.3%, SD, n=24) of the particulate nitrogen (PN = 0.36 µM in mixed layer) at the start of the incubations. Free amino acids composed between 0.2% and 14% of the total hydrolyzable fractions with the highest contributions from free glutamate (Table 1).
 
-THAAs were 26-52% of the total particulate carbon pool (2.84 µM C at 25 meters and 1.36 µM C at 175 meters) at T0 and 55-132% of the particulate nitrogen (PN, 0.36 µM N at 25 meters and 0.15 µM N at 175 meters), with total estimated nitrogen in the THAAs exceeding the single PN measurement at 175 meters. Free amino acids composed between 0.15% and 17% of the total THAA pool with the highest contributions from free glutamate. There were also differences in THAA labeling patterns between the amendments (Figure 3). Despite their shorter incubation time (26 hours vs 73 hours), the inorganic nitrogen amendments generally had higher fractions of labeled protein. The nitrate amendments in particular were surprisingly heavily labeled given the minimal signal seen in free metabolites.
+```{r thaa table maker, eval=TRUE}
+tribble(
+  ~compound_name, ~timepoint, ~mean_thaa, ~mean_free, ~perc_free,
+  "Glutamate + glutamine", "Tfinal", 29.40748, 4.035590, 13.72,
+  "Glutamate + glutamine", "T0", 19.57030, 1.658094, 8.47,
+  "Histidine", "Tfinal", 2.762330, 0.07120770, 2.58,
+  "Histidine", "T0", 2.530030, 0.04021933, 1.59,
+  "Arginine", "Tfinal", 8.146141, 0.2048679, 2.51,
+  "Arginine", "T0", 6.874896, 0.07773887, 1.13,
+  "Aspartate + asparagine", "T0", 14.54340, 0.3323115, 2.28,
+  "Aspartate + asparagine", "Tfinal", 20.93463, 0.4768357, 2.28,
+  "Alanine", "Tfinal", 20.79397, 0.4621025, 2.22,
+  "Alanine", "T0", 15.24471, 0.1659578, 1.09,
+  "Proline", "Tfinal", 8.472549, 0.1577695, 1.86,
+  "Proline", "T0", 7.218644, 0.04039485, 0.56,
+  "Serine", "Tfinal", 21.25465, 0.2692930, 1.27,
+  "Serine", "T0", 20.25602, 0.2115936, 1.04,
+  "Glycine", "Tfinal", 29.28480, 0.3379695, 1.15,
+  "Glycine", "T0", 29.56709, 0.1731074, 0.59,
+  "Leucine + isoleucine", "Tfinal", 26.94596, 0.3025389, 1.12,
+  "Leucine + isoleucine", "T0", 22.48716, 0.1756525, 0.78,
+  "Threonine", "Tfinal", 14.70700, 0.05560959, 0.38,
+  "Threonine", "T0", 12.05852, 0.02710304, 0.22
+) %>%
+  mutate(perc_free=round(mean_free/mean_thaa*100, digits=2)) %>%
+  mutate(mean_thaa=round(mean_thaa, digits=2), mean_free=round(mean_free, digits=2)) %>%
+  arrange(desc(perc_free)) %>%
+  mutate(compound_name=fct_inorder(compound_name)) %>%
+  arrange(compound_name) %>%
+  mutate(timepoint=factor(timepoint, levels=c("T0", "Tfinal"))) %>%
+  arrange(timepoint) %>%
+  pivot_wider(names_from=timepoint, values_from = c(mean_thaa, mean_free, perc_free)) %>%
+  mutate(spacer_col="  ") %>%
+  mutate(perc_free_T0=paste0(perc_free_T0, "%")) %>%
+  mutate(perc_free_Tfinal=paste0(perc_free_Tfinal, "%")) %>%
+  select(compound_name, mean_thaa_T0, mean_free_T0, perc_free_T0, spacer_col, mean_thaa_Tfinal, 
+         mean_free_Tfinal, perc_free_Tfinal) %>%
+  set_names(c("Amino acid", "THAA (T0)", "Free (T0)", "% free (T0)", " ", 
+              "THAA (final)", "Free (final)", "% free (final)")) %>%
+  knitr::kable(align = "r")
+```
+
+*Table 1: Concentrations of all 10 amino acids detected in both the total hydrolyzable (THAA) and dissolved free (DFAA) pools for unlabeled data in the surface averaged across all treatments. Values are reported in nanomoles per liter (nM).*
+
+There were also differences in THAA labeling patterns between the amendments (Figure 3). Despite their shorter incubation time (26 hours vs 73 hours), the inorganic nitrogen amendments had approximately equal fractions of labeled protein. The nitrate amendments in particular were surprisingly heavily labeled given the minimal signal seen in free metabolites.
 
 ```{r fig thaa data}
 all_thaa_plot <- thaa_quant %>%
@@ -861,18 +914,7 @@ ggsave("total_thaa_gp.png", total_thaa_gp, device = "png", path = "manuscript/fi
 
 *Figure 3: Stacked bar plots showing the fraction of various total hydrolyzable amino acids (THAAs) labeled at the end of the incubations across the four amendments. Total µM nitrogen (N) in the protein pool is shown in the top plot while the fraction of individual amino acids labeled is shown in the rows below. Colors denote specific labeling patterns detected in the THAAs.*
 
-We believe the organic nitrogen amendments largely resulted in metabolite labeling via remineralization to ammonia or glutamate based on the absence of a labeled carbon backbone in most of the labeled metabolites, but in the THAAs we were able to see some transformations that used the carbon backbone as-is. Proline and glutamate both had detectable ^13^C~5~ ^15^N~1~ labels in the arginine treatments. We also saw histidine ^13^C~5~ ^15^N~3~ synthesized during the guanosine monophosphate treatment, confirming again that the ribose pool must have been swamped with fully ^13^C labeled ribose cleaved from guanosine in order to enter the phosphoribosyl pyrophosphate pathway. The ^15^N~3~ pattern also indicates that for these organisms, glutamate, glutamine, and adenine were also heavily labeled. Finally, both phenylalanine and tyrosine had significant ^13^C~4~ ^15^N~1~ labeling, likely from erythrose 4-phosphate via the pentose phosphate pathway indicating new synthesis through shikimate with nitrogen addition from a heavily labeled glutamate pool again.
-
-```{r shikimate check}
-arrow::open_dataset("tmzMLs/pqds") %>%
-  filter(samp_type=="Poo" | samp_type=="Std") %>%
-  filter(polarity=="neg") %>%
-  filter(mz%between%pmppm(173.045, 10)) %>%
-  filter(rt%between%c(8, 12)) %>%
-  collect() %>%
-  qplotMS1data() +
-  facet_wrap(~samp_type, scales="free_y", ncol=1)
-```
+In the THAAs we were able to see the carbon backbone from the organics propagate into other compounds, resulting in ^13^C labeling in excess of natural abundance. Proline and glutamate both had detectable ^13^C~5~ ^15^N~1~ labels in the arginine treatments. We also saw histidine ^13^C~5~ ^15^N~3~ synthesized during the guanosine monophosphate treatment, with the ^15^N~3~ pattern indicating that glutamate, glutamine, and adenine were also heavily ^15^N labeled. Finally, both phenylalanine and tyrosine had significant ^13^C~4~ ^15^N~1~ labeling in the GMP amendments.
 
 ## Minimal diel signal observed except in the UV-absorbing mycosporine-like amino acids
 
@@ -1663,6 +1705,9 @@ The chronic nitrogen limitation of the North Pacific Subtropical Gyre (NPSG) cre
       - How is the labeled pool specifically decreasing?
     - Clear backbone use for protein that's not really seen in the metabolites - dedicated pathways again?
   - Ectoine - mention that it's mostly bacterial [@McParland2021]
+
+Section that was too much discussion and has since been gutted for the results alone but needs to be discussed:
+We believe the organic nitrogen amendments largely resulted in metabolite labeling via remineralization to ammonia or glutamate based on the absence of a labeled carbon backbone in most of the labeled metabolites, but in the THAAs we were able to see some transformations that used the carbon backbone as-is. Proline and glutamate both had detectable ^13^C~5~ ^15^N~1~ labels in the arginine treatments. We also saw histidine ^13^C~5~ ^15^N~3~ synthesized during the guanosine monophosphate treatment, confirming again that the ribose pool must have been swamped with fully ^13^C labeled ribose cleaved from guanosine in order to enter the phosphoribosyl pyrophosphate pathway. The ^15^N~3~ pattern also indicates that for these organisms, glutamate, glutamine, and adenine were also heavily labeled. Finally, both phenylalanine and tyrosine had significant ^13^C~4~ ^15^N~1~ labeling, likely from erythrose 4-phosphate via the pentose phosphate pathway indicating new synthesis through shikimate with nitrogen addition from a heavily labeled glutamate pool again.
 
 Need more discussion of betaines and cholines? Ask Anitra
 
