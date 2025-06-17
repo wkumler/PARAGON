@@ -1861,7 +1861,7 @@ heatmap_gp <- labeled_fracs %>%
     )
   )
 
-ggsave(plot = heatmap_gp, "manuscript/supplement/para_heatmap.pdf", device = "pdf",
+ggsave(plot = heatmap_gp, "manuscript/supplement/para_heatmap.png", device = "png",
        width = 10, height = 12)
 ```
 
@@ -1964,7 +1964,7 @@ all_maa_gp <- ggplot(all_maa_data) +
         legend.justification = c(1, 1), 
         legend.background = element_rect(fill="#FFFFFFAA", color="black", linewidth = 0)) +
   guides(shape=guide_legend(override.aes = list(size=3, stroke=1.2, alpha=1, linetype=0)))
-ggsave(plot = all_maa_gp, filename = "supp_MAA_curves.pdf", device = "pdf", 
+ggsave(plot = all_maa_gp, filename = "supp_MAA_curves.png", device = "png", 
        path = "manuscript/supplement", width = 6.5, height = 9, units = "in", dpi = 300)
 
 ```
@@ -1989,7 +1989,7 @@ samp_concs %>%
   scale_fill_manual(breaks=c(top_cmpds, "Other"), values = c(splividis(14), "grey50")) +
   scale_alpha_manual(breaks=c("Labeled", "Unlabeled"), values = c(0.5, 1)) +
   theme_bw()
-ggsave("manuscript/supplement/top_cmpd_stackplot.pdf", width = 14, height = 10)
+ggsave("manuscript/supplement/top_cmpd_stackplot.png", width = 14, height = 10)
 ```
 
 ## Supp fig: untargeted heatmap
@@ -2025,48 +2025,35 @@ untarg_heatmap <- untarg_lab_fracs %>%
       legend.text = ggtext::element_markdown(hjust=c(0, 0.5, 0.5, 0.5, 1)))
     )
   )
-ggsave("manuscript/supplement/untarg_heatmap.pdf", width = 10, height=36, units = "in")
+ggsave("manuscript/supplement/untarg_heatmap.png", width = 10, height=36, units = "in")
 ```
 
+## Supp tables
 
-## Supp fig? Untargeted zimmerman
+```{r supplemental xlsx}
+library(openxlsx)
+wb <- createWorkbook(creator = "William Kumler, wkumler@uw.edu")
+addWorksheet(wb, sheetName = "Table 1 Sample metadata")
+addWorksheet(wb, sheetName = "Table 2 Standards")
+addWorksheet(wb, sheetName = "Table 3 Untargeted features")
 
-```{r untargeted zimmermann plot}
-untarg_rel_synth_df <- feat_shape_df %>%
-  filter(peak_qual=="Good") %>%
-  # filter(feature=="FT1305") %>%
-  left_join(cleaned_combined_peaks) %>%
-  left_join(parametadata %>% distinct(filename, samp_type, timepoint, amendment, depth, startime)) %>%
-  filter(samp_type=="Smp") %>%
-  summarise(time_total=mean(unlab_area), .by=c(feature, timepoint, amendment, depth, startime)) %>%
-  pivot_wider(names_from=timepoint, values_from=time_total) %>%
-  pivot_longer(T1:last_col(), names_to="timepoint", values_to="time_mean") %>%
-  mutate(rel_change=log2(time_mean/T0)) %>%
-  select(feature, amendment, depth, startime, timepoint, rel_change)
+parametadata %>%
+  writeData(wb = wb, sheet = "Table 1 Sample metadata")
 
-untarg_frac_labeled_df <- untarg_lab_fracs %>%
-  # filter(compound_name=="L-Glutamine") %>%
-  # filter(str_detect(shortname, "Amm-Surf-Morn")) %>%
-  # filter(compound_name=="Guanine") %>%
-  left_join(parametadata %>% distinct(shortname, timepoint, timepoint_num, amendment, depth, startime)) %>%
-  summarise(labeled_frac=mean(labeled_frac), .by=c(feature, amendment, depth, startime, timepoint, timepoint_num))
+stan_patched %>%
+  writeData(wb=wb, sheet="Table 2 Standards")
 
-left_join(untarg_rel_synth_df, untarg_frac_labeled_df) %>%
-  filter(!(amendment%in%c("Amm", "Nit") & timepoint=="T73")) %>%
-  filter(!(amendment%in%c("Arg", "GMP") & timepoint=="T1")) %>%
-  filter(!(amendment!="Arg" & timepoint=="T18")) %>%
-  # filter(if_any(everything(), is.na))
-  mutate(timepoint=factor(timepoint, levels=paste0("T", c(1,3,10,18,26,73)))) %>%
-  left_join(feat_shape_df %>% select(feature, mzmed)) %>%
-  ggplot(aes(x=rel_change, y=labeled_frac, color=timepoint, label=feature)) +
-  geom_hline(yintercept = 0) +
-  geom_vline(xintercept = 0) +
-  geom_point() +
-  scale_y_continuous(labels = scales::label_percent()) +
-  scale_x_continuous(labels = function(x)paste0("2<sup>", x, "</sup>")) +
-  facet_nested(depth+startime~amendment) +
-  labs(x="Relative concentration change from T0", y="Fraction labeled") +
-  theme_bw() +
-  theme(axis.text.x=element_markdown())
+cleaned_combined_peaks %>%
+  distinct(feature, mzmed, rtmed) %>%
+  left_join(
+    readxl::read_excel("untargeted/best_labeled_anno.xlsx") %>%
+      select(feature, compound_name, formula, `Final name`, Class)
+  ) %>%
+  left_join(kmeans_df) %>%
+  filter(!is.na(cluster_name)) %>%
+  arrange(feature) %>%
+  writeData(wb=wb, sheet="Table 3 Untargeted features")
 
+saveWorkbook(wb, file = "manuscript/supplement/PARAGON_supplement.xlsx", overwrite = TRUE)
 ```
+
