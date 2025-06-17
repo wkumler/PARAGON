@@ -672,7 +672,7 @@ samp_concs %>%
   facet_grid(compound_name~timepoint)
 ```
 
-The guanosine monophosphate (GMP) incubations showed a pattern very similar to the arginine incubations in the identity, timing, and magnitude in which metabolites were labeled (Figure 2). While we were unable to measure GMP directly we saw clear labeling of fully C and N labeled guanosine (^13^C~10~, ^15^N~5~) after 3 hours that increased to a maximum of 75% after 24 hours before decreasing slightly to 64% labeled at the end of the three-day incubation. A small part of this signal was reflected in guanine, with ^13^C~5~, ^15^N~5~ guanine representing about 10% of the signal at T3 and reaching a maximum of 40% at T26. At T26 we also saw extensive labeling in adenine, adenosine, and hypoxanthine though their dominant labeling patterns (^13^C~0~ ^15^N~5~, ^13^C~5~ ^15^N~5~, and ^13^C~0~ ^15^N~4~ respectively, Supplemental figure XX) suggested that the adenine and hypoxanthine were synthesized from glutamate and that the ribose pool had been swamped by guanosine cleavage. Here, unlike the arginine incubations, we also saw some MAA labeling at the end of the 3 day incubation.
+The guanosine monophosphate (GMP) incubations showed a pattern very similar to the arginine incubations in the identity, timing, and magnitude in which metabolites were labeled (Figure 2). While we were unable to measure GMP directly we saw clear labeling of fully C and N labeled guanosine (^13^C~10~, ^15^N~5~) after 3 hours that increased to a maximum of 75% after 24 hours before decreasing slightly to 64% labeled at the end of the three-day incubation. A small part of this signal was reflected in guanine, with ^13^C~5~, ^15^N~5~ guanine representing about 10% of the signal at T3 and reaching a maximum of 40% at T26. At T26 we also saw extensive labeling in adenine, adenosine, and hypoxanthine though their dominant labeling patterns (^13^C~0~ ^15^N~5~, ^13^C~5~ ^15^N~5~, and ^13^C~0~ ^15^N~4~ respectively, Supplemental Figure 1) suggested that the adenine and hypoxanthine were synthesized from glutamate and that the ribose pool had been swamped by guanosine cleavage. Here, unlike the arginine incubations, we also saw some MAA labeling at the end of the 3 day incubation.
 
 ```{r thaa tables}
 total_nM_CN_thaas <- thaa_quant %>%
@@ -915,7 +915,7 @@ ggsave("total_thaa_gp.png", total_thaa_gp, device = "png", path = "manuscript/fi
 
 *Figure 3: Stacked bar plots showing the fraction of various total hydrolyzable amino acids (THAAs) labeled at the end of the incubations (26 hours for nitrate and ammonia, 73 hours for guanosine monophosphate (GMP) and arginine) across the four amendments. Total µM nitrogen (N) in the protein pool is shown in the top plot while the fraction of individual amino acids labeled is shown in the rows below. Colors denote specific labeling patterns detected in the THAAs.*
 
-In the THAAs we were able to see the carbon backbone from the organics propagate into other compounds, resulting in ^13^C labeling in excess of natural abundance. Proline and glutamate both had detectable ^13^C~5~ ^15^N~1~ labels in the arginine treatments. We also saw histidine ^13^C~5~ ^15^N~3~ synthesized during the guanosine monophosphate treatment, with the ^15^N~3~ pattern indicating that glutamate, glutamine, and adenine were also heavily ^15^N labeled. Finally, both phenylalanine and tyrosine had significant ^13^C~4~ ^15^N~1~ labeling in the GMP amendments.
+In the THAAs we were able to see the carbon backbone from the organics propagate into other compounds, resulting in ^13^C labeling in excess of natural abundance. Proline and glutamate both had detectable ^13^C~5~ ^15^N~1~ labels in the arginine treatments. We also saw histidine ^13^C~5~ ^15^N~3~ synthesized during the guanosine monophosphate treatment, with the ^15^N~3~ pattern indicating that glutamate, glutamine, and adenine were also heavily ^15^N labeled. Finally, both phenylalanine and tyrosine had significant ^13^C~4~ ^15^N~1~ labeling in the GMP amendments (Figure 3, Supplemental Figure 2).
 
 ## Minimal diel signal observed except in the UV-absorbing mycosporine-like amino acids
 
@@ -1010,7 +1010,7 @@ ggsave(plot = chosen_maa_gp, filename = "MAA_curves.png", device = "png",
 
 *Figure 4: Fraction of UV-absorbing mycosporine-like amino acids (MAAs) containing at least one ^15^N label over one day during the treatments amended with ^15^N labeled ammonia or nitrate. Incubations started at 6AM are shown in yellow while incubations started at 6PM are shown in blue, with grey background regions highlighting nighttime. Three replicates are included at each of the 5 timepoints and best-fit power law curves have been fit behind the data.*
 
-Nitrate data showed similar degrees of labeling which was again surprising given the reduced amount of bulk metabolite labeling in those amendments, though the synthesis of MAAs from nitrate appeared less clearly diel. Shinorine and porphyra-334 were particularly well-labeled under nitrate, approaching the values achieved in the ammonia incubations. Very little MAA labeling was observed during the arginine and GMP amendments until the 73 hour timepoint, though at that point the fraction labeled was approximately equivalent to the inorganic amendments and slightly higher for GMP than arginine.
+Nitrate data showed similar degrees of labeling which was again surprising given the reduced amount of bulk metabolite labeling in those amendments, though the synthesis of MAAs from nitrate appeared less clearly diel. Shinorine and porphyra-334 were particularly well-labeled under nitrate, approaching the values achieved in the ammonia incubations. Very little MAA labeling was observed during the arginine and GMP amendments until the 73 hour timepoint, though at that point the fraction labeled was approximately equivalent to the inorganic amendments and slightly higher for GMP than arginine (Supplemental Figure 3).
 
 ## Ammonia more bioavailable at surface, organics equally bioavailable at 25m and 175m
 
@@ -1162,11 +1162,11 @@ ggsave(filename = "deep_vs_surf_labeling.png", surfdeep_gp, device = "png",
 
 Other metabolites varied in their degree of labeling (Figure 5). Nucleobases and nucleosides were much more heavily labeled from ammonia at the surface, with maximum labeling 3-10 times more extensive around T3 and T10 if the isotope was measurable at both depths and infinitely more so if not. Betaines and other nitrogen-containing metabolites, however, were almost entirely unlabeled at 175 meters until the 24 hour mark, at which time the fraction labeled in both was 5-20 times higher at the surface. An important exception to this rule is the osmolyte ectoine, an aspartate derivative that nonetheless was synthesized with nitrogen from ammonia at depth with the fraction labeled equal to or exceeding that of the surface in an equal amount of time.
 
-We were unfortunately unable to present the data collected from the 175 meter labeled nitrate incubations here due to our inability to confidently connect data to the correct timepoint for those samples but the raw numbers are provided in the supplement (Supplemental Figure XX).
+We were unfortunately unable to present the data collected from the 175 meter labeled nitrate incubations here due to our inability to confidently connect data to the correct timepoint for those samples but the raw numbers are provided in the supplement (Supplemental Figure 1, Supplemental Figure 5).
 
 ^15^N use from the organic nitrogen substrates was similar between the 25 meter and 175 meter samples aside from the direct products added to incubations. In both cases, uptake and use of the labeled substrate was equal or slightly higher at depth for a majority of the metabolites measured. Exceptions to this were theanine, which was 20-30 percentage points more heavily labeled at the surface by the end of the incubations, and ectoine, which was synthesized more at depth even to a larger degree than it was during the ammonia treatments, reaching nearly 50 percentage points more labeled at 175 meters than it was at 25 meters.
 
-At 175 meters, the difference between organic and inorganic amendments also becomes apparent (Figure 6). Organic compounds result in increases in absolute metabolite concentration and fraction labeled while the inorganic substrates are essentially unused. This is in direct contrast to the surface data, where ammonia also resulted in an increased metabolite load likely corresponding to overall growth. Much of the labeling at 175 meters appears to be in the less-abundant compounds. Glutamine (~1 nM) was almost entirely labeled after 24 hours and half the glutamate pool (3-5 nM) had been synthesized from the ^15^N in arginine and GMP, while the other 7 most abundant compounds were not nearly as heavily labeled. The less-abundant compounds, however, were also on average 50% labeled, representing an additional 1-2 nanomoles of ^15^N label incorporation per liter.
+At 175 meters, the difference between organic and inorganic amendments also becomes apparent (Figure 6). Organic compounds result in increases in absolute metabolite concentration and fraction labeled while the inorganic substrates are essentially unused. This is in direct contrast to the surface data, where ammonia also resulted in an increased metabolite load likely corresponding to overall growth. Much of the labeling at 175 meters appears to be in the less-abundant compounds. Glutamine (~1 nM) was almost entirely labeled after 24 hours and half the glutamate pool (3-5 nM) had been synthesized from the ^15^N in arginine and GMP, while the other 7 most abundant compounds were not nearly as heavily labeled. The less-abundant compounds, however, were also on average 50% labeled, representing an additional 1-2 nanomoles of ^15^N label incorporation per liter (Supplemental Figure 4).
 
 ```{r fig absolute quant depth comparison}
 draw_key_splitrect <- function(data, params, size) {
@@ -1310,7 +1310,6 @@ samp_concs %>%
   summarise(mean_pM=mean(total_nM, na.rm=TRUE)*1000, .by=c(amendment, depth, timepoint)) %>%
   pivot_wider(names_from=timepoint, values_from=mean_pM)
 ```
-
 
 Finally, to investigate what fraction of this labeling was due to net synthesis or metabolite turnover for the metabolome as a whole, we plotted the relative concentration change between the initial timepoint and T26 against the fraction of the metabolite labeled (Figure 8). While most metabolites increased their labeling in sync with their total increase in abundance, two metabolites stood out in particular. The amino acid methionine experienced large amounts of synthesis and jumped from below the limit of detection at T0 (a few pM) to hundreds of picomolar. This did not occur in the 175 meter ammonia or nitrate incubations, and the 25 meter nitrate incubation's methionine concentration actually decreased between T0 and T26. Unlike methionine and most other compounds, adenosine also stood out for its high levels of turnover without much increase in abundance (Figure 8). Adenosine concentrations consistently decreased after 24 hours despite accumulating large amounts of label (40-80%), indicating high turnover and use of this metabolite even in the GMP incubation where a similar nucleoside was abundant in the environment. This pattern was especially unique because the nucleobase adenine did not follow this pattern and instead mapped onto most other metabolites with simultaneous synthesis and labeling, as did the other nucleosides guanosine and cytidine.
 
@@ -1532,9 +1531,9 @@ best_labeled %>%
   write_csv("untargeted/best_labeled_anno.csv")
 ```
 
-Of the 219 features that remained, the majority (150) had a ^15^N isotope with the correct *m/z* value and a chromatographic similarity score between the unlabeled and labeled data above 0.8 (see Methods). 80 of these 150 also showed linear increases in peak area across the timepoints, denoting likely ^15^N-labeled metabolites. We manually inspected each of these 80 metabolites and were able to identify the majority as either compounds in our list of authentic standards (19/80), an isotope of a known compound (39/80), or an in-source fragment of a known compound (12/80, consisting of fragments from proline (70.0658), glutamic acid/glutamate (84.0449, 102.0550, and 130.0499), and the loss of ribose from nucleosides). Five compounds were putatively identified using isotope labeling patterns and literature searches: FT1362 with an *m/z* of 121.07798 and a retention time (RT) of 4.5 minutes we flagged as indoline, FT1564 with an *m/z* of 124.0524 and a 2.7 minute RT we flagged as the ^15^N isotope of nicotinamide, FT4529 with an *m/z* of 228.0979 and a 6.7 minute RT we flagged as deoxycytidine, FT5860 with an *m/z* of 282.1182 and an 11.1 minute RT we flagged as pangamic acid, and FT6622 with an *m/z* of 333.1292 and an 11.2 minute RT we flagged as shinorine. Four additional compounds could not be putatively identified but had plausible molecular formulae: FT3699 with an *m/z* of 192.0866 and 10.3 RT we assigned C~7~H~14~NO~5~, FT4598 with an *m/z* of 231.1703	and 1.9 RT we assigned C~11~H~23~N~2~O~3~, FT4733 with an *m/z* of 236.1492 and 10.0 RT we assigned C~10~H~22~NO~5~, and FT5185 with an *m/z* of 252.1441 and 10.7 RT we assigned C~10~H~22~NO~6~. One feature we were unable to annotate at all (FT5076, *m/z* 248.1258 and RT 12.0).
+Of the 219 features that remained, the majority (150) had a ^15^N isotope with the correct *m/z* value and a chromatographic similarity score between the unlabeled and labeled data above 0.8 (see Methods). 80 of these 150 also showed linear increases in peak area across the timepoints, denoting likely ^15^N-labeled metabolites. We manually inspected each of these 80 metabolites and were able to identify the majority as either compounds in our list of authentic standards (19/80), an isotope of a known compound (39/80), or an in-source fragment of a known compound (12/80, consisting of fragments from proline (70.0658), glutamic acid/glutamate (84.0449, 102.0550, and 130.0499), and the loss of ribose from nucleosides). Five compounds were putatively identified using isotope labeling patterns and literature searches, four additional compounds could not be putatively identified but had plausible molecular formulae, and one feature we were unable to annotate at all (Supplemental Table 3).
 
-To derive biological meaning from the untargeted analysis, we performed a k-means clustering of the features across all the treatments and timepoints and included our targeted data in the clustering. Clear patterns of isotope incorporation emerged in 6 of the 10 clusters we used (Figure 9). Cluster 1, the largest with 64 molecular features, contained many of the unlabeled compounds including those without any nitrogen and all of the betaines. Cluster 2 contained most of the amino acids and beta-alanine. Cluster 3 contained the nucleobases other than cytosine and the ribose nucleosides as well as asparagine and proline, while cluster 5 contained the deoxyribose nucleosides and cytosine which did not get labeled as rapidly in the ammonia treatment. Cluster 4 contained 27 rapidly-labeled compounds including glutamine, glutamic acid, and aspartic acid. The sole known compound in cluster 6 was guanosine, with heavy labeling in the GMP incubations and mild labeling elsewhere. Cluster 7 consisted exclusively of the MAAs for the known compounds and 9 other unknowns. Finally, cluster 8 contained arginine, citrulline, ectoine, theanine, and N-acetyllysine, all of which had significant labeling in the arginine amendment. None of the 7 compounds in clusters 9 or 10 had known metabolites and these appear to be largely noise signals with 50% or more labeled at T0 (Figure 9).
+To derive biological meaning from the untargeted analysis, we performed a k-means clustering of the features across all the treatments and timepoints and included our targeted data in the clustering. Clear patterns of isotope incorporation emerged in 6 of the 10 clusters we used (Figure 9). Cluster 1, the largest with 64 molecular features, contained many of the unlabeled compounds including those without any nitrogen and all of the betaines. Cluster 2 contained most of the amino acids and beta-alanine. Cluster 3 contained the nucleobases other than cytosine and the ribose nucleosides as well as asparagine and proline, while cluster 5 contained the deoxyribose nucleosides and cytosine which did not get labeled as rapidly in the ammonia treatment. Cluster 4 contained 27 rapidly-labeled compounds including glutamine, glutamic acid, and aspartic acid. The sole known compound in cluster 6 was guanosine, with heavy labeling in the GMP incubations and mild labeling elsewhere. Cluster 7 consisted exclusively of the MAAs for the known compounds and 9 other unknowns. Finally, cluster 8 contained arginine, citrulline, ectoine, theanine, and N-acetyllysine, all of which had significant labeling in the arginine amendment. None of the 7 compounds in clusters 9 or 10 had known metabolites and these appear to be largely noise signals with 50% or more labeled at T0 (Figure 9, Supplemental Figure 5).
 
 ```{r run kmeans and save heatmap and save clusters}
 untarg_lab_mat <- untarg_lab_fracs %>%
@@ -1678,7 +1677,7 @@ Later timepoints followed the same process but were stored in flow-through incub
 
 A modified Bligh & Dyer dichloromethane:water/methanol extraction was used as detailed in @Boysen2018. Sample filters were removed from the freezer and randomly assigned to PTFE centrifuge tubes with a 1:1 mix of 100 µm and 400 µm silica beads, approximately 2 mL -20 °C Optima-grade dichloromethane, and approximately 3 mL -20 °C 1:1 methanol/water solution (both also Optima-grade). Samples were then run through a bead-beater and had the aqueous layer removed and replaced three times. The aqueous fraction was then warmed and dried under clean nitrogen gas before reconstitution into 300 µL of Optima-grade water. 
 
-At this point the samples were split into two 30 µL aliquot for analysis both with and without a full suite of isotope-labeled internal standards. Samples that received the internal standards were used for quantification of the unlabeled metabolite while those that did not were used to estimate the isotope distributions though they still received an internal standard mix of ^2^H~8~ phenylalanine and ^2^H~4~ taurine to ensure all samples were successfully injected. The full list of internal standards can be found in the Supplemental Information (Table XX).
+At this point the samples were split into two 30 µL aliquot for analysis both with and without a full suite of isotope-labeled internal standards. Samples that received the internal standards were used for quantification of the unlabeled metabolite while those that did not were used to estimate the isotope distributions though they still received an internal standard mix of ^2^H~8~ phenylalanine and ^2^H~4~ taurine to ensure all samples were successfully injected. The full list of internal standards can be found in the Supplemental Table 2.
 
 A pooled sample was created from 5-10 µL of each sample for a total volume of 300-600 µL that was used to assess matrix suppression and obscuring variation. We also ran samples of pure, unlabeled compounds split into two mixes in the pooled sample used to estimate the response factor of the instrument for quantification [@Boysen2018]. Samples were then placed directly into the autosampler for injection.
 
@@ -1798,9 +1797,7 @@ knitr::write_bib(packages_used[nchar(packages_used)>0], file = "manuscript/r-pac
 
 <div id="refs"></div>
 
-# Supplement
-
-## Supp fig: full heatmap of all compounds and timepoints
+# Supplemental Figures
 
 ```{r suppfig full heatmap}
 cmpd_order <- labeled_fracs %>%
@@ -1861,14 +1858,14 @@ heatmap_gp <- labeled_fracs %>%
     )
   )
 
-ggsave(plot = heatmap_gp, "manuscript/supplement/para_heatmap.png", device = "png",
+ggsave(plot = heatmap_gp, "manuscript/supplement/supp_1_para_heatmap.png", device = "png",
        width = 10, height = 12)
 ```
 
-## Supp fig: THAA labeling broken down by triplicate
+![Supplemental Figure 1: Fraction of each metabolite containing at least one ^15^N label during the surface seawater amendments with various substrates after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the compound signal was isotopically labeled. Three biological replicates are stacked vertically at each timepoint and the categories with multiple entries have been averaged. GMP = guanosine monophosphate.](supplement/para_heatmap.png)
 
 ```{r thaa supplement figures}
-pdf("manuscript/supplement/THAA_labeling.pdf", width=9, height = 5)
+pdf("manuscript/supplement/supp_2_THAA_labeling.pdf", width=9, height = 5)
 for(cmpd_i in setdiff(unique(thaa_quant$compound_name), c("Citrulline", "Ornithine", "Taurine"))){
   print(cmpd_i)
   gp <- thaa_quant %>%
@@ -1888,6 +1885,8 @@ for(cmpd_i in setdiff(unique(thaa_quant$compound_name), c("Citrulline", "Ornithi
 }
 dev.off()
 ```
+
+![Supplemental Figure 2: Stacked bar plots showing the fraction of various total hydrolyzable amino acids (THAAs) labeled at the end of the incubations (26 hours for nitrate and ammonia, 73 hours for guanosine monophosphate (GMP) and arginine) across the four amendments. Total µM nitrogen (N) in the protein pool is shown in the top plot while the fraction of individual amino acids labeled is shown in the rows below. Colors denote specific labeling patterns detected in the THAAs.](supplement/THAA_labeling.pdf)
 
 ```{r labeled thaa diff between amm and nit}
 simp_thaa_df <- thaa_quant %>%
@@ -1928,8 +1927,6 @@ thaa_pca %>%
   geom_point()
 ```
 
-## Supp fig: All MAA labeling
-
 ```{r all MAAs}
 all_maa_gp <- ggplot(all_maa_data) +
   annotate("rect", xmin=-Inf, xmax = 6, ymin=-Inf, ymax=Inf, fill="grey80") +
@@ -1964,12 +1961,12 @@ all_maa_gp <- ggplot(all_maa_data) +
         legend.justification = c(1, 1), 
         legend.background = element_rect(fill="#FFFFFFAA", color="black", linewidth = 0)) +
   guides(shape=guide_legend(override.aes = list(size=3, stroke=1.2, alpha=1, linetype=0)))
-ggsave(plot = all_maa_gp, filename = "supp_MAA_curves.png", device = "png", 
+ggsave(plot = all_maa_gp, filename = "supp_3_MAA_curves.png", device = "png", 
        path = "manuscript/supplement", width = 6.5, height = 9, units = "in", dpi = 300)
 
 ```
 
-## Supp fig: All quant concentrations for top 15 across all treatments and timepoints
+![Supplemental Figure 3: Fraction of UV-absorbing mycosporine-like amino acids (MAAs) containing at least one ^15^N label over one day during the treatments amended with ^15^N labeled ammonia or nitrate. Incubations started at 6AM are shown in yellow while incubations started at 6PM are shown in blue, with grey background regions highlighting nighttime. Three replicates are included at each of the 5 timepoints and best-fit power law curves have been fit behind the data. GMP = guanosine monophosphate.](supplement/supp_MAA_curves.png)
 
 ```{r all quant concs}
 samp_concs %>%
@@ -1989,10 +1986,10 @@ samp_concs %>%
   scale_fill_manual(breaks=c(top_cmpds, "Other"), values = c(splividis(14), "grey50")) +
   scale_alpha_manual(breaks=c("Labeled", "Unlabeled"), values = c(0.5, 1)) +
   theme_bw()
-ggsave("manuscript/supplement/top_cmpd_stackplot.png", width = 14, height = 10)
+ggsave("manuscript/supplement/supp_4_top_cmpd_stackplot.png", width = 14, height = 10)
 ```
 
-## Supp fig: untargeted heatmap
+![Supplemental Figure 4: Quantified metabolite concentrations in nanomolar throughout the incubations for the 14 most abundant metabolites as distinguished by color. Concentrations have been broken down by whether they are fully unlabeled or contain any amount of ^15^N (or ^13^C in the case of the arginine and GMP amendments). Compounds other than the top 14 have been averaged and are shown in grey. Totals for all four amendments are shown here in the order they were done during the cruise, with separate panels for the 25 meter samples and the 175 meter samples as well as those started at 6AM vs 6PM. Lighter colors denote the isotopically labeled version of the compound.](supplement/top_cmpd_stackplot.png)
 
 ```{r supp fig heatmap of all high-quality feats}
 untarg_heatmap <- untarg_lab_fracs %>%
@@ -2025,10 +2022,12 @@ untarg_heatmap <- untarg_lab_fracs %>%
       legend.text = ggtext::element_markdown(hjust=c(0, 0.5, 0.5, 0.5, 1)))
     )
   )
-ggsave("manuscript/supplement/untarg_heatmap.png", width = 10, height=36, units = "in")
+ggsave("manuscript/supplement/supp_5_untarg_heatmap.png", width = 10, height=36, units = "in")
 ```
 
-## Supp tables
+![Supplemental Figure 5: Individual untargeted metabolites containing at least one ^15^N label during the surface seawater amendments with various substrates after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the feature signal was isotopically labeled. Three biological replicates are stacked vertically at each timepoint and the labeling within each clusters has been averaged across all the composing features. The number of features in each cluster is specified by the n in the facet name. GMP = guanosine monophosphate.](supplement/top_cmpd_stackplot.png)
+
+# Supplemental Tables
 
 ```{r supplemental xlsx}
 library(openxlsx)
@@ -2057,3 +2056,10 @@ cleaned_combined_peaks %>%
 saveWorkbook(wb, file = "manuscript/supplement/PARAGON_supplement.xlsx", overwrite = TRUE)
 ```
 
+Available as an Extended Data file. Captions reproduced here for clarity.
+
+Table: Supplemental Table 1: Sample metadata
+
+Table: Supplemental Table 2: Authentic and internal standards
+
+Table: Supplemental Table 3: Untargeted feature identifications
