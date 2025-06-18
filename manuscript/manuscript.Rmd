@@ -1596,7 +1596,7 @@ best_labeled %>%
 
 Of the 219 features that remained, the majority (150) had a ^15^N isotope with the correct *m/z* value and a chromatographic similarity score between the unlabeled and labeled data above 0.8 (see Methods). 80 of these 150 also showed linear increases in peak area across the timepoints, denoting likely ^15^N-labeled metabolites. We manually inspected each of these 80 metabolites and were able to identify the majority as either compounds in our list of authentic standards (19/80), an isotope of a known compound (39/80), or an in-source fragment of a known compound (12/80, consisting of fragments from proline (70.0658), glutamic acid/glutamate (84.0449, 102.0550, and 130.0499), and the loss of ribose from nucleosides). Five compounds were putatively identified using isotope labeling patterns and literature searches, four additional compounds could not be putatively identified but had plausible molecular formulae, and one feature we were unable to annotate at all (Supplemental Table 3).
 
-To derive biological meaning from the untargeted analysis, we performed a k-means clustering of the features across all the treatments and timepoints and included our targeted data in the clustering. Clear patterns of isotope incorporation emerged in 6 of the 10 clusters we used (Figure 10). Cluster 1, the largest with 64 molecular features, contained many of the unlabeled compounds including those without any nitrogen and all of the betaines. Cluster 2 contained most of the amino acids and beta-alanine. Cluster 3 contained the nucleobases other than cytosine and the ribose nucleosides as well as asparagine and proline, while cluster 5 contained the deoxyribose nucleosides and cytosine which did not get labeled as rapidly in the ammonia treatment. Cluster 4 contained 27 rapidly-labeled compounds including glutamine, glutamic acid, and aspartic acid. The sole known compound in cluster 6 was guanosine, with heavy labeling in the GMP incubations and mild labeling elsewhere. Cluster 7 consisted exclusively of the MAAs for the known compounds and 9 other unknowns. Finally, cluster 8 contained arginine, citrulline, ectoine, theanine, and N-acetyllysine, all of which had significant labeling in the arginine amendment. None of the 7 compounds in clusters 9 or 10 had known metabolites and these appear to be largely noise signals with 50% or more labeled at T0 (Figure 10, Supplemental Figure 5).
+To derive biological meaning from the untargeted analysis, we performed a k-means clustering of the features across all the treatments and timepoints and included our targeted data in the clustering. Clear patterns of isotope incorporation emerged in 6 of the 10 clusters we used (Figure 10). Cluster 1, the largest with 64 molecular features, contained many of the unlabeled compounds including those without any nitrogen and all of the betaines. Cluster 2 contained most of the amino acids and beta-alanine. Cluster 3 contained the nucleobases other than cytosine and the ribose nucleosides as well as asparagine and proline, while cluster 5 contained the deoxyribose nucleosides and cytosine which did not get labeled as rapidly in the ammonia treatment. Cluster 4 contained 27 rapidly-labeled compounds including glutamine, glutamic acid, and aspartic acid. The sole known compound in cluster 6 was guanosine, with heavy labeling in the GMP incubations and mild labeling elsewhere. Cluster 7 consisted exclusively of the MAAs and their isotopes. Finally, cluster 8 contained arginine, citrulline, ectoine, theanine, and N-acetyllysine, all of which had significant labeling in the arginine amendment. None of the 7 compounds in clusters 9 or 10 had known metabolites and these appear to be largely noise signals with 50% or more labeled at T0 (Figure 10, Supplemental Figure 5).
 
 ```{r run kmeans and save heatmap and save clusters}
 untarg_lab_mat <- untarg_lab_fracs %>%
@@ -1683,6 +1683,29 @@ kmeans_df %>%
 
 *Figure 10: Fraction of each cluster containing at least one ^15^N label during the surface seawater amendments with various substrates after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the feature signal was isotopically labeled. Three biological replicates are stacked vertically at each timepoint and the labeling within each clusters has been averaged across all the composing features. The number of features in each cluster is specified by the n in the facet name. GMP = guanosine monophosphate.*
 
+```{r}
+kmeans_df %>%
+  filter(str_detect(cluster_name, "Cluster 7")) %>%
+  left_join(feat_shape_df) %>%
+  select(feature, mzmed, rtmed) %>%
+  left_join(stan_patched %>% rename(feature=compound_name)) %>%
+  mutate(mzmed=ifelse(is.na(mzmed), mz, mzmed)) %>%
+  mutate(rtmed=ifelse(is.na(rtmed), rt*60, rtmed)) %>%
+  arrange(mzmed)
+
+open_dataset("tmzMLs/pqds") %>%
+  filter(amendment=="Amm") %>%
+  filter(polarity=="pos") %>%
+  filter(samp_type=="Smp") %>%
+  filter(mz%between%pmppm(247.1072, 10)) %>%
+  filter(rt%between%c(10, 11.5)) %>%
+  collect() %>%
+  left_join(parametadata) %>%
+  qplotMS1data(color_col = "timepoint") +
+  facet_grid(depth~startime)
+```
+
+
 # Discussion
 
 ## Contrasting the metabolic pathways taken by four forms of nitrogen
@@ -1697,7 +1720,9 @@ The two forms of organic nitrogen were used almost identically at both the surfa
 
 Organic nitrogen additions may have relieved N limitation at the surface and C limitation at depth, allowing similar degrees of growth in both locations. This is supported by the reuse of the carbon backbone in the THAAs, with proline and glutamate both showing ^13^C~5~ ^15^N~1~ labels in the arginine treatments and histidine showing ^13^C~5~ ^15^N~3~ synthesized during the guanosine monophosphate treatment, confirming that the ribose pool must have been swamped with fully ^13^C labeled ribose cleaved from guanosine in order to enter the phosphoribosyl pyrophosphate pathway. The ^15^N~3~ pattern also indicates that for these communities, glutamate, glutamine, and adenine were also >50% labeled. Finally, both phenylalanine and tyrosine had significant ^13^C~4~ ^15^N~1~ labeling, likely from erythrose 4-phosphate via the pentose phosphate pathway indicating new synthesis through shikimate with nitrogen addition from a heavily labeled glutamate pool again. 
 
-In contrast, the lack of corresponding osmolyte synthesis would indicate that total biomass did not increase enough to demand the synthesis of additional salinity-balancing metabolites. The concentration of major osmolytes in the cell is thought to be a function of cell volume and moderated by salinity [@Yancey2005], but we did not see significant labeling or net increases in their concentration aside from the amino acids proline and glycine which have other functions. The lack of correlation between the metabolite pool size and the fraction of it labeled indicates that cells are carefully allocating intracellular nitrogen.
+In contrast, the lack of corresponding osmolyte synthesis would indicate that total biomass did not increase enough to demand the synthesis of additional salinity-balancing metabolites. The concentration of major osmolytes in the cell is thought to be a function of cell volume and moderated by salinity [@Yancey2005], but we did not see significant labeling or net increases in most concentrations. The lack of correlation between the metabolite pool size and the fraction of it labeled indicates that cells are carefully allocating intracellular nitrogen. The exceptions to this were proline and glycine, which have many roles in the cell as amino acids, and ectoine, which is a metabolite thought to be produced almost exclusively by heterotrophic bacteria [@McParland2021]. Ectoine also showed unique labeling patterns with nearly equal amounts of labeling observed at the surface and 175 meters, reinforcing the idea that it's largely synthesized by heterotrophic bacteria to whom organic nitrogen is readily available.
+
+The general patterns shown in the known metabolites were generally reflected in the unknown metabolome as well. Our list of standards covered a majority of the signals that were high quality, had a ^15^N isotope, and increased in peak area over the course of the incubation according to fairly strict cutoffs. Of the novel molecules with putative identifications, the deoxyribonucleic acids were interesting for their smaller fraction labeled relative to the ribonucleic acids, implying that significantly more ^15^N was allocated to RNA synthesis than DNA in good agreement with our general understanding of the relative DNA vs RNA turnover times. The deoxyribose forms did still show a large amount (~20%) labeling after 24 hours, however, so DNA synthesis was occurring and likely therefore DNA replication and cell division. Another interesting metabolite discovered by untargeted methods was theanine (N5-ethyl glutamine), best known for its role in tea flavoring [@Vuong2011] that has since been found in fungi and can be produced from bacterial enzymes [@Mu2015]. This metabolite was almost exclusively singly-labeled, indicating that the ethylamine pool was not heavily labeled as it is predominately synthesized from glutamate and ethylamine. Its labeling pattern also tracked closely with that of glutamate, however, hinting at active synthesis of this compound in the marine environment for unknown reasons. Finally, the labeling of nicotinamide could be a result of vitamin B3 synthesis or the broader synthesis of nicotinamide adenine dinucleotide (NAD+), the latter of which would also explain why adenosine turns over rapidly but does not increase in concentration throughout the incubations. However, we must note that the identification of these compounds remain putative and are based exclusively on MS^1^ data via *m/z* match and isotope incorporation patterns.
 
 ## Environmental context of the incubations
 
