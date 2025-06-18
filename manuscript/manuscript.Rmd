@@ -1443,9 +1443,34 @@ zimm_mimic_gp <- zimm_data %>%
   # scale_color_manual(breaks=class_levels, values = class_colors) +
   scale_color_brewer(palette = "Set1") +
   facet_nested(depth+startime~.) +
-  labs(x="Relative concentration change from T0", y="Fraction labeled", color="Amendment") +
+  labs(x="Relative concentration change between T0 and T26", y="Fraction labeled", color="Amendment") +
   theme_bw() +
   theme(axis.text.x=element_markdown())
+
+zimm_mimic_gp <- zimm_data %>%
+  ggplot(aes(x=rel_change, y=labeled_frac, label=compound_name)) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  geom_segment(aes(xend=lab_placement_x, yend=lab_placement_y), data=zimm_labs) +
+  geom_point(aes(fill=startime, shape=depth), color="black") +
+  geom_label(aes(x=lab_placement_x, y=lab_placement_y), color="black", size=3,
+             label.r = unit(0, "in"), label.padding = unit(0.1, "lines"),
+             data=zimm_labs %>% distinct(compound_name, lab_placement_x, lab_placement_y)) +
+  scale_y_continuous(labels = scales::label_percent(), expand=expansion(mult = c(0.05, 0.15)),
+                     breaks = c(0, 0.5, 1)) +
+  scale_x_continuous(labels = function(x)paste0("2<sup>", x, "</sup>"), expand=expansion(mult=c(0.15, 0.05))) +
+  # scale_color_manual(breaks=class_levels, values = class_colors) +
+  # scale_color_brewer(palette = "Set1") +
+  scale_fill_manual(breaks=c("6AM", "6PM"), values=c("grey90", "grey30")) +
+  scale_shape_manual(breaks=c("25 meters", "175 meters"), values=c(24, 25)) +
+  facet_wrap(~amendment) +
+  labs(x="Relative concentration change between T0 and T26", y="Fraction labeled", 
+       fill="Start time", shape="Depth") +
+  theme_bw() +
+  theme(axis.text.x=element_markdown()) +
+  guides(fill=guide_legend(override.aes = list(pch=22, size=5)),
+         shape=guide_legend(override.aes = list(size=4, stroke=1)))
+
 
 # left_join(rel_synth_df, frac_labeled_df) %>%
 #   select(compound_name, amendment, depth, startime, timepoint, timepoint_num, rel_change, labeled_frac) %>%
@@ -1471,7 +1496,7 @@ ggsave("zimm_mimic.png", zimm_mimic_gp, path="manuscript/figures",
 
 ![](figures/zimm_mimic.png)
 
-*Figure 8: Turnover vs new synthesis of metabolites after ~24 hours. Points correspond to individual metabolites with the x-coordinate indicating the log<sub>2</sub>-fold change difference between the compound's initial concentration and its final amount and the y-coordinate indicating the fraction of the metabolite labeled at T26. Points near zero on the x-axis but with large y-axis values underwent significant turnover without much synthesis, while values sloping up to the right are the result of net growth. Colors denote each of the four amendments and the 6AM/6PM and 25m/175m incubations are in separate panels. The three outermost metabolites have been manually labeled, though zero methionine signal was detected at T0 for the 175 meter samples in the 6AM nitrate and ammonia incubations as well as the 6PM ammonia incubation, so no points can be annotated.*
+*Figure 9: Turnover vs new synthesis of metabolites after ~24 hours. Points correspond to individual metabolites with the x-coordinate indicating the log<sub>2</sub>-fold change difference between the compound's initial concentration and its final amount and the y-coordinate indicating the fraction of the metabolite labeled at T26. Points near zero on the x-axis but with large y-axis values underwent significant turnover without much synthesis, while values sloping up to the right are the result of net growth. Grey fills denote the start time (either 6AM or 6PM) and the shape denotes the depth from which the incubation community was taken. The three consistently outermost metabolites have been manually labeled, though zero methionine signal was detected at T0 for the 175 meter samples in the 6AM nitrate and ammonia incubations as well as the 6PM ammonia incubation, so no points can be annotated.*
 
 ## Untargeted methods reveal widespread labeling throughout the metabolome
 
