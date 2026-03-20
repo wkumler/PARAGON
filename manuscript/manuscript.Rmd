@@ -2133,7 +2133,7 @@ untarg_heatmap <- untarg_lab_fracs %>%
       legend.text = ggtext::element_markdown(hjust=c(0, 0.5, 0.5, 0.5, 1)))
     )
   )
-ggsave("manuscript/supplement/supp_5_untarg_heatmap.png", width = 10, height=36, units = "in")
+ggsave("manuscript/supplement/supp_5_untarg_heatmap.pdf", width = 10, height=36, units = "in")
 ```
 
 ![Supplemental Figure 5: Individual untargeted metabolites containing at least one ^15^N label during the surface seawater amendments with various substrates after the number of hours shown on the x-axis. Darker colors indicate a larger percentage of the feature signal was isotopically labeled. Three biological replicates are stacked vertically at each timepoint and the labeling within each clusters has been averaged across all the composing features. The number of features in each cluster is specified by the n in the facet name. GMP = guanosine monophosphate.](supplement/supp_5_untarg_heatmap.png)
